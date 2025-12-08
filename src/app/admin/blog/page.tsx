@@ -217,7 +217,6 @@ export default function AdminBlogPage() {
                                                 fill
                                                 className="object-cover"
                                                 alt=""
-                                                unoptimized={true}
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-gray-500"><ImageIcon className="w-6 h-6" /></div>
@@ -304,11 +303,20 @@ export default function AdminBlogPage() {
                                             {/* Preview Image */}
                                             {(formData.imagen_url || imageFile) && (
                                                 <div className="relative w-full h-32 bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
-                                                    <img
-                                                        src={imageFile ? URL.createObjectURL(imageFile) : formData.imagen_url}
-                                                        className="w-full h-full object-cover"
-                                                        alt="Preview"
-                                                    />
+                                                    {imageFile ? (
+                                                        <img
+                                                            src={URL.createObjectURL(imageFile)}
+                                                            className="w-full h-full object-cover"
+                                                            alt="Preview"
+                                                        />
+                                                    ) : (
+                                                        <Image
+                                                            src={formData.imagen_url}
+                                                            alt="Preview"
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    )}
                                                 </div>
                                             )}
 
