@@ -28,14 +28,23 @@ type Article = {
 
 async function getArticle(slug: string): Promise<Article | null> {
     try {
-        const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-        const host = process.env.VERCEL_URL || 'localhost:3000';
-        const baseUrl = `${protocol}://${host}`;
-        const apiUrl = `${baseUrl}/api/blog?slug=${slug}`;
+        const apiUrl = process.env.CPANEL_BLOG_API_URL ||
+            (process.env.CPANEL_API_URL ? process.env.CPANEL_API_URL.replace('api-platos.php', 'blog/blog_api.php') : null);
 
-        console.log(`DEBUG: Fetching Article from ${apiUrl}`);
+        if (!apiUrl) {
+            console.error('DEBUG: API URL not configured');
+            return null;
+        }
 
-        const res = await fetch(apiUrl, { cache: 'no-store' });
+        const url = `${apiUrl}?slug=${slug}`;
+        console.log(`DEBUG: Fetching Article from ${url}`);
+
+        const res = await fetch(url, {
+            headers: {
+                'X-API-Key': process.env.PHP_API_KEY || ''
+            },
+            cache: 'no-store'
+        });
 
         if (!res.ok) {
             console.error(`DEBUG: Failed to fetch. Status: ${res.status}`);
@@ -47,6 +56,7 @@ async function getArticle(slug: string): Promise<Article | null> {
         if (json.success) {
             return json.data;
         }
+        console.error('DEBUG: API returned success: false', json);
         return null;
     } catch (error) {
         console.error('Error fetching article:', error);
