@@ -63,7 +63,12 @@ export default function AdminBlogPage() {
             const res = await fetch('/api/blog');
             const data = await res.json();
             if (data.success) {
-                setArticles(data.data);
+                // Ensure 'activo' is treated as a boolean, handling "1", 1, "0", 0
+                const normalizedArticles = data.data.map((a: any) => ({
+                    ...a,
+                    activo: a.activo === 1 || a.activo === '1' || a.activo === true
+                }));
+                setArticles(normalizedArticles);
             }
         } catch (e) {
             console.error('Error loading articles', e);
