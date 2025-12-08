@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import BlogClient from './BlogClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Blog | Hotel Puente Roto',
     description: 'Descubre noticias, guías y artículos sobre turismo, cultura y gastronomía en Cuenca, Ecuador.',

@@ -205,9 +205,15 @@ export default function AdminBlogPage() {
                         {articles.map(article => (
                             <div key={article.id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between border border-gray-700 hover:border-blue-500/50 transition-colors">
                                 <div className="flex gap-4 items-center">
-                                    <div className="w-16 h-16 rounded bg-gray-700 overflow-hidden flex-shrink-0">
+                                    <div className="w-16 h-16 rounded bg-gray-700 overflow-hidden flex-shrink-0 relative">
                                         {article.imagen_url ? (
-                                            <img src={article.imagen_url} className="w-full h-full object-cover" alt="" />
+                                            <Image
+                                                src={article.imagen_url}
+                                                fill
+                                                className="object-cover"
+                                                alt=""
+                                                unoptimized={true}
+                                            />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-gray-500"><ImageIcon className="w-6 h-6" /></div>
                                         )}
