@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Playfair_Display, Inter, Cinzel, Allura, Libre_Baskerville, Montserrat } from "next/font/google";
 import "./globals.css";
 import { FontAwesomeProvider } from "./providers";
 import GoogleTranslateWrapper from "@/components/GoogleTranslateWrapper";
@@ -15,27 +15,51 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const allura = Allura({
+  variable: "--font-allura",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const libre = Libre_Baskerville({
+  variable: "--font-libre",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
 export const metadata: Metadata = {
-  title: "Hotel Puente Roto - Experiencia Premium en Ecuador",
-  description: "Hotel de lujo en Cuenca, Ecuador. Habitaciones premium, restaurante gourmet, spa y eventos corporativos.",
-  keywords: ["Hotel Puente Roto", "Ecuador", "Hospedaje Premium", "Restaurante", "Spa", "Eventos"],
-  authors: [{ name: "Hotel Puente Roto" }],
+  title: "Hotel Familiar en Loja | Desayuno Incluido | Hotel El Cardenal",
+  description: "Disfrute de un hotel familiar en Loja con desayuno incluido, parking gratis y cerca de la naturaleza. Reserve en Hotel El Cardenal, su hogar íntimo en Loja.",
+  keywords: ["Hotel Familiar en Loja", "Desayuno Incluido", "Cerca de la Naturaleza", "Alojamiento en Loja", "Hotel El Cardenal", "Loja", "Ecuador", "Hospedaje", "Turismo Loja"],
+  authors: [{ name: "Hotel Cardenal Loja" }],
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
     apple: '/favicon.ico',
   },
   openGraph: {
-    title: "Hotel Puente Roto - Experiencia Premium en Ecuador",
-    description: "Hotel de lujo en Cuenca, Ecuador. Habitaciones premium, restaurante gourmet, spa y eventos corporativos. Reserve ahora con el mejor precio garantizado.",
-    url: 'https://hotelloja.com',
-    siteName: 'Hotel Puente Roto',
+    title: "Hotel Cardenal Loja - Elegancia y Confort",
+    description: "Descubra la hospitalidad lojana en un ambiente familiar y elegante. Su hogar en Loja le espera.",
+    url: 'https://hotelelcardenalloja.com',
+    siteName: 'Hotel El Cardenal Loja',
     images: [
       {
-        url: '/Logo.png',
+        url: '/logo.jpg',
         width: 1200,
         height: 630,
-        alt: 'Hotel Puente Roto - Experiencia Premium',
+        alt: 'Hotel Cardenal Loja',
       },
     ],
     locale: 'es_EC',
@@ -43,9 +67,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Hotel Puente Roto - Experiencia Premium en Ecuador",
-    description: "Hotel de lujo en Cuenca, Ecuador. Habitaciones premium, restaurante gourmet, spa y eventos corporativos.",
-    images: ['/Logo.png'],
+    title: "Hotel Cardenal Loja - Elegancia y Confort",
+    description: "El hotel preferido en el centro de Loja.",
+    images: ['/logo.jpg'],
   },
 };
 
@@ -56,7 +80,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${playfairDisplay.variable} ${inter.variable} antialiased bg-white text-gray-900 flex flex-col min-h-screen font-sans`}>
+      <body className={`${playfairDisplay.variable} ${inter.variable} ${cinzel.variable} ${allura.variable} ${libre.variable} ${montserrat.variable} antialiased bg-cardenal-cream text-text-main flex flex-col min-h-screen font-sans`}>
         <FontAwesomeProvider>
           <div className="flex flex-col flex-1">
             {children}

@@ -1,97 +1,155 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { Plus, Minus, HelpCircle } from 'lucide-react';
 
-// FAQ Data
+// FAQ data with SEO keywords
 const faqs = [
     {
         id: 1,
-        question: "¿Por qué debería reservar directamente en esta web en lugar de usar Booking.com o Expedia?",
-        answer: "Al reservar directamente, garantizamos la Mejor Tarifa Garantizada y accede a promociones exclusivas, servicios adicionales gratuitos o descuentos especiales que no encontrará en las OTAs. ¡Es nuestra forma de recompensar su reserva directa!"
+        pregunta: '¿Cuál es la ubicación del Hotel El Cardenal en Loja?',
+        respuesta: 'Estamos ubicados en la calle Gladiolos y Av. 18 de Noviembre, en la tranquila Urbanización Los Rosales. Nuestra ubicación es estratégica: a solo 7 minutos a pie del Supermaxi y el C.C. La Pradera, y a pasos del Parque Lineal La Tebaida. Es el lugar ideal para quienes buscan un hotel en Loja cerca de la naturaleza pero con fácil acceso al centro histórico (a 10 minutos).'
     },
     {
         id: 2,
-        question: "¿Cómo puedo estar seguro de que el precio y la disponibilidad están actualizados?",
-        answer: "Utilizamos una arquitectura híbrida de Next.js. El Motor de Reservas se comunica en tiempo real con nuestro Sistema de Gestión de Propiedades (PMS), asegurando que las tarifas y la disponibilidad mostradas sean siempre precisas e inmediatas."
+        pregunta: '¿El hotel cuenta con parqueadero privado y seguro?',
+        respuesta: 'Sí, ofrecemos parqueadero gratuito y privado dentro de nuestras instalaciones para todos nuestros huéspedes. Sabemos que la seguridad de su vehículo es prioridad, por lo que nuestras áreas están vigiladas para su total tranquilidad durante su hospedaje en Loja.'
     },
     {
         id: 3,
-        question: "¿Mis datos personales y de pago están seguros en esta plataforma?",
-        answer: "Absolutamente. Utilizamos Server Components de Next.js para gestionar claves de API y proteger los datos sensibles. Toda transacción cumple con los estándares PCI-DSS y resguardamos su PII (información de identificación personal) conforme a la LOPDP de Ecuador."
+        pregunta: '¿Qué incluye el desayuno en el Hotel El Cardenal?',
+        respuesta: 'Todas nuestras tarifas incluyen un desayuno casero y tradicional. Nos enorgullece servir café lojano de altura acompañado de delicias locales como tamales o humitas, garantizando que comience su día con el auténtico sabor de nuestra tierra.'
     },
     {
         id: 4,
-        question: "¿Qué es la Ley Orgánica de Protección de Datos Personales (LOPDP) de Ecuador y cómo me afecta?",
-        answer: "Es la ley que protege sus datos. Por su seguridad, requerimos su consentimiento explícito mediante checkboxes no premarcados en el formulario de reserva. Usted tiene el Derecho ARCO (acceso, rectificación, cancelación y oposición) a sus datos en todo momento."
+        pregunta: '¿Es un hotel adecuado para familias y niños?',
+        respuesta: 'Absolutamente. Somos el hotel familiar en Loja por excelencia. Contamos con habitaciones amplias como nuestro Familiar Loft y estamos junto al Parque La Tebaida, que ofrece 3.5 km de senderos ecológicos y áreas recreativas ideales para que los niños disfruten del aire puro.'
     },
     {
         id: 5,
-        question: "¿El hotel está cerca de los principales atractivos de Cuenca?",
-        answer: "Sí. Nuestro hotel es el punto de partida ideal. Estamos estratégicamente ubicados para acceder fácilmente al Parque Nacional Cajas, el centro histórico (Patrimonio de la Humanidad), los miradores del Turi, el Barranco del Tomebamba y otros sitios clave de la riqueza natural y cultural de Cuenca."
+        pregunta: '¿Tienen conexión WiFi para teletrabajo?',
+        respuesta: 'Sí, disponemos de WiFi de alta velocidad gratuito en todas las habitaciones y áreas sociales. Con una puntuación de 9.5/10 en conectividad, somos una opción confiable para viajeros de negocios que necesitan un alojamiento en Loja estable y tranquilo.'
+    },
+    {
+        id: 6,
+        pregunta: '¿Cómo puedo realizar una reserva directa?',
+        respuesta: 'Puede reservar directamente a través de nuestra página web oficial o contactarnos por WhatsApp. Al ser un hotel íntimo de solo 6 habitaciones, recomendamos reservar con anticipación, especialmente durante el Festival de Artes Vivas o feriados.'
+    },
+    {
+        id: 7,
+        pregunta: '¿Cómo puedo garantizar mi reserva en el hotel?',
+        respuesta: 'Para asegurar su habitación, el hotel puede solicitar una garantía mediante tarjeta de crédito o un depósito anticipado. Esto nos permite mantener su cupo bloqueado y ofrecerle una recepción ágil a su llegada.'
+    },
+    {
+        id: 8,
+        pregunta: '¿Puedo pagar mi estancia al momento de llegar?',
+        respuesta: 'Sí, puede liquidar su estancia al momento del check-in. Sin embargo, recomendamos realizar el pago anticipado o registro de tarjeta para garantizar la disponibilidad, especialmente en temporadas de alta demanda o eventos en Loja.'
+    },
+    {
+        id: 9,
+        pregunta: '¿Emiten factura comercial para empresas o extranjeros?',
+        respuesta: 'Sí. Somos un establecimiento formalmente registrado. Al momento de su reserva o ingreso, puede proporcionarnos sus datos de facturación (RUC, Cédula o Pasaporte) y emitiremos el comprobante correspondiente para sus registros contables o de viaje.'
     }
 ];
 
-export const FAQ = () => {
-    const [openIndex, setOpenIndex] = useState<number | null>(null);
+// Generate JSON-LD Schema for FAQPage
+const generateFAQSchema = () => {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': faqs.map(faq => ({
+            '@type': 'Question',
+            'name': faq.pregunta,
+            'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': faq.respuesta
+            }
+        }))
+    };
+};
 
-    const toggleAccordion = (index: number) => {
-        setOpenIndex(openIndex === index ? null : index);
+export const FAQ = () => {
+    const [openId, setOpenId] = useState<number | null>(null); // Closed by default
+
+    const toggleFAQ = (id: number) => {
+        setOpenId(openId === id ? null : id);
     };
 
     return (
-        <section className="py-20 bg-white">
+        <section className="py-24 bg-[#F8F9F7] relative">
+            {/* JSON-LD Schema for SEO */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(generateFAQSchema()) }}
+            />
+
             <div className="container mx-auto px-4">
                 {/* Section Header */}
-                <div className="text-center mb-16 max-w-3xl mx-auto">
-                    <div className="inline-flex items-center justify-center p-3 bg-blue-50 rounded-full mb-4">
-                        <HelpCircle className="w-6 h-6 text-blue-600" />
+                <div className="text-center mb-16 max-w-4xl mx-auto">
+                    <div className="inline-flex items-center gap-2 mb-6">
+                        <HelpCircle className="w-6 h-6 text-cardenal-gold" />
+                        <span className="text-cardenal-gold font-bold text-xs uppercase tracking-[0.3em] font-serif">
+                            FAQ
+                        </span>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                        Resolvemos sus Dudas: <span className="text-blue-600">Preguntas Frecuentes (FAQ)</span>
+                    <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif leading-tight">
+                        Experiencia del Huésped: <span className="text-cardenal-gold italic">Preguntas Frecuentes</span> sobre su Estancia
                     </h2>
-                    <p className="text-lg text-gray-600 leading-relaxed">
-                        Nuestro objetivo es que su experiencia de reserva sea transparente y sin fricciones. Aquí respondemos a las preguntas más comunes sobre tarifas, servicios y la legislación local.
-                    </p>
+                    <h3 className="text-lg md:text-xl text-text-muted font-medium leading-relaxed">
+                        Resolvemos sus dudas para que su visita al Hotel El Cardenal sea perfecta.
+                    </h3>
+                    <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
                 </div>
 
-                {/* Accordion */}
-                <div className="max-w-3xl mx-auto space-y-4">
-                    {faqs.map((faq, index) => (
+                {/* Accordion FAQ */}
+                <div className="max-w-4xl mx-auto space-y-4">
+                    {faqs.map((faq) => (
                         <div
                             key={faq.id}
-                            className={`border rounded-xl overflow-hidden transition-all duration-300 ${openIndex === index
-                                ? 'border-blue-200 shadow-md bg-blue-50/30'
-                                : 'border-gray-200 hover:border-blue-100 hover:bg-gray-50'
-                                }`}
+                            className={`bg-white shadow-md hover:shadow-lg transition-all duration-500 border ${openId === faq.id ? 'border-cardenal-gold' : 'border-transparent'}`}
                         >
                             <button
-                                onClick={() => toggleAccordion(index)}
-                                className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
-                                aria-expanded={openIndex === index}
+                                onClick={() => toggleFAQ(faq.id)}
+                                className="w-full flex items-center justify-between p-6 md:p-8 text-left group"
+                                aria-expanded={openId === faq.id}
                             >
-                                <span className={`font-bold text-lg ${openIndex === index ? 'text-blue-700' : 'text-gray-800'}`}>
-                                    {faq.question}
-                                </span>
-                                <span className={`ml-4 flex-shrink-0 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}>
-                                    {openIndex === index ? (
-                                        <ChevronUp className="w-5 h-5 text-blue-600" />
+                                <h4 className={`text-lg md:text-xl font-bold font-serif pr-4 transition-colors ${openId === faq.id ? 'text-cardenal-green' : 'text-cardenal-green/80 group-hover:text-cardenal-green'}`}>
+                                    {faq.pregunta}
+                                </h4>
+                                <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all duration-300 ${openId === faq.id ? 'bg-cardenal-gold text-white rotate-180' : 'bg-cardenal-gold/10 text-cardenal-gold group-hover:bg-cardenal-gold group-hover:text-white'}`}>
+                                    {openId === faq.id ? (
+                                        <Minus className="w-5 h-5" />
                                     ) : (
-                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                        <Plus className="w-5 h-5" />
                                     )}
-                                </span>
+                                </div>
                             </button>
 
                             <div
-                                className={`transition-all duration-300 ease-in-out overflow-hidden ${openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                                    }`}
+                                className={`overflow-hidden transition-all duration-500 ${openId === faq.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                             >
-                                <div className="p-6 pt-0 text-gray-600 leading-relaxed border-t border-blue-100/50">
-                                    {faq.answer}
+                                <div className="px-6 md:px-8 pb-6 md:pb-8">
+                                    <div className="h-px bg-cardenal-gold/20 mb-6"></div>
+                                    <p className="text-text-main leading-relaxed text-base md:text-lg">
+                                        {faq.respuesta}
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     ))}
+                </div>
+
+                {/* Additional Help CTA */}
+                <div className="text-center mt-16">
+                    <p className="text-text-muted mb-4">¿Tiene más preguntas?</p>
+                    <a
+                        href="https://wa.me/593939790561?text=Hola,%20tengo%20una%20consulta%20sobre%20el%20Hotel%20El%20Cardenal"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-cardenal-green hover:text-cardenal-gold font-bold transition-colors font-serif"
+                    >
+                        Contáctenos por WhatsApp
+                    </a>
                 </div>
             </div>
         </section>

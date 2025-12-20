@@ -5,56 +5,47 @@ import Image from 'next/image';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Categories
+// Categories
+// Categories
 const categories = [
     { id: 'all', label: 'Todos' },
-    { id: 'habitaciones', label: 'Habitaciones y Suites' },
-    { id: 'amenidades', label: 'Amenidades' },
-    { id: 'gastronomia', label: 'Gastronomía' },
-    { id: 'eventos', label: 'Eventos y Salones' },
-    { id: 'destino', label: 'Destino (Cuenca)' },
+    { id: 'habitaciones', label: 'Habitaciones' },
+    { id: 'restaurante', label: 'Restaurante' },
+    { id: 'eventos', label: 'Eventos' },
+    { id: 'turismo', label: 'Turismo Loja' },
 ];
 
-// Real Gallery Images
+// Descriptive Gallery Images
 const galleryImages = [
-    // Habitaciones
-    { id: 1, src: '/images/habitaciones/suite-ejecutiva-main.webp', alt: 'Suite Ejecutiva', category: 'habitaciones', width: 800, height: 600 },
-    { id: 2, src: '/images/habitaciones/suite-presidencial-main.webp', alt: 'Suite Presidencial', category: 'habitaciones', width: 800, height: 600 },
-    { id: 3, src: '/images/habitaciones/suite-premium-deluxe-main.webp', alt: 'Suite Premium Deluxe', category: 'habitaciones', width: 800, height: 600 },
-    { id: 4, src: '/images/habitaciones/junior-suite-elegance-main.webp', alt: 'Junior Suite Elegance', category: 'habitaciones', width: 800, height: 600 },
-    { id: 5, src: '/images/habitaciones/doble-familiar-main.webp', alt: 'Habitación Doble Familiar', category: 'habitaciones', width: 800, height: 600 },
-
-    // Gastronomía
-    { id: 6, src: '/images/restaurante/fusion.webp', alt: 'Cocina Fusión de Autor', category: 'gastronomia', width: 1200, height: 600 },
-    { id: 7, src: '/images/restaurante/galeria-plato-estrella.webp', alt: 'Plato Estrella Gourmet', category: 'gastronomia', width: 600, height: 400 },
-    { id: 8, src: '/images/restaurante/galeria-ambiente-interior.webp', alt: 'Ambiente Elegante Restaurante', category: 'gastronomia', width: 600, height: 400 },
-    { id: 9, src: '/images/restaurante/bar.webp', alt: 'Bar & Mixología', category: 'gastronomia', width: 1200, height: 600 },
-
-    // Amenidades
-    { id: 10, src: '/images/piscinas/hero-piscina-spa.webp', alt: 'Piscina Panorámica Climatizada', category: 'amenidades', width: 1920, height: 1200 },
-    { id: 11, src: '/images/piscinas/galeria-spa-masajes.webp', alt: 'Spa & Masajes Relajantes', category: 'amenidades', width: 600, height: 400 },
-    { id: 12, src: '/images/piscinas/galeria-jacuzzi.webp', alt: 'Jacuzzi de Hidromasaje', category: 'amenidades', width: 600, height: 400 },
-    { id: 13, src: '/images/servicios/amenidades-1.webp', alt: 'Amenidades y Servicios', category: 'amenidades', width: 800, height: 600 },
-
-    // Eventos
-    { id: 14, src: '/images/eventos/hero-eventos.webp', alt: 'Salón de Eventos Principal', category: 'eventos', width: 1920, height: 1200 },
-    { id: 15, src: '/images/eventos/sala-podocarpus.webp', alt: 'Sala de Conferencias Podocarpus', category: 'eventos', width: 1200, height: 600 },
-    { id: 16, src: '/images/eventos/galeria-teatro.webp', alt: 'Auditorio Tipo Teatro', category: 'eventos', width: 600, height: 400 },
-
-    // Destino
-    { id: 17, src: '/images/tours/hero-tours.webp', alt: 'Paisajes de Cuenca', category: 'destino', width: 1920, height: 1200 },
-    { id: 18, src: '/images/tours/tour-podocarpus.webp', alt: 'Parque Nacional Cajas', category: 'destino', width: 800, height: 600 },
-    { id: 19, src: '/images/tours/tour-villonaco.webp', alt: 'Mirador del Turi', category: 'destino', width: 800, height: 600 },
-    { id: 20, src: '/images/tours/tour-loja-historica.webp', alt: 'Centro Histórico de Cuenca', category: 'destino', width: 800, height: 600 },
-];
+    { id: 1, src: '/images/galeria/galeria-1.webp?v=3', alt: 'Familiar Loft: Espacio en Dos Niveles', category: 'habitaciones' },
+    { id: 2, src: '/images/galeria/galeria-2.webp?v=3', alt: 'Habitación Matrimonial: Elegancia neoclásica', category: 'habitaciones' },
+    { id: 3, src: '/images/galeria/galeria-3.webp?v=3', alt: 'Triple Confort: Ideal para Amigos', category: 'habitaciones' },
+    { id: 4, src: '/images/galeria/galeria-4.webp?v=3', alt: 'Doble Twin: Descanso Funcional', category: 'habitaciones' },
+    { id: 5, src: '/images/galeria/galeria-5.webp?v=3', alt: 'Fachada Histórica del Hotel El Cardenal', category: 'turismo' },
+    { id: 6, src: '/images/galeria/galeria-6.webp?v=3', alt: 'Salón de la Romería: Arte y Madera Zuleta', category: 'turismo' },
+    { id: 7, src: '/images/galeria/galeria-7.webp?v=3', alt: 'Desayuno Tradicional: Sabores de Loja', category: 'restaurante' },
+    { id: 8, src: '/images/galeria/galeria-8.webp?v=3', alt: 'Café de Altura: Aroma Inigualable', category: 'restaurante' },
+    { id: 9, src: '/images/galeria/galeria-9.webp?v=3', alt: 'Tamales y Humitas: Receta Secreta', category: 'restaurante' },
+    { id: 10, src: '/images/galeria/galeria-10.webp?v=3', alt: 'Rincones con Esencia Neoclásica', category: 'turismo' },
+    { id: 11, src: '/images/galeria/galeria-11.webp?v=3', alt: 'Cercanía al Parque Lineal La Tebaida', category: 'turismo' },
+    { id: 12, src: '/images/galeria/galeria-12.webp?v=3', alt: 'La Paz junto al Río Malacatos', category: 'turismo' },
+    { id: 13, src: '/images/galeria/galeria-13.webp?v=3', alt: 'Ventanales con Aire Puro', category: 'habitaciones' },
+    { id: 14, src: '/images/galeria/galeria-14.webp?v=3', alt: 'Puerta de la Ciudad', category: 'turismo' },
+    { id: 15, src: '/images/galeria/galeria-15.webp?v=3', alt: 'Hall Principal: Bienvenida Cálida', category: 'turismo' },
+    { id: 16, src: '/images/galeria/galeria-16.webp?v=3', alt: 'Salón de Eventos y Reuniones Corporativas', category: 'eventos' },
+    { id: 17, src: '/images/galeria/galeria-17.webp?v=3', alt: 'Fruta Fresca de Nuestra Tierra', category: 'restaurante' },
+    { id: 18, src: '/images/galeria/galeria-18.webp?v=3', alt: 'Descanso Íntimo en Plena Ciudad', category: 'habitaciones' },
+    { id: 19, src: '/images/galeria/galeria-19.webp?v=3', alt: 'El Mejor Inicio del Día en Loja', category: 'restaurante' },
+    { id: 20, src: '/images/galeria/galeria-20.webp?v=3', alt: 'Tradición Familiar en Cada Detalle', category: 'turismo' },
+].map(img => ({ ...img, width: 800, height: 600 }));
 
 export const GalleryGrid = () => {
     const [filter, setFilter] = useState('all');
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    const filteredImages = filter === 'all'
-        ? galleryImages
-        : galleryImages.filter(img => img.category === filter);
+    const filteredImages = galleryImages; // Show all by default since we removed categories
+
 
     // Handle filter change with animation
     const handleFilterChange = (newFilter: string) => {
@@ -88,21 +79,8 @@ export const GalleryGrid = () => {
 
     return (
         <div className="w-full">
-            {/* Filters */}
-            <div className="flex flex-wrap justify-center gap-3 mb-10">
-                {categories.map((cat) => (
-                    <button
-                        key={cat.id}
-                        onClick={() => handleFilterChange(cat.id)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${filter === cat.id
-                            ? 'bg-blue-600 text-white shadow-md transform scale-105'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                    >
-                        {cat.label}
-                    </button>
-                ))}
-            </div>
+            {/* Filters removed as per new numbering structure */}
+            {/* <div className="flex flex-wrap justify-center gap-3 mb-10">...</div> */}
 
             {/* Masonry Grid with Animation */}
             <div
@@ -125,6 +103,7 @@ export const GalleryGrid = () => {
                                     height={image.height}
                                     className="w-full h-auto object-cover transform group-hover:scale-110 transition-transform duration-500"
                                     loading="lazy"
+                                    unoptimized
                                 />
                             </div>
                         </div>
@@ -181,6 +160,7 @@ export const GalleryGrid = () => {
                                 height={selectedImage.height}
                                 className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-sm"
                                 priority
+                                unoptimized
                             />
                         </div>
                         <div className="mt-4 text-center">

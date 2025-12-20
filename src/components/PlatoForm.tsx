@@ -8,7 +8,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
-import { Loader2, Image as ImageIcon, Upload, X } from 'lucide-react';
+import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
@@ -20,18 +20,10 @@ const ACCEPTED_IMAGE_TYPES = [
 ];
 
 const platoSchema = z.object({
-  titulo: z.string().min(3, 'El título debe tener al menos 3 caracteres'),
-  descripcion: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
-  precio: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
-    message: 'El precio debe ser un número válido',
-  }),
-  imagen: z
-    .any()
-    .refine((file) => file?.size <= MAX_FILE_SIZE, 'La imagen debe pesar menos de 1MB')
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
-      'Solo se permiten imágenes .jpg, .jpeg, .png y .webp'
-    ),
+  titulo: z.string().min(1, 'El título es obligatorio'),
+  descripcion: z.string().min(1, 'La descripción es obligatoria'),
+  precio: z.union([z.string(), z.number()]),
+  imagen: z.any().optional(),
   imagen_url: z.string().optional(),
   activo: z.boolean(),
 });
@@ -53,9 +45,9 @@ interface PlatoFormProps {
 
 export default function PlatoForm({ plato, onSuccess, onCancel }: PlatoFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState(plato?.imagen_url || '');
   const [imageError, setImageError] = useState('');
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -64,50 +56,38 @@ export default function PlatoForm({ plato, onSuccess, onCancel }: PlatoFormProps
     setValue,
     setError,
     watch,
-    getValues,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<PlatoFormValues>({
     resolver: zodResolver(platoSchema),
     defaultValues: {
       titulo: plato?.titulo || '',
       descripcion: plato?.descripcion || '',
       precio: plato?.precio.toString() || '0',
-      activo: plato?.activo ?? true,
+      activo: plato ? !!plato.activo : true,
       imagen_url: plato?.imagen_url || '',
     },
   });
 
   const activo = watch('activo');
-  const imagenUrl = watch('imagen_url');
-
-  useEffect(() => {
-    if (imagenUrl) {
-      setPreviewImage(imagenUrl);
-      setImageError('');
-    }
-  }, [imagenUrl]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de archivo
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       setImageError('Formato de imagen no soportado. Use JPG, PNG o WebP.');
       return;
     }
 
-    // Validar tamaño
     if (file.size > MAX_FILE_SIZE) {
       setImageError('La imagen es demasiado grande (máx. 1MB)');
       return;
     }
 
-    // Crear vista previa
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreviewImage(reader.result as string);
-      setValue('imagen', file);
+      setFileToUpload(file);
       setImageError('');
     };
     reader.readAsDataURL(file);
@@ -115,228 +95,67 @@ export default function PlatoForm({ plato, onSuccess, onCancel }: PlatoFormProps
 
   const removeImage = () => {
     setPreviewImage('');
-    setValue('imagen', null as any);
+    setFileToUpload(null);
+    setValue('imagen_url', '');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  // Función de upload de imagen eliminada - ahora se maneja en el servidor
-
-  const onSubmit = async (formData: PlatoFormValues) => {
-    console.log('Iniciando envío del formulario', { formData, plato });
-
+  const onSubmit = async (data: PlatoFormValues) => {
+    console.log('Enviando plato...', data);
     setIsLoading(true);
-    setIsUploading(true);
-    setImageError('');
-
     try {
-      const isUpdate = !!plato?.id;
-      console.log('Modo:', isUpdate ? 'Actualización' : 'Creación', 'ID:', plato?.id);
+      const formData = new FormData();
+      formData.append('titulo', data.titulo.trim());
+      formData.append('descripcion', data.descripcion.trim());
 
-      // Validación de campos requeridos
-      if (!formData.titulo || !formData.descripcion || !formData.precio) {
-        const errorMsg = 'Todos los campos son obligatorios';
-        console.error(errorMsg);
-        throw new Error(errorMsg);
+      // Clean price before sending
+      const cleanPrice = parseFloat(data.precio.toString().replace(/[^0-9.]/g, ''));
+      formData.append('precio', isNaN(cleanPrice) ? '0' : cleanPrice.toString());
+
+      formData.append('activo', data.activo.toString());
+
+      if (fileToUpload) {
+        formData.append('imagen', fileToUpload);
+      } else if (data.imagen_url) {
+        formData.append('imagen_url', data.imagen_url);
       }
 
-      const formDataToSend = new FormData();
-      formDataToSend.append('titulo', formData.titulo.trim());
-      formDataToSend.append('descripcion', formData.descripcion.trim());
-      formDataToSend.append('precio', formData.precio.toString());
-      formDataToSend.append('activo', formData.activo.toString());
-
-      // Si es una actualización, asegurarnos de incluir el ID
-      if (isUpdate && plato?.id) {
-        formDataToSend.append('id', plato.id);
-      }
-
-      console.log('Datos del formulario preparados:', {
-        titulo: formData.titulo,
-        descripcion: formData.descripcion,
-        precio: formData.precio,
-        activo: formData.activo,
-        tieneImagen: !!formData.imagen,
-        tieneImagenUrl: !!plato?.imagen_url,
-        isUpdate
-      });
-
-      // Manejo de la imagen
-      if (formData.imagen) {
-        console.log('Procesando imagen...');
-        if (formData.imagen instanceof File) {
-          console.log('Añadiendo archivo de imagen al formulario');
-          formDataToSend.append('imagen', formData.imagen);
-        } else if (typeof formData.imagen === 'string' && formData.imagen.startsWith('http')) {
-          console.log('Usando URL de imagen existente:', formData.imagen);
-          formDataToSend.append('imagen_url', formData.imagen);
-        }
-      } else if (plato?.imagen_url) {
-        // Siempre incluir la URL de la imagen existente, incluso si no se cambia
-        console.log('Incluyendo URL de imagen existente:', plato.imagen_url);
-        formDataToSend.append('imagen_url', plato.imagen_url);
-      } else {
-        // Si no hay imagen, asegurarse de que no se pierda la existente
-        console.log('No se incluye imagen en la actualización');
-      }
-
-      const url = isUpdate ? `/api/platos/${plato.id}` : '/api/platos';
-
-      console.log('Enviando solicitud a:', url, 'con método:', isUpdate ? 'PUT' : 'POST');
-      console.log('Datos del formulario:', {
-        titulo: formData.titulo,
-        descripcion: formData.descripcion,
-        precio: formData.precio,
-        activo: formData.activo,
-        tieneImagen: !!formData.imagen,
-        tieneImagenUrl: !!plato?.imagen_url,
-        isUpdate,
-        platoId: plato?.id
-      });
-
-      console.log('Enviando datos a la API:', {
-        url,
-        method: isUpdate ? 'PUT' : 'POST',
-        hasImage: !!formDataToSend.get('imagen'),
-        hasImageUrl: !!formDataToSend.get('imagen_url'),
-        formData: Object.fromEntries(formDataToSend.entries())
-      });
-
-      const response = await fetch(url, {
-        method: isUpdate ? 'PUT' : 'POST',
-        body: formDataToSend,
-      });
-
-      console.log('Respuesta recibida:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
-
-      const responseData = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        console.error('Error en la respuesta:', {
-          status: response.status,
-          statusText: response.statusText,
-          responseData
-        });
-
-        let errorMessage = `Error al ${isUpdate ? 'actualizar' : 'crear'} el plato`;
-
-        if (responseData.error) {
-          errorMessage = responseData.error;
-        } else if (responseData.message) {
-          errorMessage = responseData.message;
-        } else if (response.status === 400) {
-          errorMessage = 'Datos inválidos. Por favor, verifica la información ingresada.';
-        } else if (response.status === 404) {
-          errorMessage = 'No se encontró el plato solicitado.';
-        } else if (response.status >= 500) {
-          errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      console.log('Plato guardado exitosamente:', responseData);
-      onSuccess();
-    } catch (error) {
-      console.error('Error en onSubmit:', error);
-      setError('titulo', {
-        type: 'manual',
-        message: error instanceof Error ? error.message : 'Error al guardar el plato',
-      });
-    } finally {
-      setIsLoading(false);
-      setIsUploading(false);
-    }
-  };
-
-  const handleImageError = () => {
-    setImageError('No se pudo cargar la imagen. Verifica la URL.');
-  };
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Formulario enviado');
-
-    try {
-      setIsLoading(true);
-      const formValues = getValues();
-      console.log('Datos del formulario:', formValues);
-
-      // Validación básica
-      if (!formValues.titulo || !formValues.descripcion || formValues.precio === undefined) {
-        console.error('Faltan campos requeridos');
-        setError('titulo', {
-          type: 'manual',
-          message: 'Todos los campos son obligatorios'
-        });
-        return;
-      }
-
-      // Crear FormData para el envío
-      const formDataToSend = new FormData();
-      formDataToSend.append('titulo', formValues.titulo);
-      formDataToSend.append('descripcion', formValues.descripcion);
-      formDataToSend.append('precio', formValues.precio.toString());
-      formDataToSend.append('activo', formValues.activo.toString());
-
-      // Si hay una imagen, agregarla al FormData
-      if (formValues.imagen) {
-        if (formValues.imagen instanceof File) {
-          formDataToSend.append('imagen', formValues.imagen);
-        } else if (typeof formValues.imagen === 'string' && formValues.imagen.startsWith('http')) {
-          formDataToSend.append('imagen_url', formValues.imagen);
-        }
-      } else if (plato?.imagen_url) {
-        // Mantener la imagen existente si no se sube una nueva
-        formDataToSend.append('imagen_url', plato.imagen_url);
-      }
-
-      // Determinar la URL y el método HTTP
       const url = plato?.id ? `/api/platos/${plato.id}` : '/api/platos';
       const method = plato?.id ? 'PUT' : 'POST';
 
-      console.log(`Enviando ${method} a ${url}`);
-      console.log('Datos a enviar:', Object.fromEntries(formDataToSend.entries()));
-
-      // Enviar la solicitud
       const response = await fetch(url, {
         method,
-        body: formDataToSend,
+        body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Error en la respuesta:', errorData);
-        throw new Error(errorData.error || 'Error al guardar el plato');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Error al guardar el plato');
       }
 
-      // Éxito
-      console.log('Plato guardado exitosamente');
       onSuccess();
-
-    } catch (error) {
-      console.error('Error al guardar el plato:', error);
-      // Mostrar mensaje de error al usuario
-      setError('titulo', {
-        type: 'manual',
-        message: error instanceof Error ? error.message : 'Error al guardar el plato'
-      });
+    } catch (error: any) {
+      console.error('Submit error:', error);
+      setError('titulo', { type: 'manual', message: error.message });
     } finally {
       setIsLoading(false);
-      setIsUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleFormSubmit} className="space-y-6" noValidate>
-      {errors.titulo?.type === 'manual' && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {errors.titulo.message}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {Object.keys(errors).length > 0 && (
+        <div className="p-3 bg-red-100/50 border border-red-200 text-red-600 text-sm rounded-lg">
+          <p className="font-bold mb-1">No se puede guardar por los siguientes errores:</p>
+          <ul className="list-disc pl-5">
+            {Object.entries(errors).map(([key, error]: [string, any]) => (
+              <li key={key}>
+                <span className="capitalize">{key}:</span> {error?.message}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -389,6 +208,7 @@ export default function PlatoForm({ plato, onSuccess, onCancel }: PlatoFormProps
               id="activo"
               checked={activo}
               onCheckedChange={(checked: boolean) => setValue('activo', checked)}
+              thumbClassName="bg-black"
             />
             <label htmlFor="activo" className="text-sm font-medium">
               {activo ? 'Activo' : 'Inactivo'}
@@ -406,71 +226,43 @@ export default function PlatoForm({ plato, onSuccess, onCancel }: PlatoFormProps
               type="file"
               id="imagen"
               ref={fileInputRef}
-              accept="image/jpeg, image/jpg, image/png, image/webp"
+              accept="image/*"
               className="hidden"
               onChange={handleImageChange}
-              disabled={isUploading}
             />
 
-            <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center h-64 bg-gray-50">
+            <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center h-64 bg-gray-50 relative">
               {previewImage ? (
                 <div className="relative w-full h-full group">
                   <Image
-                    src={previewImage}
+                    src={previewImage.startsWith('/api') ? `${previewImage}${previewImage.includes('?') ? '&' : '?'}t=${Date.now()}` : previewImage}
                     alt="Vista previa"
                     fill
                     className="object-cover rounded-md"
-                    onError={() => setImageError('Error al cargar la imagen')}
+                    unoptimized
                   />
                   <button
                     type="button"
                     onClick={removeImage}
-                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Eliminar imagen"
+                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
-                <div className="text-center">
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-200 mb-3">
-                    <Upload className="h-6 w-6 text-gray-500" />
-                  </div>
-                  <div className="flex text-sm text-gray-600">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
-                      disabled={isUploading}
-                    >
-                      Sube una imagen
-                    </button>
-                    <p className="pl-1">o arrástrala aquí</p>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    PNG, JPG, WEBP hasta 1MB
-                  </p>
-                </div>
-              )}
-
-              {isUploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-md">
-                  <Loader2 className="h-8 w-8 animate-spin text-white" />
+                <div
+                  className="text-center cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+                  <p className="text-sm text-gray-600 font-medium">Sube una imagen</p>
+                  <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP hasta 1MB</p>
                 </div>
               )}
 
               {imageError && (
                 <p className="mt-2 text-sm text-red-500 text-center">{imageError}</p>
               )}
-
-              {!previewImage && watch('imagen_url') && (
-                <div className="mt-4 text-sm">
-                  <p className="text-gray-600">URL de imagen actual:</p>
-                  <p className="text-blue-600 truncate max-w-xs">{watch('imagen_url')}</p>
-                </div>
-              )}
-
-              <input type="hidden" {...register('imagen_url')} />
             </div>
           </div>
         </div>
@@ -487,16 +279,16 @@ export default function PlatoForm({ plato, onSuccess, onCancel }: PlatoFormProps
         </Button>
         <Button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          disabled={isLoading || isUploading}
+          className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold px-8"
+          disabled={isLoading}
         >
-          {isLoading || isUploading ? (
+          {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {plato?.id ? 'Actualizando...' : 'Creando...'}
+              {plato?.id ? 'Guardando...' : 'Creando...'}
             </>
           ) : plato?.id ? (
-            'Actualizar Plato'
+            'Guardar Cambios'
           ) : (
             'Crear Plato'
           )}

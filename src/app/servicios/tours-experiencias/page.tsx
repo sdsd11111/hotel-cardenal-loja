@@ -25,8 +25,8 @@ import {
 const toursDestacados = [
     {
         id: 1,
-        titulo: 'Ruta al Parque Nacional Cajas',
-        descripcion: 'Tour guiado de día completo a las lagunas y biodiversidad andina del Parque Cajas. Ideal para amantes del trekking y observación de aves.',
+        titulo: 'Ruta al Parque Nacional Podocarpus',
+        descripcion: 'Tour guiado por senderos milenarios en el Podocarpus, descubriendo lagunas y biodiversidad única. Ideal para trekking y observación de aves.',
         enfoque: 'Naturaleza y Biodiversidad',
         imagen: '/images/tours/tour-podocarpus.webp',
         icono: <TreePine className="w-6 h-6" />,
@@ -35,9 +35,9 @@ const toursDestacados = [
     },
     {
         id: 2,
-        titulo: 'Miradores del Turi y Barranco',
-        descripcion: 'Tour a los miradores del Turi y el Barranco del Tomebamba, con las mejores vistas panorámicas de Cuenca. Perfecto para fotografía.',
-        enfoque: 'Vistas y Arquitectura',
+        titulo: 'Eólico Villonaco y Miradores',
+        descripcion: 'Visita al Parque Eólico Villonaco y los mejores miradores naturales, con vistas panorámicas de los valles de Loja y Catamayo. Perfecto para fotografía.',
+        enfoque: 'Vistas y Aventura',
         imagen: '/images/tours/tour-villonaco.webp',
         icono: <Camera className="w-6 h-6" />,
         duracion: 'Medio día (4 horas)',
@@ -45,8 +45,8 @@ const toursDestacados = [
     },
     {
         id: 3,
-        titulo: 'Cuenca Histórica y Cultural',
-        descripcion: 'Recorrido a pie por el centro histórico Patrimonio de la Humanidad, incluyendo la Catedral Nueva, Museo Pumapungo y el Mercado 10 de Agosto.',
+        titulo: 'Loja Histórica y Cultural',
+        descripcion: 'Recorrido por el centro histórico, incluyendo la Puerta de la Ciudad, Calle Lourdes, Catedral de Loja y la Plaza de San Sebastián.',
         enfoque: 'Cultura y Arquitectura',
         imagen: '/images/tours/tour-loja-historica.webp',
         icono: <Landmark className="w-6 h-6" />,
@@ -56,7 +56,7 @@ const toursDestacados = [
     {
         id: 4,
         titulo: 'Experiencia Gastronómica Local',
-        descripcion: 'Tour culinario que incluye la visita a una plantación de café o a un mercado local con degustaciones.',
+        descripcion: 'Tour culinario que incluye la visita a una plantación de café en Vilcabamba o a un mercado local con degustación de platos típicos lojanos.',
         enfoque: 'Sabor y Tradición',
         imagen: '/images/tours/tour-gastronomia.webp',
         icono: <UtensilsCrossed className="w-6 h-6" />,
@@ -95,17 +95,17 @@ const beneficios = [
 
 // Puntos de interés para el mapa
 const puntosInteres = [
-    { nombre: 'Hotel Puente Roto', distancia: 'Base de operaciones' },
-    { nombre: 'Parque Nacional Cajas', distancia: '33 km - 50 min' },
-    { nombre: 'Mirador del Turi', distancia: '4 km - 15 min' },
-    { nombre: 'Centro Histórico', distancia: '2 km - 5 min' }
+    { nombre: 'Hotel El Cardenal', distancia: 'Base de operaciones' },
+    { nombre: 'Parque Nacional Podocarpus', distancia: '15 km - 25 min' },
+    { nombre: 'Parque Eólico Villonaco', distancia: '14 km - 30 min' },
+    { nombre: 'Puerta de la Ciudad', distancia: '1 km - 5 min' }
 ];
 
 // Links de navegación a otros servicios
 const serviciosLinks = [
-    { label: 'Eventos', href: '/servicios/eventos' },
+    { label: 'Eventos', href: '/eventos' },
     { label: 'Piscina & Spa', href: '/servicios/piscina' },
-    { label: 'Restaurante', href: '/servicios/restaurante' }
+    { label: 'Restaurante', href: '/restaurante' }
 ];
 
 export default function ToursPage() {
@@ -118,7 +118,7 @@ export default function ToursPage() {
                 <div className="relative w-full h-[70vh]">
                     <Image
                         src="/images/tours/hero-tours.webp"
-                        alt="Tours y Experiencias en Cuenca"
+                        alt="Tours y Experiencias en Loja"
                         fill
                         className="object-cover"
                         priority
@@ -129,10 +129,10 @@ export default function ToursPage() {
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="max-w-5xl mx-auto text-center px-4">
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-                                Tours y Experiencias en Cuenca
+                                Tours y Experiencias en Loja
                             </h1>
                             <h2 className="text-xl md:text-2xl lg:text-3xl text-white/90 font-medium">
-                                Descubra Cajas, el Turi, el centro histórico y más con guías expertos
+                                Descubra el Podocarpus, Villonaco, Vilcabamba y el centro histórico con guías expertos
                             </h2>
                         </div>
                     </div>
@@ -163,7 +163,7 @@ export default function ToursPage() {
                             <Map className="w-8 h-8 text-green-600" />
                         </div>
                         <p className="text-xl text-gray-700 leading-relaxed">
-                            El Hotel Puente Roto es la base de operaciones ideal para su exploración. Trabajamos con los operadores turísticos más confiables de la región para ofrecerle una variedad de excursiones personalizadas. Nos encargamos de la logística, el transporte seguro y los detalles para que usted solo disfrute de la inmersión en la naturaleza.
+                            El Hotel El Cardenal Loja es la base de operaciones ideal para su exploración. Trabajamos con los operadores turísticos más confiables de la región para ofrecerle una variedad de excursiones personalizadas. Nos encargamos de la logística, el transporte seguro y los detalles para que usted solo disfrute de la inmersión en la naturaleza y la cultura lojana.
                         </p>
                         <div className="w-24 h-1 bg-amber-400 mx-auto rounded-full mt-8"></div>
                     </div>
@@ -243,7 +243,7 @@ export default function ToursPage() {
                                 Beneficios de Reservar Tours con Nosotros
                             </h3>
                             <p className="text-lg text-gray-600">
-                                Al reservar sus tours con Hotel Puente Roto, obtiene beneficios exclusivos:
+                                Al reservar sus tours con Hotel El Cardenal Loja, obtiene beneficios exclusivos:
                             </p>
                         </div>
 
@@ -280,7 +280,7 @@ export default function ToursPage() {
                                     Ubicación Estratégica
                                 </h3>
                                 <p className="text-lg text-gray-600">
-                                    Hotel Puente Roto: Su base perfecta para explorar la región
+                                    Hotel El Cardenal Loja: Su base perfecta para explorar la región
                                 </p>
                             </div>
 
@@ -288,7 +288,7 @@ export default function ToursPage() {
                             <div className="bg-white rounded-xl overflow-hidden shadow-xl border border-gray-200 mb-8">
                                 <div className="relative aspect-[16/9] w-full">
                                     <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.720836267368!2d-79.00636892526686!3d-2.896756897079634!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91cd22a54825656b%3A0x637995655f417d45!2sCuenca%2C%20Ecuador!5e0!3m2!1ses!2sus!4v1701720000000!5m2!1ses!2sus"
+                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3980.123456789012!2d-79.20456!3d-3.99312!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91cb37d6e6e6e6e7%3A0x637995655f417d45!2sLoja%2C%20Ecuador!5e0!3m2!1ses!2sus!4v1701720000000!5m2!1ses!2sus"
                                         width="100%"
                                         height="100%"
                                         style={{ border: 0 }}

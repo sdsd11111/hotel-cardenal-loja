@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Plus, LayoutDashboard, Pencil, Trash2, Link as LinkIcon, Loader2, Upload, FileText, Eye, EyeOff, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
@@ -47,7 +48,7 @@ export default function AdminBlogPage() {
         extracto: '',
         imagen_url: '',
         autor: '',
-        categoria: 'Hoteles',
+        categoria: 'Nuestro Hotel',
         tags: '',
         meta_description: '',
         palabra_clave: '',
@@ -88,7 +89,7 @@ export default function AdminBlogPage() {
         try {
             // SIEMPRE USAMOS POST para poder enviar Archivos (FormData)
             // Si es edición, el 'id' va en la URL y el backend PHP detectará que es un UPDATE
-            const method = 'POST';
+            const method = selectedArticle ? 'PUT' : 'POST';
             const url = selectedArticle ? `/api/blog?id=${selectedArticle.id}` : '/api/blog';
 
             const submitData = new FormData();
@@ -136,7 +137,7 @@ export default function AdminBlogPage() {
             extracto: article.extracto || '',
             imagen_url: article.imagen_url || '',
             autor: article.autor || '',
-            categoria: article.categoria || 'Hoteles',
+            categoria: article.categoria || 'Nuestro Hotel',
             tags: article.tags || '',
             meta_description: article.meta_description || '',
             palabra_clave: article.palabra_clave || '',
@@ -183,8 +184,8 @@ export default function AdminBlogPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
-            <header className="bg-gray-800 border-b border-gray-700">
+        <div className="min-h-screen bg-cardenal-cream text-text-main font-sans">
+            <header className="bg-white border-b border-cardenal-sand">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <Link href="/admin">
@@ -197,7 +198,7 @@ export default function AdminBlogPage() {
                             Gestor de Blog
                         </h1>
                     </div>
-                    <Button onClick={() => { setSelectedArticle(null); setFormData(initialFormState); setShowForm(true); }} className="bg-blue-600 hover:bg-blue-700">
+                    <Button onClick={() => { setSelectedArticle(null); setFormData(initialFormState); setShowForm(true); }} className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold rounded-lg transition-all duration-300">
                         <Plus className="mr-2 h-4 w-4" />
                         Crear Artículo
                     </Button>
@@ -208,7 +209,7 @@ export default function AdminBlogPage() {
                 {isLoading ? <Loader2 className="animate-spin text-blue-500 mx-auto" /> : (
                     <div className="grid gap-4">
                         {articles.map(article => (
-                            <div key={article.id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between border border-gray-700 hover:border-blue-500/50 transition-colors">
+                            <div key={article.id} className="bg-white p-4 rounded-lg flex items-center justify-between border border-cardenal-sand hover:border-cardenal-green/50 shadow-sm transition-all duration-300">
                                 <div className="flex gap-4 items-center">
                                     <div className="w-16 h-16 rounded bg-gray-700 overflow-hidden flex-shrink-0 relative">
                                         {article.imagen_url ? (
@@ -229,7 +230,7 @@ export default function AdminBlogPage() {
                                             <span>•</span>
                                             <span>{article.categoria}</span>
                                             <span>•</span>
-                                            <span className={article.activo ? "text-green-400" : "text-amber-400"}>{article.activo ? 'Publicado' : 'Borrador'}</span>
+                                            <span className={article.activo ? "text-cardenal-green font-bold" : "text-cardenal-gold font-bold"}>{article.activo ? 'Publicado' : 'Borrador'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -239,7 +240,7 @@ export default function AdminBlogPage() {
                                         size="icon"
                                         variant="ghost"
                                         onClick={() => handleToggleStatus(article)}
-                                        className={article.activo ? "text-green-500 hover:text-green-400" : "text-gray-500 hover:text-gray-400"}
+                                        className={article.activo ? "text-cardenal-green hover:text-cardenal-green-dark hover:bg-cardenal-green/10" : "text-text-muted hover:text-text-main hover:bg-cardenal-sand"}
                                         title={article.activo ? "Desactivar" : "Activar"}
                                     >
                                         {article.activo ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -342,15 +343,15 @@ export default function AdminBlogPage() {
                                         <div className="space-y-1">
                                             <label className="text-xs font-medium text-gray-500 uppercase">Estado</label>
                                             <div className="flex items-center h-9">
-                                                <label className="flex items-center space-x-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
+                                                <div className="flex items-center space-x-2 cursor-pointer">
+                                                    <Switch
+                                                        id="activo-blog"
                                                         checked={formData.activo}
-                                                        onChange={e => setFormData({ ...formData, activo: e.target.checked })}
-                                                        className="w-4 h-4 rounded text-blue-600 bg-gray-700 border-gray-600"
+                                                        onCheckedChange={checked => setFormData({ ...formData, activo: checked })}
+                                                        thumbClassName="bg-black"
                                                     />
                                                     <span className="text-sm text-gray-300">Publicado</span>
-                                                </label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -362,12 +363,21 @@ export default function AdminBlogPage() {
                                             value={formData.categoria}
                                             onChange={e => setFormData({ ...formData, categoria: e.target.value })}
                                         >
-                                            <option>Hoteles</option>
-                                            <option>Turismo</option>
-                                            <option>Gastronomía</option>
-                                            <option>Eventos</option>
-                                            <option>Noticias</option>
+                                            <option value="Nuestro Hotel">Nuestro Hotel</option>
+                                            <option value="Qué comer en Loja">Qué comer en Loja</option>
+                                            <option value="Eventos en Loja">Eventos en Loja</option>
+                                            <option value="Tours de Loja">Tours de Loja</option>
                                         </select>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-gray-500 uppercase">Tags</label>
+                                        <input
+                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm"
+                                            value={formData.tags}
+                                            onChange={e => setFormData({ ...formData, tags: e.target.value })}
+                                            placeholder="Ej: turismo, comida, centro histórico (separados por coma)"
+                                        />
                                     </div>
 
                                     <div className="space-y-1">
@@ -386,7 +396,7 @@ export default function AdminBlogPage() {
                                             className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm"
                                             value={formData.palabra_clave}
                                             onChange={e => setFormData({ ...formData, palabra_clave: e.target.value })}
-                                            placeholder="Ej: hotel en cuenca, turismo"
+                                            placeholder="Ej: hotel en loja, turismo"
                                         />
                                     </div>
 

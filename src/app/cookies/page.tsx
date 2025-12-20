@@ -216,9 +216,9 @@ export default function CookiesPage() {
                                 Si tiene preguntas sobre nuestra Política de Cookies:
                             </p>
                             <div className="bg-gray-50 p-6 rounded-lg">
-                                <p className="text-gray-700 mb-2"><strong>Email:</strong> <a href="mailto:info@hotelloja.com" className="text-green-600 hover:underline">info@hotelloja.com</a></p>
-                                <p className="text-gray-700 mb-2"><strong>Teléfono:</strong> (07) 2570-888</p>
-                                <p className="text-gray-700"><strong>Dirección:</strong> Av. Gran Colombia y Bolívar, Cuenca - Ecuador</p>
+                                <p className="text-gray-700 mb-2"><strong>Email:</strong> <a href="mailto:elcardenalhotel@gmail.com" className="text-green-600 hover:underline">elcardenalhotel@gmail.com</a></p>
+                                <p className="text-gray-700 mb-2"><strong>Teléfono:</strong> 099 661 6878</p>
+                                <p className="text-gray-700"><strong>Dirección:</strong> Gladiolos 154-42 y Av. 18 de Noviembre, Loja - Ecuador</p>
                             </div>
                         </section>
 

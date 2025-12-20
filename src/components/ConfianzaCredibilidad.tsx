@@ -1,280 +1,343 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Star, Shield, Lock, Award, CheckCircle, Zap, TrendingUp, Users } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Star, Coffee, PawPrint, Home, ChevronDown, ChevronUp, ExternalLink, ArrowRight } from 'lucide-react';
 
-// Mock Data for Reviews
-const reviews = [
+// Animated Counter Hook
+const useCountUp = (end: number, duration: number = 2000, startOnView: boolean = true) => {
+    const [count, setCount] = useState(0);
+    const [hasStarted, setHasStarted] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!startOnView) {
+            setHasStarted(true);
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && !hasStarted) {
+                    setHasStarted(true);
+                }
+            },
+            { threshold: 0.5 }
+        );
+
+        if (ref.current) {
+            observer.observe(ref.current);
+        }
+
+        return () => observer.disconnect();
+    }, [hasStarted, startOnView]);
+
+    useEffect(() => {
+        if (!hasStarted) return;
+
+        let startTime: number;
+        let animationFrame: number;
+
+        const animate = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            setCount(Math.floor(progress * end));
+
+            if (progress < 1) {
+                animationFrame = requestAnimationFrame(animate);
+            }
+        };
+
+        animationFrame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrame);
+    }, [hasStarted, end, duration]);
+
+    return { count, ref };
+};
+
+// Stats data
+const stats = [
+    {
+        icon: <div className="flex"><Star className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" /><Star className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" /><Star className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" /><Star className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" /><Star className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" /></div>,
+        value: 140,
+        suffix: '+',
+        label: 'Reseñas Reales en Google'
+    },
+    {
+        icon: <Coffee className="w-10 h-10" />,
+        value: 9.9,
+        suffix: ' / 10',
+        label: 'Puntuación en Desayuno y Servicio',
+        isDecimal: true
+    },
+    {
+        icon: <PawPrint className="w-10 h-10" />,
+        value: 100,
+        suffix: '%',
+        label: 'Pet Friendly & Pet Lovers'
+    },
+    {
+        icon: <Home className="w-10 h-10" />,
+        value: 6,
+        suffix: '',
+        label: 'Habitaciones Exclusivas'
+    }
+];
+
+// Testimonials data
+const testimonios = [
     {
         id: 1,
-        name: "María Fernanda T.",
-        text: "Una experiencia inolvidable. La ubicación es perfecta para explorar Cuenca y el servicio es impecable. Definitivamente volveré.",
-        rating: 5,
-        source: "TripAdvisor",
-        date: "Hace 2 semanas"
+        texto: 'La ubicación es inmejorable, un sector seguro cerca al Supermaxi y al parque lineal. Se puede llegar caminando a lugares hermosos, especialmente al río que pasa a pocos metros. ¡Seguridad total!',
+        autor: 'Andrés Ramírez',
+        tipo: 'Vacaciones Familiares',
+        inicial: 'A',
+        color: 'bg-cardenal-green',
+        size: 'large'
     },
     {
         id: 2,
-        name: "John Smith",
-        text: "Excellent hotel! The staff was very friendly and the room was clean and comfortable. Great value for money.",
-        rating: 4.8,
-        source: "Booking.com",
-        date: "Hace 1 mes"
+        texto: 'Excelente servicio. Se inicia el día con un exquisito café con tamales lojanos. El mejor hospedaje en Loja si buscas tradición.',
+        autor: 'Luis F. E.',
+        tipo: 'Viajero de Negocios',
+        inicial: 'L',
+        color: 'bg-cardenal-gold',
+        size: 'medium'
     },
     {
         id: 3,
-        name: "Carlos R.",
-        text: "La mejor opción en Cuenca. El desayuno es delicioso y las instalaciones son modernas y seguras. Muy recomendado.",
-        rating: 4.9,
-        source: "Google Reviews",
-        date: "Hace 3 semanas"
+        texto: 'Desde el gerente hasta el personal del desayuno, te tratan con una amabilidad excepcional. Recomendado 100%.',
+        autor: 'Evy Joy Portilla',
+        tipo: 'Huésped Frecuente',
+        inicial: 'E',
+        color: 'bg-cardenal-brown',
+        size: 'medium'
+    },
+    {
+        id: 4,
+        texto: 'Excelente atención y una vista increíble. Un lugar muy cálido y acogedor.',
+        autor: 'Liliana Gallardo',
+        tipo: 'Turista',
+        inicial: 'L',
+        color: 'bg-cardenal-green-light',
+        size: 'small'
     }
 ];
 
-// Mock Data for Trust Seals
-const trustSeals = [
-    {
-        id: 'pci',
-        label: 'PCI-DSS Compliant',
-        sublabel: 'Pago Seguro',
-        icon: <Lock className="w-8 h-8 text-green-600" />,
-        color: 'bg-green-50 border-green-100'
-    },
-    {
-        id: 'ssl',
-        label: 'SSL Encrypted',
-        sublabel: 'Conexión Cifrada',
-        icon: <Shield className="w-8 h-8 text-blue-600" />,
-        color: 'bg-blue-50 border-blue-100'
-    },
-    {
-        id: 'lopdp',
-        label: 'Cumplimiento LOPDP',
-        sublabel: 'Protección de Datos',
-        icon: <CheckCircle className="w-8 h-8 text-gray-600" />,
-        color: 'bg-gray-50 border-gray-200'
-    },
-    {
-        id: 'quality',
-        label: 'Calidad Garantizada',
-        sublabel: 'Excelencia en Servicio',
-        icon: <Award className="w-8 h-8 text-yellow-500" />,
-        color: 'bg-yellow-50 border-yellow-100'
-    }
-];
-
-// Performance metrics
-const performanceMetrics = [
-    {
-        id: 'speed',
-        label: 'Velocidad de Reserva',
-        value: '< 2 min',
-        description: 'Proceso de reserva optimizado',
-        icon: <Zap className="w-10 h-10 text-yellow-500" />,
-        color: 'bg-yellow-50 border-yellow-200'
-    },
-    {
-        id: 'uptime',
-        label: 'Disponibilidad',
-        value: '99.9%',
-        description: 'Sistema siempre activo',
-        icon: <TrendingUp className="w-10 h-10 text-green-600" />,
-        color: 'bg-green-50 border-green-200'
-    },
-    {
-        id: 'satisfaction',
-        label: 'Satisfacción',
-        value: '9.1/10',
-        description: 'Calificación promedio',
-        icon: <Users className="w-10 h-10 text-blue-600" />,
-        color: 'bg-blue-50 border-blue-200'
-    }
-];
-
-type TabType = 'reviews' | 'security' | 'performance';
+const GOOGLE_REVIEWS_URL = 'https://www.google.com/travel/search?q=hotel%20cardenal%20loja&g2lb=4965990%2C72317059%2C72414906%2C72471280%2C72485658%2C72560029%2C72573224%2C72647020%2C72686036%2C72803964%2C72882230%2C72958624%2C73059275%2C73064764%2C73104946%2C73107089%2C73169520%2C73192290%2C73198319&hl=es-419&gl=ec&ssta=1&ts=CAEaRwopEicyJTB4OTFjYjM3OGFlMzY0YTgwNzoweDExNGQwYTAwMjM4MGE4MTUSGhIUCgcI6Q8QDBgaEgcI6Q8QDBgbGAEyAhAA&qs=CAEyE0Nnb0lsZENDbklMQXdxWVJFQUU4AkIJCRWogCMACk0RQgkJFaiAIwAKTRE&ap=ugEHcmV2aWV3cw&ictx=111&ved=0CAAQ5JsGahcKEwjA_IHGj8iRAxUAAAAAHQAAAAAQBA';
 
 export const ConfianzaCredibilidad = () => {
-    const [currentReview, setCurrentReview] = useState(0);
-    const [activeTab, setActiveTab] = useState<TabType>('reviews');
+    const [expandedTestimonios, setExpandedTestimonios] = useState<number[]>([]);
 
-    // Auto-rotate reviews
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentReview((prev) => (prev + 1) % reviews.length);
-        }, 5000);
-        return () => clearInterval(interval);
-    }, []);
+    const toggleTestimonio = (id: number) => {
+        setExpandedTestimonios(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
 
-    const tabs = [
-        { id: 'reviews' as TabType, label: 'Reseñas y Validación', icon: <Star className="w-5 h-5" /> },
-        { id: 'security' as TabType, label: 'Seguridad y Protección', icon: <Shield className="w-5 h-5" /> },
-        { id: 'performance' as TabType, label: 'Alto Rendimiento', icon: <Zap className="w-5 h-5" /> }
-    ];
+    const stat1 = useCountUp(stats[0].value, 2000);
+    const stat2 = useCountUp(99, 2000); // 9.9 * 10 for animation
+    const stat3 = useCountUp(stats[2].value, 2000);
+    const stat4 = useCountUp(stats[3].value, 1500);
 
     return (
-        <section className="py-20 bg-white">
-            <div className="container mx-auto px-4">
-                {/* Section Title */}
-                <div className="text-center mb-12 max-w-3xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                        Su Experiencia en Cuenca Comienza Aquí: <span className="text-blue-600">Plataforma de Alto Rendimiento y Confianza Total.</span>
+        <section className="py-24 bg-cardenal-cream relative overflow-hidden">
+            {/* Subtle texture overlay */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+            }}></div>
+
+            <div className="container mx-auto px-4 relative z-10">
+                {/* COMPONENTE 1: Headline Magnético */}
+                <div className="text-center mb-20 max-w-4xl mx-auto">
+                    <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif leading-tight">
+                        4.7 Estrellas de Calidez: <span className="text-cardenal-gold italic">Lo que nos hace únicos en Loja</span>
                     </h2>
-                    <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full"></div>
+                    <h3 className="text-xl md:text-2xl text-cardenal-gold font-script italic leading-relaxed">
+                        "No somos un hotel más, somos su familia en el sur del Ecuador."
+                    </h3>
+                    <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
                 </div>
 
-                {/* Tabs Navigation */}
-                <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mb-12 max-w-4xl mx-auto">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-lg font-bold text-sm md:text-base transition-all duration-300 ${activeTab === tab.id
-                                ? 'bg-blue-600 text-white shadow-lg scale-105'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            {tab.icon}
-                            <span>{tab.label}</span>
-                        </button>
-                    ))}
+                {/* COMPONENTE 2: Barra de Logros (Animated Stats) */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-20 max-w-5xl mx-auto">
+                    {/* Stat 1 */}
+                    <div ref={stat1.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
+                        <div className="text-cardenal-gold mb-4 flex justify-center">
+                            {stats[0].icon}
+                        </div>
+                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
+                            {stat1.count}{stats[0].suffix}
+                        </div>
+                        <p className="text-sm text-text-muted font-medium">{stats[0].label}</p>
+                    </div>
+
+                    {/* Stat 2 */}
+                    <div ref={stat2.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
+                        <div className="text-cardenal-green mb-4 flex justify-center">
+                            <Coffee className="w-10 h-10" />
+                        </div>
+                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
+                            {(stat2.count / 10).toFixed(1)}{stats[1].suffix}
+                        </div>
+                        <p className="text-sm text-text-muted font-medium">{stats[1].label}</p>
+                    </div>
+
+                    {/* Stat 3 */}
+                    <div ref={stat3.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
+                        <div className="text-cardenal-green mb-4 flex justify-center">
+                            <PawPrint className="w-10 h-10" />
+                        </div>
+                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
+                            {stat3.count}{stats[2].suffix}
+                        </div>
+                        <p className="text-sm text-text-muted font-medium">{stats[2].label}</p>
+                    </div>
+
+                    {/* Stat 4 */}
+                    <div ref={stat4.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
+                        <div className="text-cardenal-green mb-4 flex justify-center">
+                            <Home className="w-10 h-10" />
+                        </div>
+                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
+                            {stat4.count}{stats[3].suffix}
+                        </div>
+                        <p className="text-sm text-text-muted font-medium">{stats[3].label}</p>
+                    </div>
                 </div>
 
-                {/* Tab Content */}
-                <div className="max-w-5xl mx-auto">
-                    {/* Reviews Tab */}
-                    {activeTab === 'reviews' && (
-                        <div className="animate-fadeIn">
-                            <div className="text-center mb-10 max-w-2xl mx-auto">
-                                <p className="text-lg text-gray-600 leading-relaxed">
-                                    Hemos sido validados por miles de huéspedes. Con una calificación consistente entre <span className="font-bold text-gray-900">8.5 y 9.1</span>, nuestras reseñas en plataformas globales hablan por sí solas.
-                                </p>
+                {/* COMPONENTE 3: Bento Grid de Testimonios */}
+                <div className="max-w-6xl mx-auto mb-16">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                        {/* Large Testimonial */}
+                        <div className="md:col-span-2 md:row-span-2 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                            <div className="flex items-start gap-4 mb-4">
+                                <div className={`w-14 h-14 ${testimonios[0].color} text-white flex items-center justify-center text-2xl font-bold font-serif flex-shrink-0`}>
+                                    {testimonios[0].inicial}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-cardenal-green font-serif">{testimonios[0].autor}</p>
+                                    <p className="text-xs text-cardenal-gold uppercase tracking-widest">{testimonios[0].tipo}</p>
+                                </div>
                             </div>
+                            <blockquote className="text-lg md:text-xl text-text-main leading-relaxed italic">
+                                "{expandedTestimonios.includes(testimonios[0].id) || testimonios[0].texto.length <= 150
+                                    ? testimonios[0].texto
+                                    : `${testimonios[0].texto.substring(0, 150)}...`}"
+                            </blockquote>
+                            {testimonios[0].texto.length > 150 && (
+                                <button
+                                    onClick={() => toggleTestimonio(testimonios[0].id)}
+                                    className="mt-4 text-cardenal-gold hover:text-cardenal-green text-sm font-bold flex items-center gap-1 transition-colors"
+                                >
+                                    {expandedTestimonios.includes(testimonios[0].id) ? (
+                                        <>Leer menos <ChevronUp className="w-4 h-4" /></>
+                                    ) : (
+                                        <>Seguir leyendo <ChevronDown className="w-4 h-4" /></>
+                                    )}
+                                </button>
+                            )}
+                            <div className="flex mt-4">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" />
+                                ))}
+                            </div>
+                        </div>
 
-                            {/* Reviews Carousel */}
-                            <div className="relative max-w-4xl mx-auto bg-gray-50 rounded-2xl p-8 md:p-12 shadow-sm border border-gray-100">
-                                {/* Quote Icon */}
-                                <div className="absolute top-6 left-8 text-blue-100">
-                                    <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 8.44772 14.017 9V11C14.017 11.5523 13.5693 12 13.017 12H12.017V5H22.017V15C22.017 18.3137 19.3307 21 16.017 21H14.017ZM5.01697 21L5.01697 18C5.01697 16.8954 5.9124 16 7.01697 16H10.017C10.5693 16 11.017 15.5523 11.017 15V9C11.017 8.44772 10.5693 8 10.017 8H6.01697C5.46468 8 5.01697 8.44772 5.01697 9V11C5.01697 11.5523 4.56925 12 4.01697 12H3.01697V5H13.017V15C13.017 18.3137 10.3307 21 7.01697 21H5.01697Z" />
-                                    </svg>
+                        {/* Medium Testimonial 1 */}
+                        <div className="bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                            <div className="flex items-start gap-3 mb-3">
+                                <div className={`w-10 h-10 ${testimonios[1].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
+                                    {testimonios[1].inicial}
                                 </div>
+                                <div>
+                                    <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[1].autor}</p>
+                                    <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[1].tipo}</p>
+                                </div>
+                            </div>
+                            <blockquote className="text-sm text-text-main leading-relaxed italic">
+                                "{testimonios[1].texto}"
+                            </blockquote>
+                            <div className="flex mt-3">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
+                                ))}
+                            </div>
+                        </div>
 
-                                <div className="relative z-10 flex flex-col items-center text-center">
-                                    {/* Stars */}
-                                    <div className="flex gap-1 mb-6">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                className={`w-6 h-6 ${i < Math.floor(reviews[currentReview].rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                                            />
-                                        ))}
+                        {/* Medium Testimonial 2 */}
+                        <div className="bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                            <div className="flex items-start gap-3 mb-3">
+                                <div className={`w-10 h-10 ${testimonios[2].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
+                                    {testimonios[2].inicial}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[2].autor}</p>
+                                    <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[2].tipo}</p>
+                                </div>
+                            </div>
+                            <blockquote className="text-sm text-text-main leading-relaxed italic">
+                                "{testimonios[2].texto}"
+                            </blockquote>
+                            <div className="flex mt-3">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Small Testimonial */}
+                        <div className="md:col-span-3 bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                            <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                <div className="flex items-start gap-3">
+                                    <div className={`w-10 h-10 ${testimonios[3].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
+                                        {testimonios[3].inicial}
                                     </div>
-
-                                    {/* Review Text */}
-                                    <p className="text-xl md:text-2xl text-gray-800 font-medium italic mb-8 leading-relaxed">
-                                        "{reviews[currentReview].text}"
-                                    </p>
-
-                                    {/* Author & Source */}
-                                    <div className="flex flex-col items-center">
-                                        <span className="font-bold text-gray-900 text-lg">{reviews[currentReview].name}</span>
-                                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                                            <span className="font-medium text-blue-600">Verificado por {reviews[currentReview].source}</span>
-                                            <span>•</span>
-                                            <span>{reviews[currentReview].date}</span>
-                                        </div>
+                                    <div>
+                                        <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[3].autor}</p>
+                                        <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[3].tipo}</p>
                                     </div>
                                 </div>
-
-                                {/* Carousel Indicators */}
-                                <div className="flex justify-center gap-2 mt-8">
-                                    {reviews.map((_, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => setCurrentReview(index)}
-                                            className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentReview ? 'bg-blue-600 w-8' : 'bg-gray-300 hover:bg-gray-400'}`}
-                                            aria-label={`Ver reseña ${index + 1}`}
-                                        />
+                                <blockquote className="text-sm text-text-main leading-relaxed italic flex-1">
+                                    "{testimonios[3].texto}"
+                                </blockquote>
+                                <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
                                     ))}
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </div>
 
-                    {/* Security Tab */}
-                    {activeTab === 'security' && (
-                        <div className="animate-fadeIn">
-                            <div className="text-center mb-12 max-w-2xl mx-auto">
-                                <h3 className="text-2xl font-bold text-gray-900 mb-4">Seguridad y Protección Garantizada</h3>
-                                <p className="text-gray-600">
-                                    Su transacción es de alto valor. Por eso, la seguridad es un factor no negociable. Garantizamos que su información personal (PII) y de pago está siempre protegida.
-                                </p>
-                            </div>
+                    {/* Google Reviews Button */}
+                    <div className="text-center mt-10">
+                        <a
+                            href={GOOGLE_REVIEWS_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-3 text-cardenal-green hover:text-cardenal-gold font-bold transition-colors font-serif tracking-wide group"
+                        >
+                            <ExternalLink className="w-5 h-5" />
+                            Ver todas las reseñas en Google
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </a>
+                    </div>
+                </div>
 
-                            {/* Trust Seals Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                {trustSeals.map((seal) => (
-                                    <div
-                                        key={seal.id}
-                                        className={`flex flex-col items-center justify-center p-6 rounded-xl border ${seal.color} transition-transform hover:scale-105`}
-                                    >
-                                        <div className="mb-3">
-                                            {seal.icon}
-                                        </div>
-                                        <span className="font-bold text-gray-900 text-sm md:text-base text-center">{seal.label}</span>
-                                        <span className="text-xs text-gray-500 mt-1 text-center">{seal.sublabel}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Performance Tab */}
-                    {activeTab === 'performance' && (
-                        <div className="animate-fadeIn">
-                            <div className="text-center mb-12 max-w-2xl mx-auto">
-                                <h3 className="text-2xl font-bold text-gray-900 mb-4">Plataforma de Alto Rendimiento</h3>
-                                <p className="text-gray-600">
-                                    Nuestro sistema está optimizado para brindarle la mejor experiencia. Reservas rápidas, disponibilidad garantizada y satisfacción comprobada.
-                                </p>
-                            </div>
-
-                            {/* Performance Metrics */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {performanceMetrics.map((metric) => (
-                                    <div
-                                        key={metric.id}
-                                        className={`flex flex-col items-center justify-center p-8 rounded-2xl border-2 ${metric.color} transition-transform hover:scale-105`}
-                                    >
-                                        <div className="mb-4">
-                                            {metric.icon}
-                                        </div>
-                                        <div className="text-4xl font-bold text-gray-900 mb-2">{metric.value}</div>
-                                        <div className="font-bold text-gray-900 text-lg mb-1">{metric.label}</div>
-                                        <div className="text-sm text-gray-600 text-center">{metric.description}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                {/* COMPONENTE 4: Sello de Garantía y CTA */}
+                <div className="max-w-4xl mx-auto bg-[#F1E6D2] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
+                    <p className="text-lg md:text-xl text-cardenal-brown font-serif text-center md:text-left">
+                        ¿Listo para vivir la experiencia calificada como <span className="font-bold text-cardenal-green">'Excelente'</span> por nuestros huéspedes?
+                    </p>
+                    <Link
+                        href="/habitaciones"
+                        className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-4 px-10 transition-all duration-500 shadow-lg font-serif tracking-widest text-sm whitespace-nowrap flex items-center gap-2"
+                    >
+                        ¡Reserva tu estancia ahora!
+                        <ArrowRight className="w-5 h-5" />
+                    </Link>
                 </div>
             </div>
-
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.4s ease-out;
-                }
-            `}</style>
         </section>
     );
 };

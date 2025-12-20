@@ -3,214 +3,226 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, BedDouble, Users, Maximize, Wind } from 'lucide-react';
 
-// Habitaciones data
+// New Habitaciones data based on user request
 const habitaciones = [
     {
         id: 1,
-        nombre: 'Suite Ejecutiva',
-        slug: 'suite-ejecutiva',
-        descripcion: 'Perfecta para el viajero de negocios. Amplio escritorio, conexión de alta velocidad y un espacio diseñado para el descanso productivo.',
-        amenidades: [
-            'Cama Queen',
-            'Estación de Café',
-            'Vistas a la Ciudad',
-            'Escritorio Ejecutivo'
+        nombre: 'Familiar Loft',
+        tagline: 'El refugio ideal para la familia en Loja.',
+        descripcion: 'Distribución en dos niveles para máxima privacidad con un diseño acogedor y seguro.',
+        detalles: [
+            'Distribución en dos niveles para máxima privacidad.',
+            'Capacidad amplia con diseño acogedor y seguro.',
+            'Vistas privilegiadas al entorno natural del sector Los Rosales.',
+            'El espacio favorito para quienes buscan un hotel familiar en Loja.'
         ],
-        imagenPrincipal: '/images/habitaciones/suite-ejecutiva-main.webp',
-        imagenMiniatura: '/images/habitaciones/suite-ejecutiva-thumb.webp'
+        keywords: 'hotel familiar en Loja',
+        imagenPrincipal: '/images/habitaciones/familiar/familiar-loft-main.webp?v=3',
+        imagenMiniatura: '/images/habitaciones/familiar/familiar-loft-thumb.webp?v=3',
+        icon: <Users className="w-5 h-5" />
     },
     {
         id: 2,
-        nombre: 'Doble Familiar',
-        slug: 'doble-familiar',
-        descripcion: 'La opción ideal para familias o grupos. Ofrece dos cómodas camas y espacio funcional para disfrutar en conjunto.',
-        amenidades: [
-            'Dos camas matrimoniales',
-            'Espacio para equipaje',
-            'Baño amplio',
-            'TV por cable'
+        nombre: 'Triple',
+        tagline: 'Versatilidad y comodidad compartida.',
+        descripcion: 'Tres camas individuales con lencería de alta calidad en un ambiente iluminado.',
+        detalles: [
+            'Tres camas individuales con lencería de alta calidad.',
+            'Ambiente iluminado con ventilación natural.',
+            'Acceso directo a áreas comunes y senderos ecológicos.',
+            'Ideal para grupos de amigos o viajes de trabajo en equipo.'
         ],
-        imagenPrincipal: '/images/habitaciones/doble-familiar-main.webp',
-        imagenMiniatura: '/images/habitaciones/doble-familiar-thumb.webp'
+        imagenPrincipal: '/images/habitaciones/triple/triple-main.webp?v=3',
+        imagenMiniatura: '/images/habitaciones/triple/triple-thumb.webp?v=3',
+        icon: <BedDouble className="w-5 h-5" />
     },
     {
         id: 3,
-        nombre: 'Habitación Estándar Confort',
-        slug: 'estandar-confort',
-        descripcion: 'La mejor relación calidad-precio. Acceso a todas las amenidades del hotel con el confort y la calidad que nos distinguen.',
-        amenidades: [
-            'Cama Queen',
-            'Amenidades de Lujo',
-            'Climatización',
-            'WiFi de alta velocidad'
+        nombre: 'Doble Twin',
+        tagline: 'Descanso independiente y profesional.',
+        descripcion: 'Espacio funcional con escritorio y WiFi de alta velocidad para un sueño reparador.',
+        detalles: [
+            'Dos camas individuales de gran confort.',
+            'Espacio funcional con escritorio y WiFi de alta velocidad.',
+            'Ambiente libre de ruidos, perfecto para un sueño reparador.',
+            'La opción preferida por viajeros de negocios y turistas.'
         ],
-        imagenPrincipal: '/images/habitaciones/estandar-confort-main.webp',
-        imagenMiniatura: '/images/habitaciones/estandar-confort-thumb.webp'
+        imagenPrincipal: '/images/habitaciones/doble/doble-twin-main.webp?v=3',
+        imagenMiniatura: '/images/habitaciones/doble/doble-twin-thumb.webp?v=3',
+        icon: <Maximize className="w-5 h-5" />
     },
     {
         id: 4,
-        nombre: 'Suite Premium Deluxe',
-        slug: 'suite-premium-deluxe',
-        descripcion: 'Lujo y exclusividad garantizados. Sala de estar separada, baño con jacuzzi y balcón privado con vistas panorámicas de Cuenca.',
-        amenidades: [
-            'Cama King',
-            'Jacuzzi',
-            'Balcón Privado',
-            'Mini-Bar Premium'
+        nombre: 'Matrimonial',
+        tagline: 'Intimidad y elegancia para dos.',
+        descripcion: 'Cama matrimonial de lujo con detalles neoclásicos y ventanales de aire puro.',
+        detalles: [
+            'Cama matrimonial de lujo con detalles neoclásicos.',
+            'Ventanales que capturan la luz natural y el aire puro.',
+            'Ambiente cálido y privado para una estancia romántica.',
+            'El rincón de paz ideal tras recorrer la ciudad de Loja.'
         ],
-        imagenPrincipal: '/images/habitaciones/suite-premium-deluxe-main.webp',
-        imagenMiniatura: '/images/habitaciones/suite-premium-deluxe-thumb.webp'
-    },
-    {
-        id: 5,
-        nombre: 'Triple Confort',
-        slug: 'triple-confort',
-        descripcion: 'Solución práctica para grupos pequeños o familias. Espacios bien distribuidos para un descanso simultáneo y cómodo.',
-        amenidades: [
-            'Tres camas Twin',
-            'Armario grande',
-            'Amenities Premium',
-            'Espacio amplio'
-        ],
-        imagenPrincipal: '/images/habitaciones/triple-confort-main.webp',
-        imagenMiniatura: '/images/habitaciones/triple-confort-thumb.webp'
-    },
-    {
-        id: 6,
-        nombre: 'Junior Suite Elegance',
-        slug: 'junior-suite-elegance',
-        descripcion: 'Un equilibrio perfecto entre espacio y diseño. Pequeña área de lounge para relajarse y diseño minimalista moderno.',
-        amenidades: [
-            'Cama King',
-            'Sofá de descanso',
-            'Diseño moderno',
-            'Smart TV 55"'
-        ],
-        imagenPrincipal: '/images/habitaciones/junior-suite-elegance-main.webp',
-        imagenMiniatura: '/images/habitaciones/junior-suite-elegance-thumb.webp'
+        imagenPrincipal: '/images/habitaciones/matrimonial/matrimonial-main.webp?v=3',
+        imagenMiniatura: '/images/habitaciones/matrimonial/matrimonial-thumb.webp?v=3',
+        icon: <Wind className="w-5 h-5" />
     }
 ];
 
 export const HabitacionesHome = () => {
-    const [habitacionActiva, setHabitacionActiva] = useState(habitaciones[0]);
+    const [activeId, setActiveId] = useState(habitaciones[0].id);
+    const activeHabitacion = habitaciones.find(h => h.id === activeId) || habitaciones[0];
 
     return (
-        <section className="py-20 bg-white">
+        <section className="py-24 bg-cardenal-cream/30">
             <div className="container mx-auto px-4">
                 {/* Section Title */}
-                <div className="text-center mb-12 max-w-3xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                        Encuentre su Espacio: <span className="text-amber-500">Confort Superior en Cada Categoría.</span>
+                <div className="text-center mb-16 max-w-4xl mx-auto">
+                    <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif">
+                        Habitaciones y Alojamiento en Loja: <span className="text-cardenal-gold italic">Descanso Íntimo junto a la Naturaleza</span>
                     </h2>
-                    <p className="text-lg text-gray-600 leading-relaxed">
-                        Cada una de nuestras habitaciones ha sido diseñada con atención al detalle, priorizando el descanso, la funcionalidad y las comodidades modernas. Descubra la categoría perfecta para su estadía.
+                    <p className="text-lg md:text-xl text-text-main font-medium leading-relaxed">
+                        Descubra la armonía entre el diseño neoclásico y el descanso moderno en nuestras 6 exclusivas habitaciones.
                     </p>
-                    <div className="w-24 h-1 bg-amber-400 mx-auto rounded-full mt-6"></div>
+                    <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
                 </div>
 
-                {/* Main Layout */}
+                {/* Main Interactive Layout */}
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-stretch">
-                        {/* A. Cuadrícula de Selección (Miniaturas) */}
-                        <div className="lg:col-span-1">
-                            <h3 className="text-xl font-bold text-gray-900 mb-4">Seleccione una Categoría:</h3>
-                            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:max-h-[700px] lg:overflow-y-auto lg:pr-2">
-                                {habitaciones.map((habitacion) => (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+
+                        {/* 1. Sidebar Grid Selection (Left - 2x2 items) */}
+                        <div className="lg:col-span-5 order-1 lg:order-1 flex flex-col">
+                            <h3 className="text-xs font-bold text-cardenal-green/60 uppercase tracking-[0.2em] mb-6 font-serif">
+                                Categorías Disponibles
+                            </h3>
+                            <div className="grid grid-cols-2 gap-3 md:gap-4 flex-grow">
+                                {habitaciones.map((h) => (
                                     <button
-                                        key={habitacion.id}
-                                        onClick={() => setHabitacionActiva(habitacion)}
-                                        className={`relative overflow-hidden rounded-lg transition-all duration-300 group ${habitacionActiva.id === habitacion.id
-                                            ? 'ring-4 ring-amber-500 shadow-xl scale-105'
-                                            : 'hover:ring-2 hover:ring-amber-300 hover:shadow-lg'
+                                        key={h.id}
+                                        onClick={() => setActiveId(h.id)}
+                                        className={`group relative flex flex-col p-1 transition-all duration-500 border ${activeId === h.id
+                                            ? 'border-cardenal-gold bg-white shadow-xl scale-[1.02] z-10'
+                                            : 'border-transparent bg-white/40 hover:border-cardenal-gold/30 hover:bg-white/60'
                                             }`}
                                     >
-                                        <div className="relative aspect-[4/3]">
+                                        <div className="relative aspect-square overflow-hidden mb-0">
                                             <Image
-                                                src={habitacion.imagenMiniatura}
-                                                alt={habitacion.nombre}
+                                                src={h.imagenMiniatura}
+                                                alt={h.nombre}
                                                 fill
-                                                className="object-cover transition-transform duration-300 group-hover:scale-110"
+                                                sizes="(max-width: 768px) 50vw, 20vw"
+                                                className={`object-cover transition-transform duration-1000 ${activeId === h.id ? 'scale-110' : 'group-hover:scale-110'}`}
+                                                unoptimized
                                             />
-                                            {/* Overlay */}
-                                            <div className={`absolute inset-0 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 ${habitacionActiva.id === habitacion.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                                                }`}>
-                                                <div className="absolute bottom-0 left-0 right-0 p-2">
-                                                    <p className="text-white font-bold text-xs">{habitacion.nombre}</p>
-                                                </div>
-                                            </div>
+                                            {activeId === h.id && (
+                                                <div className="absolute inset-0 bg-cardenal-green/10 ring-2 ring-inset ring-cardenal-gold"></div>
+                                            )}
+                                        </div>
+                                        <div className="p-3 text-center">
+                                            <p className={`text-[11px] md:text-xs font-bold font-serif uppercase tracking-widest transition-colors ${activeId === h.id ? 'text-cardenal-green' : 'text-gray-500'}`}>
+                                                {h.nombre}
+                                            </p>
                                         </div>
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        {/* B. Sección de Detalles Activos */}
-                        <div className="lg:col-span-2">
-                            <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 shadow-lg border border-gray-100 h-full flex flex-col">
-                                {/* Imagen Destacada */}
-                                <div className="relative aspect-video rounded-xl overflow-hidden mb-6 shadow-md flex-shrink-0">
+                        {/* 2. Main Content Detail Area (Right) */}
+                        <div className="lg:col-span-7 order-2 lg:order-2">
+                            <div className="bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-cardenal-gold/10 overflow-hidden h-full flex flex-col">
+
+                                {/* Image Column */}
+                                <div className="w-full relative aspect-[16/9] overflow-hidden">
                                     <Image
-                                        src={habitacionActiva.imagenPrincipal}
-                                        alt={habitacionActiva.nombre}
+                                        src={activeHabitacion.imagenPrincipal}
+                                        alt={activeHabitacion.nombre}
                                         fill
-                                        className="object-cover"
+                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        className="object-cover animate-fadeIn"
                                         priority
+                                        unoptimized
                                     />
-                                </div>
-
-                                {/* Título */}
-                                <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                                    {habitacionActiva.nombre}
-                                </h3>
-
-                                {/* Descripción */}
-                                <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                                    {habitacionActiva.descripcion}
-                                </p>
-
-                                {/* Amenidades Clave */}
-                                <div className="mb-8 flex-grow">
-                                    <h4 className="text-lg font-bold text-gray-900 mb-4">Amenidades Destacadas:</h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {habitacionActiva.amenidades.map((amenidad, index) => (
-                                            <div key={index} className="flex items-center gap-2">
-                                                <div className="flex-shrink-0 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
-                                                    <Check className="w-4 h-4 text-white" />
-                                                </div>
-                                                <span className="text-gray-700 font-medium">{amenidad}</span>
-                                            </div>
-                                        ))}
+                                    <div className="absolute top-6 left-6 bg-cardenal-green text-white p-3 shadow-lg flex items-center gap-2">
+                                        {activeHabitacion.icon}
+                                        <span className="text-xs font-bold uppercase tracking-widest">Premium</span>
                                     </div>
                                 </div>
 
-                                {/* CTA Button */}
-                                <div className="mt-auto">
-                                    <Link
-                                        href="/habitaciones"
-                                        className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-4 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
-                                    >
-                                        VER TARIFAS Y RESERVAR
-                                        <ArrowRight className="w-5 h-5" />
-                                    </Link>
+                                {/* Text content Column */}
+                                <div className="w-full p-8 md:p-12 flex flex-col animate-fadeInRight">
+                                    <div className="mb-6">
+                                        <h3 className="text-3xl md:text-4xl font-bold text-[#1B5E5E] font-serif mb-2">
+                                            {activeHabitacion.nombre}
+                                        </h3>
+                                        <p className="text-cardenal-gold font-serif italic text-lg">
+                                            {activeHabitacion.tagline}
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-4 mb-8 flex-grow">
+                                        {activeHabitacion.detalles.map((detalle, idx) => (
+                                            <div key={idx} className="flex items-start gap-3 group">
+                                                <div className="mt-1.5 flex-shrink-0">
+                                                    <Check className="w-4 h-4 text-[#C9A86A]" />
+                                                </div>
+                                                <p className="text-[#2D3436] font-body leading-relaxed text-base md:text-lg">
+                                                    {detalle}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="pt-8 border-t border-gray-100 mt-auto">
+                                        <Link
+                                            href="/habitaciones"
+                                            className="inline-flex items-center justify-center gap-3 bg-cardenal-green hover:bg-cardenal-green-dark text-white font-bold py-4 px-10 transition-all duration-500 shadow-lg font-serif tracking-widest w-full md:w-auto"
+                                        >
+                                            RESERVAR AHORA
+                                            <ArrowRight className="w-5 h-5" />
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* CTA Secundario - Ver Todas */}
-                <div className="text-center mt-12">
+                {/* Final Section CTA */}
+                <div className="mt-20 text-center">
                     <Link
                         href="/habitaciones"
-                        className="inline-flex items-center gap-2 text-gray-600 hover:text-amber-600 font-semibold transition-colors"
+                        className="group inline-flex flex-col items-center gap-4 py-8 px-12 border-2 border-cardenal-gold/20 hover:border-cardenal-gold transition-all duration-700 bg-white/50 backdrop-blur-sm"
                     >
-                        Ver todas las habitaciones y comparar
-                        <ArrowRight className="w-4 h-4" />
+                        <span className="text-cardenal-green font-serif text-xl md:text-2xl font-bold">
+                            Consultar disponibilidad de habitaciones
+                        </span>
+                        <div className="flex items-center gap-2 text-cardenal-gold font-bold uppercase tracking-[0.3em] text-xs">
+                            <span>Ver todas</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                        </div>
                     </Link>
                 </div>
             </div>
+
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes fadeInRight {
+                    from { opacity: 0; transform: translateX(30px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.8s ease-out forwards;
+                }
+                .animate-fadeInRight {
+                    animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+            `}</style>
         </section>
     );
 };

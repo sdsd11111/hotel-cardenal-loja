@@ -42,8 +42,8 @@ export default function AdminPlatosList({
 
   if (platos.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <p className="text-gray-500">No hay platos registrados</p>
+      <div className="text-center py-12 bg-cardenal-sand/30 rounded-lg">
+        <p className="text-text-muted font-body">No hay platos registrados</p>
       </div>
     );
   }
@@ -66,10 +66,12 @@ export default function AdminPlatosList({
               <TableCell>
                 <div className="relative w-16 h-16">
                   <Image
-                    src={plato.imagen_url || '/placeholder.jpg'}
+                    src={`${plato.imagen_url}?t=${Date.now()}` || '/placeholder.jpg'}
                     alt={plato.titulo}
                     fill
+                    sizes="64px"
                     className="object-cover rounded-md"
+                    unoptimized
                   />
                 </div>
               </TableCell>
@@ -78,7 +80,7 @@ export default function AdminPlatosList({
                 {plato.descripcion}
               </TableCell>
               <TableCell className="text-right">
-                ${plato.precio.toFixed(2)}
+                ${Number(plato.precio).toFixed(2)}
               </TableCell>
               <TableCell>
                 <div className="flex justify-end space-x-2 items-center">
@@ -91,9 +93,9 @@ export default function AdminPlatosList({
                       size="icon"
                       onClick={() => onToggleStatus(plato.id, plato.activo)}
                       title={plato.activo ? 'Desactivar' : 'Activar'}
-                      className={plato.activo ? 'hover:bg-yellow-50' : 'hover:bg-green-50'}
+                      className={plato.activo ? 'hover:bg-cardenal-gold/20' : 'hover:bg-cardenal-green/20'}
                     >
-                      {plato.activo ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {plato.activo ? <EyeOff className="h-4 w-4 text-cardenal-gold" /> : <Eye className="h-4 w-4 text-cardenal-green" />}
                     </Button>
                   </div>
                   <Button

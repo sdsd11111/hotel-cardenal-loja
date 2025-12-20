@@ -19,16 +19,13 @@ type Article = {
     contenido: string; // Needed for search
 };
 
-export default function BlogClient({ initialArticles }: { initialArticles: Article[] }) {
+export default function BlogClient({ initialArticles, initialCategory = 'Todas' }: { initialArticles: Article[], initialCategory?: string }) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('Todas');
+    const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    // Extract unique categories
-    const categories = useMemo(() => {
-        const cats = new Set(initialArticles.map(a => a.categoria).filter(Boolean));
-        return ['Todas', ...Array.from(cats)];
-    }, [initialArticles]);
+    // Categories (Static as requested)
+    const categories = ['Todas', 'Nuestro Hotel', 'Qué comer en Loja', 'Eventos en Loja', 'Tours de Loja'];
 
     // Filter articles
     const filteredArticles = useMemo(() => {
@@ -63,31 +60,38 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
     const prevSlide = () => setCurrentSlide(prev => (prev - 1 + recentArticles.length) % recentArticles.length);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+        <div className="min-h-screen bg-cardenal-cream flex flex-col">
             <Header />
 
-            {/* HERO SECTION (70vh) */}
-            <section className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-gray-900">
-                {/* Background (Gradient or Image if you prefer) */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 z-0"></div>
+            {/* HERO SECTION (Fullscreen) */}
+            <section className="relative h-screen w-full flex items-center justify-center overflow-hidden p-0 m-0">
+                {/* Background Image */}
+                <Image
+                    src="/images/contacto/blog-hero.webp?v=2"
+                    alt="Blog y Novedades de Loja - Hotel El Cardenal"
+                    fill
+                    className="object-cover"
+                    priority
+                    unoptimized
+                />
 
-                {/* Optional: Add a subtle pattern or overlay image */}
-                <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] z-0"></div>
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-black/40 z-0"></div>
 
-                <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-                    <span className="text-amber-500 font-bold tracking-[0.2em] text-sm uppercase mb-6 block animate-fade-in-up">
+                <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20">
+                    <span className="text-cardenal-gold font-bold tracking-[0.2em] text-sm md:text-base uppercase mb-6 block drop-shadow-md">
                         Explora Nuestro Contenido
                     </span>
-                    <h1 className="text-5xl md:text-7xl font-playfair font-bold text-white mb-8 leading-tight animate-fade-in-up delay-100">
+                    <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-8 leading-tight drop-shadow-xl">
                         Blog & Novedades
                     </h1>
-                    <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-light leading-relaxed animate-fade-in-up delay-200">
-                        Historias, guías y secretos de Cuenca para hacer tu estadía inolvidable.
+                    <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+                        Historias, guías y secretos de Loja para hacer tu estadía inolvidable.
                     </p>
                 </div>
             </section>
 
-            <main className="flex-grow pb-16 px-4 bg-gray-50 relative z-10 -mt-10 rounded-t-[3rem] shadow-2xl border-t border-white/20">
+            <main className="flex-grow pb-16 px-4 bg-cardenal-cream relative z-10 -mt-10 rounded-t-[3rem] shadow-2xl border-t border-white/20">
                 <div className="max-w-7xl mx-auto pt-16">
 
                     {/* SEARCH & FILTERS */}
@@ -95,11 +99,11 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                         {/* Search Bar */}
                         <div className="max-w-2xl mx-auto relative group">
                             <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                                <Search className="h-6 w-6 text-gray-400 group-focus-within:text-amber-500 transition-colors" />
+                                <Search className="h-6 w-6 text-gray-400 group-focus-within:text-cardenal-green transition-colors" />
                             </div>
                             <input
                                 type="text"
-                                className="block w-full pl-16 pr-6 py-5 rounded-full bg-white border-none shadow-lg text-gray-900 placeholder-gray-400 focus:ring-4 focus:ring-amber-500/20 focus:outline-none transition-all text-lg"
+                                className="block w-full pl-16 pr-6 py-5 rounded-full bg-white border-none shadow-lg text-text-main placeholder-gray-400 focus:ring-4 focus:ring-cardenal-green/20 focus:outline-none transition-all text-lg"
                                 placeholder="Buscar artículos por título, contenido o categoría..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,8 +120,8 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
                                     className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${selectedCategory === cat
-                                        ? 'bg-amber-600 text-white shadow-md transform scale-105'
-                                        : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-amber-600 shadow-sm border border-gray-100'
+                                        ? 'bg-cardenal-green text-white shadow-md transform scale-105'
+                                        : 'bg-white text-text-muted hover:bg-cardenal-cream hover:text-cardenal-green shadow-sm border border-cardenal-sand'
                                         }`}
                                 >
                                     {cat}
@@ -128,9 +132,9 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
 
                     {/* ARTICLE GRID */}
                     <div className="mb-20">
-                        <h2 className="text-3xl font-playfair font-bold text-center text-gray-900 mb-12 relative inline-block w-full">
-                            <span className="relative z-10 bg-gray-50 px-4">Todos los Artículos</span>
-                            <div className="absolute top-1/2 left-0 w-full h-px bg-gray-200 -z-0"></div>
+                        <h2 className="text-3xl font-serif font-bold text-center text-text-main mb-12 relative inline-block w-full">
+                            <span className="relative z-10 bg-cardenal-cream px-4">Todos los Artículos</span>
+                            <div className="absolute top-1/2 left-0 w-full h-px bg-cardenal-sand -z-0"></div>
                         </h2>
 
                         {filteredArticles.length === 0 ? (
@@ -143,7 +147,7 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                     <Link
                                         href={`/blog/${article.slug}`}
                                         key={article.id}
-                                        className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col h-full border border-gray-100 hover/-translate-y-2"
+                                        className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col h-full border border-cardenal-sand hover/-translate-y-2"
                                     >
                                         <div className="relative h-64 w-full overflow-hidden">
                                             {article.imagen_url ? (
@@ -159,7 +163,7 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-                                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-amber-800 shadow-sm">
+                                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-cardenal-green shadow-sm">
                                                 {article.categoria || 'General'}
                                             </div>
                                         </div>
@@ -174,7 +178,7 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                                 </div>
                                             </div>
 
-                                            <h3 className="text-2xl font-playfair font-bold text-gray-900 mb-4 group-hover:text-amber-600 transition-colors leading-tight">
+                                            <h3 className="text-2xl font-serif font-bold text-text-main mb-4 group-hover:text-cardenal-green transition-colors leading-tight">
                                                 {article.titulo}
                                             </h3>
 
@@ -182,7 +186,7 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                                 {article.extracto || 'Lee el artículo completo para descubrir más...'}
                                             </p>
 
-                                            <div className="mt-auto flex items-center text-amber-600 font-bold text-sm tracking-wider uppercase group/link">
+                                            <div className="mt-auto flex items-center text-cardenal-green font-bold text-sm tracking-wider uppercase group/link">
                                                 Leer Artículo
                                                 <ArrowRight className="w-4 h-4 ml-2 transform group-hover/link:translate-x-1 transition-transform" />
                                             </div>
@@ -195,8 +199,8 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
 
                     {/* RECENT ARTICLES SLIDER */}
                     {recentArticles.length > 0 && (
-                        <div className="mb-20 pt-10 border-t border-gray-200">
-                            <h2 className="text-3xl font-playfair font-bold text-gray-900 mb-10 text-center">
+                        <div className="mb-20 pt-10 border-t border-cardenal-sand">
+                            <h2 className="text-3xl font-serif font-bold text-text-main mb-10 text-center">
                                 Artículos Recientes
                             </h2>
 
@@ -234,11 +238,11 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                             </div>
 
                                             {/* Content Side */}
-                                            <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col justify-center bg-gray-900 text-white flex-grow">
-                                                <div className="bg-amber-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full self-start mb-3 md:mb-6">
+                                            <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col justify-center bg-cardenal-green-dark text-white flex-grow">
+                                                <div className="bg-cardenal-gold text-white text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full self-start mb-3 md:mb-6 uppercase tracking-wider">
                                                     NUEVO
                                                 </div>
-                                                <h3 className="text-xl md:text-4xl font-playfair font-bold mb-3 md:mb-6 leading-tight line-clamp-2 md:line-clamp-none">
+                                                <h3 className="text-xl md:text-4xl font-serif font-bold mb-3 md:mb-6 leading-tight line-clamp-2 md:line-clamp-none text-cardenal-gold">
                                                     {article.titulo}
                                                 </h3>
                                                 <p className="text-gray-300 text-sm md:text-lg mb-4 md:mb-8 line-clamp-2 md:line-clamp-3">
@@ -246,7 +250,7 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                                 </p>
                                                 <Link
                                                     href={`/blog/${article.slug}`}
-                                                    className="inline-flex items-center text-white border border-white/30 hover:bg-white hover:text-gray-900 px-4 py-2 md:px-8 md:py-3 text-sm md:text-base rounded-full transition-all duration-300 self-start mt-auto md:mt-0"
+                                                    className="inline-flex items-center text-white border border-cardenal-gold/30 hover:bg-cardenal-gold hover:text-white px-4 py-2 md:px-8 md:py-3 text-sm md:text-base rounded-lg transition-all duration-300 self-start mt-auto md:mt-0 font-bold uppercase tracking-widest"
                                                 >
                                                     Leer Ahora
                                                 </Link>
@@ -261,7 +265,7 @@ export default function BlogClient({ initialArticles }: { initialArticles: Artic
                                         <button
                                             key={idx}
                                             onClick={() => setCurrentSlide(idx)}
-                                            className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-amber-500 w-8' : 'bg-white/50'
+                                            className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-cardenal-gold w-8' : 'bg-white/50'
                                                 }`}
                                         />
                                     ))}

@@ -1,94 +1,113 @@
 import { NextResponse } from 'next/server';
+import { query } from '@/lib/mysql';
 
 export const dynamic = 'force-dynamic';
 
-// Helper para obtener la URL de la API del Blog
-const getBlogApiUrl = () => {
-    if (process.env.CPANEL_BLOG_API_URL) return process.env.CPANEL_BLOG_API_URL;
-    if (process.env.CPANEL_API_URL) return process.env.CPANEL_API_URL.replace('api-platos.php', 'blog/blog_api.php');
-    return null;
-};
-
 /**
  * GET /api/blog
+ * Obtiene artículos del blog directamente de MySQL
  */
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const slug = searchParams.get('slug');
         const active = searchParams.get('active');
-        const apiUrl = getBlogApiUrl();
-        console.log('DEBUG: Resolved API URL:', apiUrl);
-        const apiKey = process.env.PHP_API_KEY;
 
-        if (!apiUrl) return NextResponse.json({ error: 'Configuración de API no encontrada' }, { status: 500 });
+        let sql = 'SELECT id, slug, titulo, contenido, extracto, imagen_url, autor, categoria, tags, meta_description, palabra_clave, activo, fecha_publicacion, fecha_creacion FROM blog_articles';
+        const params: any[] = [];
+        const conditions: string[] = [];
 
-        const targetUrl = new URL(apiUrl);
-        if (slug) targetUrl.searchParams.append('slug', slug);
-        if (active) targetUrl.searchParams.append('active', active);
-
-        const response = await fetch(targetUrl.toString(), {
-            method: 'GET',
-            headers: { 'X-API-Key': apiKey || '', 'Cache-Control': 'no-cache' }
-        });
-
-        if (!response.ok) {
-            try {
-                const errorData = await response.json();
-                return NextResponse.json(errorData, { status: response.status });
-            } catch (e) {
-                return NextResponse.json({ error: 'Error en el servidor remoto' }, { status: response.status });
-            }
+        if (slug) {
+            conditions.push('slug = ?');
+            params.push(slug);
         }
-        const data = await response.json();
-        return NextResponse.json(data);
+
+        if (active !== null) {
+            conditions.push('activo = ?');
+            params.push(active === 'true' ? 1 : 0);
+        }
+
+        if (conditions.length > 0) {
+            sql += ' WHERE ' + conditions.join(' AND ');
+        }
+
+        sql += ' ORDER BY fecha_publicacion DESC';
+
+        const results = await query(sql, params);
+
+        if (slug && Array.isArray(results) && results.length > 0) {
+            return NextResponse.json({ success: true, data: results[0] });
+        }
+
+        return NextResponse.json({ success: true, data: results });
     } catch (error) {
-        console.error('Error en GET /api/blog:', error);
+        console.error('Error en GET /api/blog (MySQL):', error);
         return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
     }
 }
 
 /**
  * POST /api/blog
+ * Crea un artículo en MySQL
  */
 export async function POST(request: Request) {
     try {
-        const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
+        const formData = await request.formData();
+        const titulo = formData.get('titulo')?.toString() || '';
+        const slug = formData.get('slug')?.toString() || '';
+        const contenido = formData.get('contenido')?.toString() || '';
+        const extracto = formData.get('extracto')?.toString() || '';
+        const autor = formData.get('autor')?.toString() || 'Admin';
+        const categoria = formData.get('categoria')?.toString() || 'General';
+        const tags = formData.get('tags')?.toString() || '';
+        const meta_description = formData.get('meta_description')?.toString() || '';
+        const palabra_clave = formData.get('palabra_clave')?.toString() || '';
+        const activo = formData.get('activo') === 'true' ? 1 : 0;
 
-        const apiUrl = getBlogApiUrl();
-        const apiKey = process.env.PHP_API_KEY;
-        if (!apiUrl) return NextResponse.json({ error: 'Configuración faltante' }, { status: 500 });
+        let imagen_url = formData.get('imagen_url')?.toString() || '';
 
-        // Append query params to the target PHP URL specially for the ID
-        const targetUrl = new URL(apiUrl);
-        if (id) {
-            targetUrl.searchParams.append('id', id);
+        // Manejo de imagen
+        const imagenFile = formData.get('imagen') as File | null;
+        let imagen_blob: Buffer | null = null;
+        let imagen_mime: string | null = null;
+
+        if (imagenFile && imagenFile.size > 0) {
+            const arrayBuffer = await imagenFile.arrayBuffer();
+            imagen_blob = Buffer.from(arrayBuffer);
+            imagen_mime = imagenFile.type;
         }
 
-        const contentType = request.headers.get('content-type') || '';
-        let body: any;
-        const headers: any = { 'X-API-Key': apiKey || '' };
-
-        if (contentType.includes('multipart/form-data')) {
-            body = await request.formData();
-        } else {
-            body = JSON.stringify(await request.json());
-            headers['Content-Type'] = 'application/json';
+        if (!titulo || !slug || !contenido) {
+            return NextResponse.json({ success: false, error: 'Campos requeridos faltantes' }, { status: 400 });
         }
 
-        // Use targetUrl.toString() to include the ?id=...
-        const response = await fetch(targetUrl.toString(), { method: 'POST', headers, body });
-        const data = await response.json();
-        return NextResponse.json(data, { status: response.status });
-    } catch (error) {
-        console.error('Error POST /api/blog:', error);
-        return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+        const sql = `INSERT INTO blog_articles 
+            (titulo, slug, contenido, extracto, imagen_url, imagen_blob, imagen_mime, autor, categoria, tags, meta_description, palabra_clave, activo) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        const result = await query(sql, [
+            titulo, slug, contenido, extracto, imagen_url, imagen_blob, imagen_mime,
+            autor, categoria, tags, meta_description, palabra_clave, activo
+        ]) as any;
+
+        const insertId = result.insertId;
+
+        // Si subimos imagen, actualizamos la imagen_url con el ID asignado
+        if (imagen_blob && insertId) {
+            const newUrl = `/api/images/blog/${insertId}`;
+            await query('UPDATE blog_articles SET imagen_url = ? WHERE id = ?', [newUrl, insertId]);
+        }
+
+        return NextResponse.json({ success: true, message: 'Artículo creado correctamente' });
+    } catch (error: any) {
+        console.error('Error POST /api/blog (MySQL):', error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
 
 /**
  * PUT /api/blog
+ * Actualiza un artículo en MySQL. Soporta FormData y JSON.
  */
 export async function PUT(request: Request) {
     try {
@@ -96,35 +115,82 @@ export async function PUT(request: Request) {
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
-        const apiUrl = getBlogApiUrl();
-        const apiKey = process.env.PHP_API_KEY;
-        if (!apiUrl) return NextResponse.json({ error: 'Configuración faltante' }, { status: 500 });
-
-        const targetUrl = new URL(apiUrl);
-        targetUrl.searchParams.append('id', id);
-
         const contentType = request.headers.get('content-type') || '';
-        let body: any;
-        const headers: any = { 'X-API-Key': apiKey || '' };
+        let titulo, slug, contenido, extracto, autor, categoria, tags, meta_description, palabra_clave, activo, imagen_url;
+        let imagen_blob: Buffer | null = null;
+        let imagen_mime: string | null = null;
 
-        if (contentType.includes('multipart/form-data')) {
-            body = await request.formData();
+        if (contentType.includes('application/json')) {
+            const body = await request.json();
+            // Soporte para actualizaciones parciales (solo activo)
+            if (Object.keys(body).length === 1 && body.activo !== undefined) {
+                await query('UPDATE blog_articles SET activo = ? WHERE id = ?', [body.activo ? 1 : 0, id]);
+                return NextResponse.json({ success: true, message: 'Estado actualizado' });
+            }
+
+            ({ titulo, slug, contenido, extracto, imagen_url, autor, categoria, tags, meta_description, palabra_clave, activo } = body);
+            activo = activo ? 1 : 0;
         } else {
-            body = JSON.stringify(await request.json());
-            headers['Content-Type'] = 'application/json';
+            const formData = await request.formData();
+            titulo = formData.get('titulo')?.toString() || '';
+            slug = formData.get('slug')?.toString() || '';
+            contenido = formData.get('contenido')?.toString() || '';
+            extracto = formData.get('extracto')?.toString() || '';
+            autor = formData.get('autor')?.toString() || 'Admin';
+            categoria = formData.get('categoria')?.toString() || 'General';
+            tags = formData.get('tags')?.toString() || '';
+            meta_description = formData.get('meta_description')?.toString() || '';
+            palabra_clave = formData.get('palabra_clave')?.toString() || '';
+            activo = formData.get('activo') === 'true' ? 1 : 0;
+            imagen_url = formData.get('imagen_url')?.toString() || '';
+
+            // Manejo de imagen
+            const imagenFile = formData.get('imagen') as File | null;
+            if (imagenFile && imagenFile.size > 0) {
+                const arrayBuffer = await imagenFile.arrayBuffer();
+                imagen_blob = Buffer.from(arrayBuffer);
+                imagen_mime = imagenFile.type;
+                imagen_url = `/api/images/blog/${id}`;
+            }
         }
 
-        const response = await fetch(targetUrl.toString(), { method: 'PUT', headers, body });
-        const data = await response.json();
-        return NextResponse.json(data, { status: response.status });
-    } catch (error) {
-        console.error('Error PUT /api/blog:', error);
-        return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+        let sql = '';
+        let params: any[] = [];
+
+        if (imagen_blob) {
+            sql = `UPDATE blog_articles SET 
+                titulo = ?, slug = ?, contenido = ?, extracto = ?, imagen_url = ?, 
+                imagen_blob = ?, imagen_mime = ?, autor = ?, categoria = ?, 
+                tags = ?, meta_description = ?, palabra_clave = ?, activo = ?
+                WHERE id = ?`;
+            params = [titulo, slug, contenido, extracto, imagen_url, imagen_blob, imagen_mime, autor, categoria, tags, meta_description, palabra_clave, activo, id];
+        } else {
+            // Si no hay nuevo blob pero la URL cambió (o se mantiene externa), 
+            // limpiamos el blob anterior si la URL ya no apunta a la API interna
+            const isInternalUrl = imagen_url?.includes(`/api/images/blog/${id}`);
+
+            sql = `UPDATE blog_articles SET 
+                titulo = ?, slug = ?, contenido = ?, extracto = ?, imagen_url = ?, 
+                imagen_blob = ${isInternalUrl ? 'imagen_blob' : 'NULL'}, 
+                imagen_mime = ${isInternalUrl ? 'imagen_mime' : 'NULL'},
+                autor = ?, categoria = ?, tags = ?, meta_description = ?, 
+                palabra_clave = ?, activo = ?
+                WHERE id = ?`;
+            params = [titulo, slug, contenido, extracto, imagen_url, autor, categoria, tags, meta_description, palabra_clave, activo, id];
+        }
+
+        await query(sql, params);
+
+        return NextResponse.json({ success: true, message: 'Artículo actualizado correctamente' });
+    } catch (error: any) {
+        console.error('Error PUT /api/blog (MySQL):', error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
 
 /**
  * DELETE /api/blog
+ * Elimina un artículo de MySQL
  */
 export async function DELETE(request: Request) {
     try {
@@ -132,21 +198,11 @@ export async function DELETE(request: Request) {
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
-        const apiUrl = getBlogApiUrl();
-        const apiKey = process.env.PHP_API_KEY;
-        if (!apiUrl) return NextResponse.json({ error: 'Configuración faltante' }, { status: 500 });
+        await query('DELETE FROM blog_articles WHERE id = ?', [id]);
 
-        const targetUrl = new URL(apiUrl);
-        targetUrl.searchParams.append('id', id);
-
-        const response = await fetch(targetUrl.toString(), {
-            method: 'DELETE',
-            headers: { 'X-API-Key': apiKey || '' }
-        });
-
-        const data = await response.json();
-        return NextResponse.json(data, { status: response.status });
-    } catch (error) {
-        return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+        return NextResponse.json({ success: true, message: 'Artículo eliminado correctamente' });
+    } catch (error: any) {
+        console.error('Error DELETE /api/blog (MySQL):', error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

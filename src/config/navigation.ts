@@ -54,7 +54,7 @@ export const mainNav: NavItemType[] = [
         children: [
           {
             label: 'Restaurante Gourmet',
-            href: '/servicios/restaurante',
+            href: '/restaurante',
             description: 'Experiencia culinaria excepcional',
           },
           {
@@ -72,11 +72,11 @@ export const mainNav: NavItemType[] = [
       // Eventos y Negocios
       {
         label: 'Eventos y Negocios',
-        href: '/servicios/eventos',
+        href: '/eventos',
         children: [
           {
             label: 'Salones de Eventos',
-            href: '/servicios/eventos',
+            href: '/eventos',
             description: 'Espacios para todo tipo de celebraciones',
           },
           {

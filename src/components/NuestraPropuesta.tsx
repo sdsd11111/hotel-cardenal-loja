@@ -4,106 +4,134 @@ import React, { useState } from 'react';
 import { MapPin, Zap, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 
+const proposalContent = [
+    {
+        id: 'historia',
+        label: 'Historia y Tradición',
+        icon: <Zap className="w-5 h-5" />,
+        title: 'La Esencia de Antaño',
+        text: 'Somos un hotel familiar en Loja que conserva la esencia de antaño en un entorno privilegiado. Al cruzar nuestro zaguán coronado por el escudo familiar, te recibirá un ambiente íntimo donde la piedra volcánica del siglo XVIII y las techumbres de madera cuentan la historia de nuestra ciudad. A diferencia de los grandes hoteles, aquí ofrecemos un alojamiento auténtico.',
+        highlight: 'Arquitectura del Siglo XVIII'
+    },
+    {
+        id: 'hospitalidad',
+        label: 'Hospitalidad Única',
+        icon: <ShieldCheck className="w-5 h-5" />,
+        title: 'Mucho más que un Servicio',
+        text: 'En Hotel El Cardenal, la hospitalidad no es solo un servicio, es una leyenda que compartimos con cada huésped. Si buscas dónde hospedarse en Loja rodeado de paz y vegetación, nuestra casa te espera junto a las orillas del río Malacatos. Ofrecemos solo 6 exclusivas habitaciones diseñadas para capturar el aire fresco y la luz del sol.',
+        highlight: 'Trato Humano y Cercano'
+    },
+    {
+        id: 'entorno',
+        label: 'Entorno y Cultura',
+        icon: <MapPin className="w-5 h-5" />,
+        title: 'Equilibrio Perfecto',
+        text: 'Nuestra ubicación es estratégica: estamos a solo 10 minutos de la Iglesia Catedral y el centro histórico, pero lo suficientemente cerca de la naturaleza para disfrutar del sonido del río. En nuestro salón neoclásico, rodeado de piezas de arte como el cuadro de la "Romería de El Cisne" y muebles Zuleta, descubrirás el descanso que valoras.',
+        highlight: 'Cerca de lo que amas'
+    }
+];
+
 export const NuestraPropuesta = () => {
+    const [activeTab, setActiveTab] = useState('historia');
     const [isExpanded, setIsExpanded] = useState(false);
 
+    // Reset expansion when changing tabs
+    const handleTabChange = (id: string) => {
+        setActiveTab(id);
+        setIsExpanded(false);
+    };
+
     return (
-        <section className="py-16 bg-gray-50">
+        <section className="py-24 bg-cardenal-cream/40 overflow-hidden">
             <div className="container mx-auto px-4">
                 {/* Header Section */}
-                <div className="max-w-4xl mx-auto text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-                        Su Experiencia en Cuenca Comienza Aquí: <br className="hidden md:block" />
-                        <span className="text-blue-600">Plataforma de Alto Rendimiento y Confianza Total.</span>
+                <div className="max-w-4xl mx-auto text-center mb-16">
+                    <h2 className="text-3xl md:text-6xl font-bold text-cardenal-green mb-6 leading-tight font-serif drop-shadow-sm">
+                        El encanto de un hotel <span className="text-cardenal-gold italic">con alma</span>
                     </h2>
+                    <p className="text-lg md:text-xl text-gray-600 font-medium">Historia, tradición y naturaleza en el rincón más exclusivo de Loja.</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    {/* Left Column: Narrative & Pillars */}
-                    <div className="space-y-8">
-                        {/* Central Narrative */}
-                        <div className="prose prose-lg text-gray-600">
-                            <p className="leading-relaxed inline">
-                                En el corazón de Cuenca, Ecuador, nuestro hotel no es solo un destino, sino el punto de partida estratégico ideal para explorar la riqueza natural y cultural de la región.
-                                <span className={`${isExpanded ? 'inline' : 'hidden'} md:inline`}>
-                                    {' '}Hemos diseñado nuestra plataforma digital, bajo la arquitectura de Next.js, no como un simple catálogo, sino como una herramienta de conversión superior.
-                                </span>
-                            </p>
-
-                            <div className={`${isExpanded ? 'block' : 'hidden'} md:block`}>
-                                <p className="leading-relaxed mt-4 font-medium text-gray-800">
-                                    Nuestro objetivo es simple: garantizarle una Experiencia de Usuario (UX) excepcional, la Mejor Tarifa y la Máxima Seguridad al reservar directamente con nosotros.
-                                </p>
-                            </div>
-
-                            {/* Mobile Toggle Button */}
-                            <button
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                className="md:hidden flex items-center gap-1 text-blue-600 font-bold mt-2 hover:text-blue-800 transition-colors"
-                            >
-                                {isExpanded ? (
-                                    <>
-                                        Ocultar <ChevronUp className="w-4 h-4" />
-                                    </>
-                                ) : (
-                                    <>
-                                        Seguir leyendo <ChevronDown className="w-4 h-4" />
-                                    </>
-                                )}
-                            </button>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                    {/* Left Column: Interactive Tabs */}
+                    <div className="lg:col-span-6 space-y-8 order-2 lg:order-1">
+                        {/* Tabs Navigation */}
+                        <div className="flex flex-wrap gap-4">
+                            {proposalContent.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => handleTabChange(tab.id)}
+                                    className={`flex items-center gap-3 px-8 py-4 font-serif font-bold text-sm transition-all duration-300 rounded-lg border-2 ${activeTab === tab.id
+                                        ? 'bg-cardenal-green border-cardenal-green text-white shadow-xl scale-105 ring-4 ring-cardenal-green/20'
+                                        : 'bg-white border-cardenal-green/20 text-cardenal-green hover:border-cardenal-green hover:bg-cardenal-green/5'
+                                        }`}
+                                >
+                                    {tab.icon}
+                                    <span className="tracking-wide uppercase text-xs">{tab.label}</span>
+                                </button>
+                            ))}
                         </div>
 
-                        {/* Three Pillars of Value */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                            {/* Pillar 1 */}
-                            <div className="flex flex-col items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                                <div className="p-3 bg-blue-50 rounded-lg mb-4">
-                                    <MapPin className="w-6 h-6 text-blue-600" />
-                                </div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-2">Enfoque Geocéntrico</h3>
-                                <p className="text-sm text-gray-600">
-                                    Explore Cuenca con Nosotros. Ubicación estratégica para su aventura.
-                                </p>
-                            </div>
+                        {/* Animated Content Card */}
+                        <div className="bg-white p-8 md:p-12 shadow-[0_15px_50px_-15px_rgba(0,0,0,0.1)] border border-cardenal-gold/10 relative overflow-hidden min-h-[400px] flex flex-col justify-center">
+                            {/* Decorative element */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-cardenal-gold/5 -mr-16 -mt-16 rotate-45"></div>
 
-                            {/* Pillar 2 */}
-                            <div className="flex flex-col items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                                <div className="p-3 bg-yellow-50 rounded-lg mb-4">
-                                    <Zap className="w-6 h-6 text-yellow-500" />
-                                </div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-2">Rendimiento Superior</h3>
-                                <p className="text-sm text-gray-600">
-                                    Velocidad ultrarrápida y diseño intuitivo para reservar en segundos.
-                                </p>
-                            </div>
-
-                            {/* Pillar 3 */}
-                            <div className="flex flex-col items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                                <div className="p-3 bg-green-50 rounded-lg mb-4">
-                                    <ShieldCheck className="w-6 h-6 text-green-600" />
-                                </div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-2">Confianza y Legalidad</h3>
-                                <p className="text-sm text-gray-600">
-                                    Reserva segura, directa y con cumplimiento legal garantizado.
-                                </p>
-                            </div>
+                            {proposalContent.map((tab) => (
+                                activeTab === tab.id && (
+                                    <div key={tab.id} className="animate-fadeInRight space-y-6">
+                                        <div className="inline-block px-4 py-1.5 bg-cardenal-gold/10 text-cardenal-gold text-xs font-bold uppercase tracking-widest mb-4 border-l-4 border-cardenal-gold">
+                                            {tab.highlight}
+                                        </div>
+                                        <h3 className="text-3xl md:text-4xl font-bold text-cardenal-green font-serif">
+                                            {tab.title}
+                                        </h3>
+                                        <div>
+                                            <p className="text-lg md:text-xl text-gray-700 leading-relaxed font-body">
+                                                {isExpanded ? tab.text : `${tab.text.substring(0, 150)}...`}
+                                            </p>
+                                            <button
+                                                onClick={() => setIsExpanded(!isExpanded)}
+                                                className="text-cardenal-gold font-bold text-sm mt-4 hover:text-cardenal-green transition-colors uppercase tracking-widest border-b border-cardenal-gold inline-block"
+                                            >
+                                                {isExpanded ? 'Ocultar' : 'Seguir leyendo'}
+                                            </button>
+                                        </div>
+                                        <div className="pt-4">
+                                            <div className="w-16 h-1 bg-cardenal-gold/40"></div>
+                                        </div>
+                                    </div>
+                                )
+                            ))}
                         </div>
                     </div>
 
                     {/* Right Column: Visual Component */}
-                    <div className="relative h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl group">
-                        <Image
-                            src="/images/home/propuesta-valor.webp"
-                            alt="Esencia del Hotel Puente Roto"
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
+                    <div className="lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:h-full lg:mb-0 mb-12 self-center">
+                        <div className="relative aspect-video w-full overflow-hidden shadow-2xl rounded-2xl ring-4 ring-white/50 bg-black">
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                src="https://www.youtube.com/embed/-XnNorw5qmc?autoplay=0&controls=1&rel=0"
+                                title="Experiencia Hotel El Cardenal"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="absolute inset-0 w-full h-full object-cover"
+                            ></iframe>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <style jsx>{`
+                @keyframes fadeInRight {
+                    from { opacity: 0; transform: translateX(20px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                .animate-fadeInRight {
+                    animation: fadeInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+            `}</style>
         </section>
     );
 };

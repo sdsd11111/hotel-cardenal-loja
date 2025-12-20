@@ -26,40 +26,19 @@ type Article = {
     fecha_publicacion: string;
 };
 
+import { query } from '@/lib/mysql';
+
 async function getArticle(slug: string): Promise<Article | null> {
     try {
-        const apiUrl = process.env.CPANEL_BLOG_API_URL ||
-            (process.env.CPANEL_API_URL ? process.env.CPANEL_API_URL.replace('api-platos.php', 'blog/blog_api.php') : null);
+        const results = await query(
+            'SELECT * FROM blog_articles WHERE slug = ? AND activo = 1 LIMIT 1',
+            [slug]
+        );
 
-        if (!apiUrl) {
-            console.error('DEBUG: API URL not configured');
-            return null;
-        }
-
-        const url = `${apiUrl}?slug=${slug}`;
-        console.log(`DEBUG: Fetching Article from ${url}`);
-
-        const res = await fetch(url, {
-            headers: {
-                'X-API-Key': process.env.PHP_API_KEY || ''
-            },
-            cache: 'no-store'
-        });
-
-        if (!res.ok) {
-            console.error(`DEBUG: Failed to fetch. Status: ${res.status}`);
-            return null;
-        }
-
-        const json = await res.json();
-
-        if (json.success) {
-            return json.data;
-        }
-        console.error('DEBUG: API returned success: false', json);
-        return null;
+        const articles = results as Article[];
+        return articles.length > 0 ? articles[0] : null;
     } catch (error) {
-        console.error('Error fetching article:', error);
+        console.error('Error fetching article from MySQL:', error);
         return null;
     }
 }
@@ -77,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     return {
-        title: `${article.titulo} | Blog Hotel Puente Roto`,
+        title: `${article.titulo} | Blog Hotel El Cardenal Loja`,
         description: article.meta_description || article.extracto || article.titulo,
         keywords: article.tags ? article.tags + (article.palabra_clave ? `, ${article.palabra_clave}` : '') : article.palabra_clave,
         openGraph: {
@@ -86,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             images: article.imagen_url ? [article.imagen_url] : [],
             type: 'article',
             publishedTime: article.fecha_publicacion,
-            authors: [article.autor || 'Hotel Puente Roto'],
+            authors: [article.autor || 'Hotel El Cardenal Loja'],
             tags: article.tags ? article.tags.split(',').map(t => t.trim()) : [],
         },
     };
@@ -94,28 +73,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Helper para traer artículos relacionados
 async function getRelatedArticles(category: string, currentSlug: string): Promise<Article[]> {
-    const apiUrl = process.env.CPANEL_BLOG_API_URL ||
-        (process.env.CPANEL_API_URL ? process.env.CPANEL_API_URL.replace('api-platos.php', 'blog/blog_api.php') : null);
-
-    if (!apiUrl) return [];
-
     try {
-        // Pedimos artículos de la misma categoría
-        const res = await fetch(`${apiUrl}?active=true&category=${encodeURIComponent(category)}`, {
-            headers: { 'X-API-Key': process.env.PHP_API_KEY || '' },
-            cache: 'no-store'
-        });
+        const results = await query(
+            'SELECT * FROM blog_articles WHERE categoria = ? AND slug != ? AND activo = 1 LIMIT 3',
+            [category, currentSlug]
+        );
 
-        if (!res.ok) return [];
-        const result = await res.json();
-        const articles = result.success ? (result.data as Article[]) : [];
-
-        // Filtramos para quitar el actual y limitamos a 3
-        return articles
-            .filter(a => a.slug !== currentSlug)
-            .slice(0, 3);
+        return results as Article[];
     } catch (e) {
-        console.error(e);
+        console.error('Error fetching related articles from MySQL:', e);
         return [];
     }
 }
@@ -133,8 +99,8 @@ export default async function ArticlePage({ params }: Props) {
     const tagsList = article.tags ? article.tags.split(',').map(t => t.trim()) : [];
 
     return (
-        <div className="min-h-screen bg-white flex flex-col font-sans">
-            <Header className="bg-black/95" />
+        <div className="min-h-screen bg-white flex flex-col font-sans overflow-x-hidden">
+            <Header forceDarkText={true} />
 
             <main className="flex-grow pt-32 pb-16">
                 <article>
@@ -153,7 +119,7 @@ export default async function ArticlePage({ params }: Props) {
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <User className="w-4 h-4" />
-                                    <span>{article.autor || 'Equipo Puente Roto'}</span>
+                                    <span>{article.autor || 'Equipo El Cardenal'}</span>
                                 </div>
                             </div>
 
@@ -185,7 +151,7 @@ export default async function ArticlePage({ params }: Props) {
 
                     {/* Content */}
                     <div className="max-w-3xl mx-auto px-4 pb-12">
-                        <div className="prose prose-lg prose-amber max-w-none font-sans text-gray-700 leading-8">
+                        <div className="prose prose-lg prose-amber max-w-none font-sans text-gray-700 leading-8 break-words overflow-hidden">
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 rehypePlugins={[rehypeRaw]}
@@ -270,6 +236,37 @@ export default async function ArticlePage({ params }: Props) {
             </main>
 
             <Footer />
+            {/* 📊 Structured Data (JSON-LD) */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "BlogPosting",
+                        "headline": article.titulo,
+                        "description": article.meta_description || article.extracto,
+                        "image": article.imagen_url,
+                        "datePublished": article.fecha_publicacion,
+                        "author": {
+                            "@type": "Organization",
+                            "name": article.autor || "Hotel El Cardenal Loja",
+                            "url": "https://hotelelcardenalloja.com"
+                        },
+                        "publisher": {
+                            "@type": "Hotel",
+                            "name": "Hotel El Cardenal Loja",
+                            "logo": {
+                                "@type": "ImageObject",
+                                "url": "https://hotelelcardenalloja.com/logo.jpg"
+                            }
+                        },
+                        "mainEntityOfPage": {
+                            "@type": "WebPage",
+                            "@id": `https://hotelelcardenalloja.com/blog/${article.slug}`
+                        }
+                    })
+                }}
+            />
         </div>
     );
 }

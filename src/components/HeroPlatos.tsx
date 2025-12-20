@@ -240,7 +240,7 @@ export default function HeroPlatos() {
             <div className="relative w-full h-full">
               {isImageLoading && (
                 <div className="absolute inset-0 bg-gray-800 animate-pulse z-10 flex items-center justify-center">
-                  <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-16 h-16 border-4 border-cardenal-gold border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
               <Image
@@ -290,16 +290,19 @@ export default function HeroPlatos() {
         <div className="relative z-10 w-full max-w-6xl px-6 text-center text-white">
           <div className="max-w-3xl mx-auto">
             <div className="mb-6 md:mb-8">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-2 leading-tight">
-                Hotel Puente Roto
+              <p className="text-xl md:text-2xl text-cardenal-gold font-script mb-2 italic">
+                Un descanso con aroma a café y río
+              </p>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-2 leading-tight font-serif text-white">
+                Hotel Cardenal Loja
               </h1>
-              <div className="w-20 sm:w-24 h-1 bg-yellow-400 mx-auto my-3 sm:my-4"></div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl text-yellow-400 font-medium mb-4 sm:mb-6">
+              <div className="w-20 sm:w-24 h-1 bg-cardenal-gold mx-auto my-3 sm:my-4"></div>
+              <h2 className="text-lg sm:text-xl md:text-2xl text-cardenal-gold font-medium mb-4 sm:mb-6 uppercase tracking-widest font-sans">
                 Plato del día
               </h2>
 
               <div className="mb-10">
-                <h3 className="text-2xl md:text-3xl font-bold mb-3 text-yellow-300 [text-shadow:_0_2px_4px_rgb(0_0_0_/_80%)]">
+                <h3 className="text-2xl md:text-3xl font-bold mb-3 text-cardenal-gold [text-shadow:_0_2px_4px_rgb(0_0_0_/_80%)] font-serif">
                   {currentPlato.titulo}
                 </h3>
                 <p className="text-lg text-white/90 mb-4 [text-shadow:_0_2px_4px_rgb(0_0_0_/_80%)]">
@@ -312,7 +315,7 @@ export default function HeroPlatos() {
 
               <div className="flex justify-center mb-8">
                 <button
-                  className="px-6 py-3 md:px-10 md:py-4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-full text-base md:text-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-yellow-500/30 flex items-center gap-2 group"
+                  className="px-6 py-3 md:px-10 md:py-4 bg-cardenal-green hover:bg-cardenal-gold text-white font-bold rounded-lg text-base md:text-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cardenal-green/30 flex items-center gap-2 group font-sans"
                   onClick={() => {
                     alert(`¡Gracias por tu pedido de ${currentPlato.titulo}! Pronto nos pondremos en contacto contigo.`);
                   }}
@@ -342,7 +345,7 @@ export default function HeroPlatos() {
                       key={plato.id}
                       onClick={() => setCurrentIndex(index)}
                       className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${index === currentIndex
-                        ? 'bg-yellow-400 w-8 scale-110'
+                        ? 'bg-cardenal-gold w-8 scale-110'
                         : 'bg-white/50 hover:bg-white/70'
                         }`}
                       aria-label={`Ver ${plato.titulo}`}
@@ -363,9 +366,9 @@ export default function HeroPlatos() {
               aria-label="Plato anterior"
             >
               <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 flex items-center">
-                <div className="w-8 h-16 border-l-2 border-white/60 group-hover:border-yellow-400 transition-all duration-300"></div>
+                <div className="w-8 h-16 border-l-2 border-white/60 group-hover:border-cardenal-gold transition-all duration-300"></div>
                 <svg
-                  className="w-6 h-6 md:w-7 md:h-7 text-white/80 group-hover:text-yellow-400 -ml-3 transition-all duration-300 group-hover:scale-125"
+                  className="w-6 h-6 md:w-7 md:h-7 text-white/80 group-hover:text-cardenal-gold -ml-3 transition-all duration-300 group-hover:scale-125"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -388,7 +391,7 @@ export default function HeroPlatos() {
             >
               <div className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
                 <svg
-                  className="w-6 h-6 md:w-7 md:h-7 text-white/80 group-hover:text-yellow-400 -mr-3 transition-all duration-300 group-hover:scale-125"
+                  className="w-6 h-6 md:w-7 md:h-7 text-white/80 group-hover:text-cardenal-gold -mr-3 transition-all duration-300 group-hover:scale-125"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -401,7 +404,7 @@ export default function HeroPlatos() {
                     d="M9 5l7 7-7 7"
                   />
                 </svg>
-                <div className="w-8 h-16 border-r-2 border-white/60 group-hover:border-yellow-400 transition-all duration-300"></div>
+                <div className="w-8 h-16 border-r-2 border-white/60 group-hover:border-cardenal-gold transition-all duration-300"></div>
               </div>
             </button>
           </>

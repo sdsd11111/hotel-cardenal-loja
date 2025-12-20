@@ -27,7 +27,7 @@ export interface HeroContent {
 
 // Datos de ejemplo para el header
 export const headerData = {
-  logo: "/logo.png",
+  logo: "/logo-v2.png",
   navItems: [
     { label: "Inicio", href: "/" },
     { label: "Servicios", href: "/servicios" },
@@ -99,4 +99,7 @@ export interface Habitacion {
     maxNiños: number;
     camas: number;
   };
+  disponible?: boolean;
+  fecha_entrada?: string | null;
+  fecha_salida?: string | null;
 }

@@ -3,13 +3,74 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Colores Principales Hotel Cardenal */
+  --cardenal-green: #14534F;
+  /* Verde profundo del logo (Específico según imagen) */
+  --cardenal-green-dark: #0A3D3A;
+  /* Para estados hover y profundidad */
+  --cardenal-green-light: #20756F;
+  /* Para acentos suaves */
+
+  /* Colores de Acento y Contraste */
+  --cardenal-gold: #C9A86A;
+  /* Dorado (Elegancia y Calidez) */
+  --cardenal-brown: #4A3324;
+  /* Café/Bronce del logo (Texto HOTEL) */
+  --cardenal-cream: #FDFCF7;
+  /* Fondo más cálido para resaltar pureza */
+  --cardenal-sand: #EBE9E1;
+  /* Fondos de secciones o tarjetas */
+
+  /* Texto */
+  --text-main: #2D3436;
+  /* Gris casi negro para lectura fluida */
+  --text-muted: #636E72;
+  /* Para subtítulos o detalles */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
+
+  /* Cardenal Colors */
+  --color-cardenal-green: var(--cardenal-green);
+  --color-cardenal-green-dark: var(--cardenal-green-dark);
+  --color-cardenal-green-light: var(--cardenal-green-light);
+  --color-cardenal-gold: var(--cardenal-gold);
+  --color-cardenal-brown: var(--cardenal-brown);
+  --color-cardenal-cream: var(--cardenal-cream);
+  --color-cardenal-sand: var(--cardenal-sand);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+
+  /* Radii Reset (Sharp Edges Design) */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-full: 0px;
+
+  /* Breakpoints */
+  --breakpoint-xs: 400px;
+
+  /* Fonts */
+  --font-sans: var(--font-montserrat), var(--font-inter), sans-serif;
+  --font-serif: var(--font-playfair), var(--font-cinzel), serif;
+  --font-script: var(--font-allura), cursive;
+  --font-body: var(--font-libre), serif;
+}
+
+@layer base {
+
+  *,
+  ::before,
+  ::after {
+    border-radius: 0 !important;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

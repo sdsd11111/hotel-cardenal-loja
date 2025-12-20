@@ -40,7 +40,7 @@ export default function TerminosPage() {
                         <section className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Aceptación de los Términos</h2>
                             <p className="text-gray-700 leading-relaxed">
-                                Al acceder y utilizar el sitio web de Hotel Puente Roto y/o realizar una reserva, usted acepta estar sujeto a estos Términos y Condiciones. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestros servicios.
+                                Al acceder y utilizar el sitio web de Hotel El Cardenal y/o realizar una reserva, usted acepta estar sujeto a estos Términos y Condiciones. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestros servicios.
                             </p>
                         </section>
 
@@ -109,7 +109,7 @@ export default function TerminosPage() {
                         <section className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Responsabilidad</h2>
                             <p className="text-gray-700 leading-relaxed mb-4">
-                                Hotel Puente Roto se esfuerza por proporcionar servicios de alta calidad, sin embargo:
+                                Hotel El Cardenal se esfuerza por proporcionar servicios de alta calidad, sin embargo:
                             </p>
                             <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                                 <li>No nos hacemos responsables por pérdidas o daños a pertenencias personales</li>
@@ -136,14 +136,14 @@ export default function TerminosPage() {
                         <section className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Propiedad Intelectual</h2>
                             <p className="text-gray-700 leading-relaxed">
-                                Todo el contenido de este sitio web, incluyendo textos, imágenes, logotipos y diseño, es propiedad de Hotel Puente Roto y está protegido por las leyes de propiedad intelectual de Ecuador. No se permite su reproducción sin autorización expresa.
+                                Todo el contenido de este sitio web, incluyendo textos, imágenes, logotipos y diseño, es propiedad de Hotel El Cardenal y está protegido por las leyes de propiedad intelectual de Ecuador. No se permite su reproducción sin autorización expresa.
                             </p>
                         </section>
 
                         <section className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Ley Aplicable</h2>
                             <p className="text-gray-700 leading-relaxed">
-                                Estos Términos y Condiciones se rigen por las leyes de la República del Ecuador. Cualquier disputa será resuelta en los tribunales competentes de Cuenca, Ecuador.
+                                Estos Términos y Condiciones se rigen por las leyes de la República del Ecuador. Cualquier disputa será resuelta en los tribunales competentes de Loja, Ecuador.
                             </p>
                         </section>
 
@@ -153,9 +153,9 @@ export default function TerminosPage() {
                                 Para preguntas sobre estos Términos y Condiciones:
                             </p>
                             <div className="bg-gray-50 p-6 rounded-lg">
-                                <p className="text-gray-700 mb-2"><strong>Email:</strong> <a href="mailto:info@hotelloja.com" className="text-amber-600 hover:underline">info@hotelloja.com</a></p>
-                                <p className="text-gray-700 mb-2"><strong>Teléfono:</strong> (07) 2570-888</p>
-                                <p className="text-gray-700"><strong>Dirección:</strong> Av. Gran Colombia y Bolívar, Cuenca - Ecuador</p>
+                                <p className="text-gray-700 mb-2"><strong>Email:</strong> <a href="mailto:elcardenalhotel@gmail.com" className="text-amber-600 hover:underline">elcardenalhotel@gmail.com</a></p>
+                                <p className="text-gray-700 mb-2"><strong>Teléfono:</strong> 099 661 6878</p>
+                                <p className="text-gray-700"><strong>Dirección:</strong> Gladiolos 154-42 y Av. 18 de Noviembre, Loja - Ecuador</p>
                             </div>
                         </section>
 

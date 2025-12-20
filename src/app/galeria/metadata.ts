@@ -1,19 +1,19 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Galería | Hotel Puente Roto',
-    description: 'Explore nuestra galería de imágenes. Descubra las habitaciones, restaurante, spa, eventos y la belleza de Cuenca que rodea nuestro hotel premium.',
+    title: 'Galería | Hotel El Cardenal Loja',
+    description: 'Explore nuestra galería de imágenes. Descubra las habitaciones, restaurante, spa, eventos y la belleza de Loja que rodea nuestro hotel premium.',
     openGraph: {
-        title: 'Galería | Hotel Puente Roto',
-        description: 'Explore nuestra galería de imágenes. Descubra las habitaciones, restaurante, spa, eventos y la belleza de Cuenca.',
-        url: 'https://hotelloja.com/galeria',
-        siteName: 'Hotel Puente Roto',
+        title: 'Galería | Hotel El Cardenal Loja',
+        description: 'Explore nuestra galería de imágenes. Descubra las habitaciones, restaurante, spa, eventos y la belleza de Loja.',
+        url: 'https://hotelelcardenalloja.com/galeria',
+        siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/Logo.png',
+                url: '/logo.jpg',
                 width: 1200,
                 height: 630,
-                alt: 'Galería Hotel Puente Roto',
+                alt: 'Galería Hotel El Cardenal Loja',
             },
         ],
         locale: 'es_EC',
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Galería | Hotel Puente Roto',
+        title: 'Galería | Hotel El Cardenal Loja',
         description: 'Explore nuestra galería de imágenes. Descubra las habitaciones, restaurante, spa y eventos.',
-        images: ['/Logo.png'],
+        images: ['/logo.jpg'],
     },
 };

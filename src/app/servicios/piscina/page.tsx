@@ -30,7 +30,7 @@ const caracteristicas = [
         id: 2,
         icono: <Eye className="w-8 h-8" />,
         titulo: 'Vistas',
-        detalle: 'Panorámicas a la ciudad de Cuenca y las montañas de los Andes'
+        detalle: 'Panorámicas a la ciudad de Loja y las montañas de los Andes'
     },
     {
         id: 3,
@@ -68,8 +68,8 @@ const galeriaImagenes = [
 
 // Links de navegación a otros servicios
 const serviciosLinks = [
-    { label: 'Eventos', href: '/servicios/eventos' },
-    { label: 'Restaurante', href: '/servicios/restaurante' },
+    { label: 'Eventos', href: '/eventos' },
+    { label: 'Restaurante', href: '/restaurante' },
     { label: 'Tours', href: '/servicios/tours-experiencias' }
 ];
 
@@ -83,7 +83,7 @@ export default function PiscinaPage() {
                 <div className="relative w-full h-[70vh]">
                     <Image
                         src="/images/piscinas/hero-piscina-spa.webp"
-                        alt="Piscina y Spa Hotel Puente Roto"
+                        alt="Piscina y Spa Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
                         priority

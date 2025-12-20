@@ -1,19 +1,19 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Servicios Premium | Hotel Puente Roto',
-    description: 'Descubra nuestros servicios exclusivos: restaurante gourmet, spa, piscina climatizada, salas de eventos y tours guiados por Cuenca y el Parque Nacional Cajas.',
+    title: 'Servicios Premium | Hotel El Cardenal Loja',
+    description: 'Descubra nuestros servicios exclusivos: restaurante gourmet, spa, piscina climatizada, salas de eventos y tours guiados por Loja y el Parque Nacional Podocarpus.',
     openGraph: {
-        title: 'Servicios Premium | Hotel Puente Roto',
+        title: 'Servicios Premium | Hotel El Cardenal Loja',
         description: 'Descubra nuestros servicios exclusivos: restaurante gourmet, spa, piscina climatizada, salas de eventos y tours guiados.',
-        url: 'https://hotelloja.com/servicios',
-        siteName: 'Hotel Puente Roto',
+        url: 'https://hotelelcardenalloja.com/servicios',
+        siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/Logo.png',
+                url: '/logo.jpg',
                 width: 1200,
                 height: 630,
-                alt: 'Servicios Hotel Puente Roto',
+                alt: 'Servicios Hotel El Cardenal Loja',
             },
         ],
         locale: 'es_EC',
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Servicios Premium | Hotel Puente Roto',
+        title: 'Servicios Premium | Hotel El Cardenal Loja',
         description: 'Restaurante gourmet, spa, piscina climatizada, eventos y tours guiados.',
-        images: ['/Logo.png'],
+        images: ['/logo.jpg'],
     },
 };

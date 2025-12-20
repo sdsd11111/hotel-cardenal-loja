@@ -5,10 +5,10 @@ import Image from 'next/image';
 import { Habitacion } from '@/types';
 import {
     X, Check, Bed, Coffee, Briefcase, Wifi, Users, Tv, Car, Bath, Wind,
-    ConciergeBell, Award, Eye, Droplets, Sofa, Sparkles, Plus
+    ConciergeBell, Award, Eye, Droplets, Sofa, Sparkles, Plus, ArrowRight
 } from 'lucide-react';
 
-// Tipos de amenidades (Duplicated from HabitacionesPage for self-containment)
+// Tipos de amenidades
 const amenidadesIconos: Record<string, React.ReactNode> = {
     'Cama King': <Bed className="w-5 h-5" />,
     'Cama Queen': <Bed className="w-5 h-5" />,
@@ -47,93 +47,109 @@ export const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ habitacion, 
 
     return (
         <div
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
             onClick={handleBackdropClick}
         >
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative flex flex-col md:flex-row">
+            <div className="bg-cardenal-cream border border-cardenal-gold/20 shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto relative flex flex-col md:flex-row">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all"
+                    className="absolute top-4 right-4 z-20 bg-cardenal-green text-white p-3 hover:bg-cardenal-gold transition-colors shadow-xl"
                 >
                     <X className="w-6 h-6" />
                 </button>
 
                 {/* Image Section */}
-                <div className="w-full md:w-1/2 relative h-64 md:h-auto min-h-[300px]">
+                <div className="w-full md:w-1/2 relative h-64 md:h-auto min-h-[400px]">
                     <Image
-                        src={habitacion.imagen}
+                        src={habitacion.imagen ? (habitacion.imagen.startsWith('/api') ? `${habitacion.imagen}${habitacion.imagen.includes('?') ? '&' : '?'}v=${Date.now()}` : habitacion.imagen) : '/placeholder.jpg'}
                         alt={habitacion.nombre}
                         fill
                         className="object-cover"
+                        unoptimized
                     />
-                    <div className="absolute top-4 left-4 bg-amber-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
+                    <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-8 py-4 font-serif font-bold italic text-xl shadow-2xl">
                         {habitacion.precio}
                     </div>
                 </div>
 
                 {/* Content Section */}
-                <div className="w-full md:w-1/2 p-8 flex flex-col">
-                    <div className="mb-6">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">{habitacion.nombre}</h2>
-                        <div className="w-20 h-1 bg-amber-500 rounded-full mb-4"></div>
-                        <p className="text-lg text-gray-600 leading-relaxed">
+                <div className="w-full md:w-1/2 p-6 xs:p-10 md:p-14 flex flex-col bg-white">
+                    <div className="mb-8">
+                        <h2 className="text-2xl xs:text-3xl md:text-5xl font-bold text-cardenal-green mb-4 font-serif tracking-tight">
+                            {habitacion.nombre}
+                        </h2>
+                        <div className="w-20 h-1.5 bg-cardenal-gold mb-6"></div>
+                        <p className="text-base xs:text-lg md:text-xl text-text-muted leading-relaxed font-medium italic mb-2">
+                            Experiencia Cardenal Loja
+                        </p>
+                        <p className="text-sm xs:text-lg text-text-main leading-relaxed">
                             {habitacion.descripcion}
                         </p>
                     </div>
 
                     <div className="mb-8">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Sparkles className="w-5 h-5 text-amber-500" />
-                            Amenidades y Servicios
+                        <h3 className="text-[10px] font-bold text-cardenal-green/60 uppercase tracking-[0.2em] xs:tracking-[0.3em] mb-4 font-serif flex items-center gap-3">
+                            <Sparkles className="w-4 h-4 text-cardenal-gold" />
+                            Amenidades Exclusivas
                         </h3>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-y-3">
                             {habitacion.amenidades.map((amenidad, idx) => (
-                                <div key={idx} className="flex items-center gap-3 text-gray-700 bg-gray-50 p-3 rounded-lg">
-                                    <span className="text-amber-600">
+                                <div key={idx} className="flex items-center gap-3 text-cardenal-green font-bold text-xs xs:text-sm tracking-wide group">
+                                    <div className="text-cardenal-gold group-hover:scale-110 transition-transform">
                                         {amenidadesIconos[amenidad] || <Check className="w-5 h-5" />}
-                                    </span>
-                                    <span className="font-medium text-sm">{amenidad}</span>
+                                    </div>
+                                    <span>{amenidad}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="mb-8">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Users className="w-5 h-5 text-amber-500" />
-                            Capacidad
+                    <div className="mb-8 p-4 xs:p-6 bg-cardenal-cream/40 border border-cardenal-gold/10">
+                        <h3 className="text-[10px] font-bold text-cardenal-green/60 uppercase tracking-[0.2em] mb-4 font-serif">
+                            Detalles de Estancia
                         </h3>
-                        <div className="flex gap-6">
-                            <div className="text-center bg-gray-50 p-4 rounded-xl flex-1">
-                                <span className="block text-2xl font-bold text-gray-900">{habitacion.capacidad.maxAdultos}</span>
-                                <span className="text-sm text-gray-500">Adultos</span>
+                        <div className="flex gap-4 xs:gap-8">
+                            <div className="flex flex-col">
+                                <span className="text-3xl font-bold text-cardenal-green font-serif">{habitacion.capacidad.maxAdultos}</span>
+                                <span className="text-[10px] uppercase tracking-widest text-cardenal-gold font-bold">Adultos</span>
                             </div>
-                            <div className="text-center bg-gray-50 p-4 rounded-xl flex-1">
-                                <span className="block text-2xl font-bold text-gray-900">{habitacion.capacidad.maxNiños}</span>
-                                <span className="text-sm text-gray-500">Niños</span>
+                            <div className="flex flex-col">
+                                <span className="text-3xl font-bold text-cardenal-green font-serif">{habitacion.capacidad.maxNiños}</span>
+                                <span className="text-[10px] uppercase tracking-widest text-cardenal-gold font-bold">Niños</span>
                             </div>
-                            <div className="text-center bg-gray-50 p-4 rounded-xl flex-1">
-                                <span className="block text-2xl font-bold text-gray-900">{habitacion.capacidad.camas}</span>
-                                <span className="text-sm text-gray-500">{habitacion.capacidad.camas === 1 ? 'Cama' : 'Camas'}</span>
+                            <div className="flex flex-col">
+                                <span className="text-3xl font-bold text-cardenal-green font-serif">{habitacion.capacidad.camas}</span>
+                                <span className="text-[10px] uppercase tracking-widest text-cardenal-gold font-bold">{habitacion.capacidad.camas === 1 ? 'Cama' : 'Camas'}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-auto pt-6 border-t border-gray-100">
+                    <div className="mt-auto pt-10 border-t border-gray-100">
                         <button
                             onClick={() => {
                                 onAddToCart(habitacion);
                                 onClose();
                             }}
-                            className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center justify-center gap-3"
+                            className="w-full bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-5 px-10 transition-all duration-500 shadow-xl flex items-center justify-center gap-4 tracking-widest uppercase text-sm font-serif"
                         >
-                            <Plus className="w-6 h-6" />
-                            AGREGAR A MI RESERVA
+                            <Plus className="w-5 h-5" />
+                            Agregar a mi Reserva
+                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" />
                         </button>
                     </div>
                 </div>
             </div>
+
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.5s ease-out forwards;
+                }
+            `}</style>
         </div>
     );
 };

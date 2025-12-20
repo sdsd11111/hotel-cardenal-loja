@@ -5,8 +5,9 @@ import { serialize } from 'cookie';
 import { loginLimiter, getIPKey, getUsernameIPkey } from '@/lib/rateLimiter';
 
 // Credenciales válidas
+// Credenciales válidas
 const VALID_CREDENTIALS = {
-  username: 'Losalmuerzos',
+  username: 'HotelCardenal',
   password: 'Contraseña123.'
 };
 
@@ -30,20 +31,20 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    
+
     // Validar los datos de entrada
     const result = loginSchema.safeParse(body);
-    
+
     if (!result.success) {
       return NextResponse.json(
         { message: 'Datos de entrada inválidos', errors: result.error.flatten() },
         { status: 400 }
       );
     }
-    
+
     const { username, password } = result.data;
     usernameIPkey = getUsernameIPkey(username, ip);
-    
+
     // Verificar límites de intentos por IP
     const [resUsernameAndIP, resSlowByIP] = await Promise.all([
       loginLimiter.limiterConsecutiveFailsByUsernameAndIP.get(usernameIPkey),
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
     ]);
 
     let retrySecs = 0;
-    
+
     // Verificar si la IP está bloqueada
     if (resSlowByIP !== null && resSlowByIP.consumedPoints > loginLimiter.maxConsecutiveFailsByUsernameAndIP) {
       retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
@@ -62,11 +63,11 @@ export async function POST(request: Request) {
     if (retrySecs > 0) {
       // Usuario bloqueado temporalmente
       return NextResponse.json(
-        { 
+        {
           message: `Demasiados intentos fallidos. Por favor, intente de nuevo en ${Math.ceil(retrySecs / 60)} minutos.`,
-          retryAfter: retrySecs 
+          retryAfter: retrySecs
         },
-        { 
+        {
           status: 429,
           headers: {
             'Retry-After': retrySecs.toString()
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
         }
       );
     }
-    
+
     // Verificar las credenciales
     if (username !== VALID_CREDENTIALS.username || password !== VALID_CREDENTIALS.password) {
       try {
@@ -88,24 +89,24 @@ export async function POST(request: Request) {
           console.error('Error al incrementar contador de intentos fallidos:', rlRejected);
         }
       }
-      
-      const remainingAttempts = loginLimiter.maxConsecutiveFailsByUsernameAndIP - 
+
+      const remainingAttempts = loginLimiter.maxConsecutiveFailsByUsernameAndIP -
         ((resUsernameAndIP?.consumedPoints || 0) + 1);
-      
+
       return NextResponse.json(
-        { 
+        {
           message: `Credenciales inválidas. ${remainingAttempts > 0 ? `Intentos restantes: ${remainingAttempts}` : 'Cuenta bloqueada temporalmente.'}`,
           remainingAttempts: remainingAttempts
         },
         { status: 401 }
       );
     }
-    
+
     // Si el inicio de sesión es exitoso, limpiar los contadores de intentos fallidos
     if (usernameIPkey) {
       await loginLimiter.limiterConsecutiveFailsByUsernameAndIP.delete(usernameIPkey);
     }
-    
+
     // Crear una cookie de sesión segura
     const cookie = serialize('admin-session', 'authenticated', {
       httpOnly: true,
@@ -114,21 +115,21 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 7, // 1 semana
       path: '/',
     });
-    
+
     const response = NextResponse.json(
-      { 
+      {
         message: 'Inicio de sesión exitoso',
         remainingAttempts: loginLimiter.maxConsecutiveFailsByUsernameAndIP
       },
       { status: 200 }
     );
-    
+
     // Establecer la cookie en la respuesta
     response.headers.set('Set-Cookie', cookie);
-    
+
     return response;
-    
-    
+
+
   } catch (error) {
     console.error('Error en el servidor:', error);
     return NextResponse.json(
