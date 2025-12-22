@@ -21,26 +21,46 @@ export async function GET(request: Request) {
 
         const habitaciones: any = await query(sql);
 
-        // Si hay fechas, marcar cuáles están ocupadas por reservas CONFIRMADAS
+        // Marcar disponibilidad basada en reservas Y bloqueos manuales
         if (entrada && salida) {
+            const entradaDate = new Date(entrada);
+            const salidaDate = new Date(salida);
+
             const reservasSql = `SELECT habitacion_id FROM reservas 
                                 WHERE estado != 'CANCELADA' 
                                 AND ((fecha_entrada < ?) AND (fecha_salida > ?))`;
             const ocupadasRaw: any = await query(reservasSql, [salida, entrada]);
-            const idsOcupados = new Set(ocupadasRaw.map((r: any) => r.habitacion_id));
+            const idsReservados = new Set(ocupadasRaw.map((r: any) => r.habitacion_id));
 
             habitaciones.forEach((hab: any) => {
-                if (idsOcupados.has(hab.id)) {
-                    hab.disponible = 0; // Marcar como no disponible pal rango
-                    hab.reservada = true;
+                // 1. Verificar Reservas
+                const reservada = idsReservados.has(hab.id);
+
+                // 2. Verificar Bloqueo Manual con fechas
+                let bloqueadaManual = false;
+                if (hab.fecha_entrada && hab.fecha_salida) {
+                    const blockEntrada = new Date(hab.fecha_entrada);
+                    const blockSalida = new Date(hab.fecha_salida);
+                    const solapaBlock = (entradaDate < blockSalida) && (salidaDate > blockEntrada);
+                    if (solapaBlock) bloqueadaManual = true;
+                }
+
+                // Si hay fechas de búsqueda, 'disponible' debe reflejar LA DISPONIBILIDAD PARA ESAS FECHAS.
+                // Si está reservada o bloqueada manualmente en ese rango, NO está disponible.
+                if (reservada || bloqueadaManual) {
+                    hab.disponible = 0;
+                    hab.reservada = reservada;
+                    hab.bloqueadaManual = bloqueadaManual;
+                } else {
+                    // Si no hay conflicto en ese rango, forzamos disponible = 1 
+                    // (cumpliendo el requerimiento: "si busco del 28 al 31 debe salir libre")
+                    hab.disponible = 1;
                 }
             });
         }
 
-        // Add cache headers for better performance
-        const response = NextResponse.json(habitaciones);
-        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-        return response;
+        // Return fresh data every time
+        return NextResponse.json(habitaciones);
     } catch (error: any) {
         console.error('Error fetching habitaciones:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

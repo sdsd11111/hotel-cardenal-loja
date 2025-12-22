@@ -124,7 +124,8 @@ function HabitacionesContent() {
                     maxNiños: room.max_ninos,
                     camas: room.camas
                 },
-                disponible: room.disponible === 1 || (room.fecha_salida && new Date(room.fecha_salida) < new Date()),
+                // Trust database/API value primarily. 
+                disponible: room.disponible === 1,
                 fecha_entrada: room.fecha_entrada,
                 fecha_salida: room.fecha_salida
             }));
@@ -205,26 +206,8 @@ function HabitacionesContent() {
         const cumpleCapacidad = (filtroAdultos === 0 && filtroNinos === 0) ||
             (hab.capacidad.maxAdultos >= filtroAdultos && hab.capacidad.maxNiños >= filtroNinos);
 
-        if (!cumpleCapacidad) return false;
-
-        // Filtrado por disponibilidad si hay fechas seleccionadas
-        if (fechaEntrada && fechaSalida) {
-            const selEntrada = new Date(fechaEntrada);
-            const selSalida = new Date(fechaSalida);
-
-            // Si la habitación está ocupada actualmente
-            if (hab.fecha_entrada && hab.fecha_salida) {
-                const occEntrada = new Date(hab.fecha_entrada);
-                const occSalida = new Date(hab.fecha_salida);
-
-                // Comprobar si hay solapamiento (Overlap check)
-                // (StartA <= EndB) and (EndA >= StartB)
-                const solapa = (selEntrada < occSalida) && (selSalida > occEntrada);
-                if (solapa) return false;
-            }
-        }
-
-        return true;
+        return cumpleCapacidad;
+        // La disponibilidad se maneja visualmente con badges y deshabilitando el botón.
     });
 
     const resetFiltros = () => {
@@ -679,31 +662,9 @@ function HabitacionesContent() {
                                         {/* Availability Badge */}
                                         <div className={cn(
                                             "absolute top-4 left-4 px-4 py-2 font-bold text-[10px] uppercase tracking-widest shadow-lg z-10",
-                                            (() => {
-                                                if (fechaEntrada && fechaSalida && habitacion.fecha_entrada && habitacion.fecha_salida) {
-                                                    const selEntrada = new Date(fechaEntrada);
-                                                    const selSalida = new Date(fechaSalida);
-                                                    const occEntrada = new Date(habitacion.fecha_entrada);
-                                                    const occSalida = new Date(habitacion.fecha_salida);
-                                                    const solapa = (selEntrada < occSalida) && (selSalida > occEntrada);
-                                                    return solapa ? false : true;
-                                                }
-                                                return habitacion.disponible;
-                                            })()
-                                                ? "bg-cardenal-green text-white"
-                                                : "bg-red-500 text-white"
+                                            habitacion.disponible ? "bg-cardenal-green text-white" : "bg-red-500 text-white"
                                         )}>
-                                            {(() => {
-                                                if (fechaEntrada && fechaSalida && habitacion.fecha_entrada && habitacion.fecha_salida) {
-                                                    const selEntrada = new Date(fechaEntrada);
-                                                    const selSalida = new Date(fechaSalida);
-                                                    const occEntrada = new Date(habitacion.fecha_entrada);
-                                                    const occSalida = new Date(habitacion.fecha_salida);
-                                                    const solapa = (selEntrada < occSalida) && (selSalida > occEntrada);
-                                                    return solapa ? 'Ocupada en estas fechas' : 'Disponible';
-                                                }
-                                                return habitacion.disponible ? 'Disponible' : 'Ocupada';
-                                            })()}
+                                            {habitacion.disponible ? 'Disponible' : (habitacion.reservada ? 'Reservada' : 'Ocupada')}
                                         </div>
 
                                         {/* Price overlay */}
@@ -776,56 +737,25 @@ function HabitacionesContent() {
                                         <div className="flex flex-col xs:flex-row gap-3 mt-auto">
                                             <button
                                                 onClick={() => addToCart(habitacion)}
-                                                disabled={(() => {
-                                                    if (fechaEntrada && fechaSalida && habitacion.fecha_entrada && habitacion.fecha_salida) {
-                                                        const selEntrada = new Date(fechaEntrada);
-                                                        const selSalida = new Date(fechaSalida);
-                                                        const occEntrada = new Date(habitacion.fecha_entrada);
-                                                        const occSalida = new Date(habitacion.fecha_salida);
-                                                        const solapa = (selEntrada < occSalida) && (selSalida > occEntrada);
-                                                        return solapa; // Si solapa, está deshabilitado
-                                                    }
-                                                    return !habitacion.disponible;
-                                                })()}
+                                                disabled={!habitacion.disponible}
                                                 className={cn(
                                                     "flex-1 font-bold py-4 px-4 transition-all duration-300 flex items-center justify-center gap-2 tracking-[0.2em] text-xs shadow-md",
-                                                    (() => {
-                                                        if (fechaEntrada && fechaSalida && habitacion.fecha_entrada && habitacion.fecha_salida) {
-                                                            const selEntrada = new Date(fechaEntrada);
-                                                            const selSalida = new Date(fechaSalida);
-                                                            const occEntrada = new Date(habitacion.fecha_entrada);
-                                                            const occSalida = new Date(habitacion.fecha_salida);
-                                                            const solapa = (selEntrada < occSalida) && (selSalida > occEntrada);
-                                                            return !solapa;
-                                                        }
-                                                        return habitacion.disponible;
-                                                    })()
-                                                        ? "bg-cardenal-green hover:bg-cardenal-green-dark text-white"
-                                                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                                    habitacion.disponible
+                                                        ? "bg-cardenal-gold border-2 border-cardenal-gold text-white hover:bg-white hover:text-cardenal-gold"
+                                                        : "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed"
                                                 )}
                                             >
-                                                {(() => {
-                                                    if (fechaEntrada && fechaSalida && habitacion.fecha_entrada && habitacion.fecha_salida) {
-                                                        const selEntrada = new Date(fechaEntrada);
-                                                        const selSalida = new Date(fechaSalida);
-                                                        const occEntrada = new Date(habitacion.fecha_entrada);
-                                                        const occSalida = new Date(habitacion.fecha_salida);
-                                                        const solapa = (selEntrada < occSalida) && (selSalida > occEntrada);
-                                                        return solapa ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />;
-                                                    }
-                                                    return habitacion.disponible ? <Plus className="w-4 h-4" /> : <X className="w-4 h-4" />;
-                                                })()}
-                                                {(() => {
-                                                    if (fechaEntrada && fechaSalida && habitacion.fecha_entrada && habitacion.fecha_salida) {
-                                                        const selEntrada = new Date(fechaEntrada);
-                                                        const selSalida = new Date(fechaSalida);
-                                                        const occEntrada = new Date(habitacion.fecha_entrada);
-                                                        const occSalida = new Date(habitacion.fecha_salida);
-                                                        const solapa = (selEntrada < occSalida) && (selSalida > occEntrada);
-                                                        return solapa ? 'OCUPADA' : 'AGREGAR';
-                                                    }
-                                                    return habitacion.disponible ? 'AGREGAR' : 'OCUPADA';
-                                                })()}
+                                                {habitacion.disponible ? (
+                                                    <>
+                                                        <Plus className="w-4 h-4" />
+                                                        AGREGAR
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <X className="w-4 h-4" />
+                                                        OCUPADA
+                                                    </>
+                                                )}
                                             </button>
                                             <button
                                                 onClick={() => setSelectedRoom(habitacion)}

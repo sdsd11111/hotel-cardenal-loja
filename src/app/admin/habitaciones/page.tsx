@@ -19,7 +19,7 @@ export default function AdminHabitacionesPage() {
     const fetchHabitaciones = async (retryCount = 0) => {
         try {
             setIsLoading(true);
-            const response = await fetch('/api/habitaciones?all=true');
+            const response = await fetch('/api/habitaciones?all=true', { cache: 'no-store' });
             if (!response.ok) {
                 if (retryCount < 2) {
                     console.warn(`Retry ${retryCount + 1} for admin habitaciones...`);

@@ -100,6 +100,8 @@ export interface Habitacion {
     camas: number;
   };
   disponible?: boolean;
+  reservada?: boolean;
+  bloqueadaManual?: boolean;
   fecha_entrada?: string | null;
   fecha_salida?: string | null;
 }
