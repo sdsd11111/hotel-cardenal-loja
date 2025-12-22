@@ -16,14 +16,24 @@ export default function AdminHabitacionesPage() {
     const [showForm, setShowForm] = useState(false);
     const [selectedHabitacion, setSelectedHabitacion] = useState<any | null>(null);
 
-    const fetchHabitaciones = async () => {
+    const fetchHabitaciones = async (retryCount = 0) => {
         try {
             setIsLoading(true);
             const response = await fetch('/api/habitaciones?all=true');
-            if (!response.ok) throw new Error('Error al cargar habitaciones');
+            if (!response.ok) {
+                if (retryCount < 2) {
+                    console.warn(`Retry ${retryCount + 1} for admin habitaciones...`);
+                    await new Promise(r => setTimeout(r, 1000));
+                    return fetchHabitaciones(retryCount + 1);
+                }
+                const errData = await response.text().catch(() => 'No detail');
+                throw new Error(`Error al cargar habitaciones (${response.status}): ${errData}`);
+            }
             const data = await response.json();
             setHabitaciones(data);
+            setError(null); // Clear error if successful
         } catch (err: any) {
+            console.error('Admin Fetch Error:', err);
             setError(err.message);
         } finally {
             setIsLoading(false);

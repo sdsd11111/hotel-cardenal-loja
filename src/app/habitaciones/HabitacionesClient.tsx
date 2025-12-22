@@ -92,18 +92,19 @@ function HabitacionesContent() {
             if (fechaEntrada) params.append('entrada', fechaEntrada);
             if (fechaSalida) params.append('salida', fechaSalida);
 
-            const response = await fetch(`/api/habitaciones?${params.toString()}`, {
-                next: { revalidate: 60 } // Cache for 60 seconds
-            });
+            const response = await fetch(`/api/habitaciones?${params.toString()}`);
 
             if (!response.ok) {
+                const errorText = await response.text().catch(() => 'No error details');
+                console.error(`Fetch failed (Status: ${response.status}): ${errorText}`);
+
                 // Retry up to 2 times on failure
                 if (retryCount < 2) {
                     console.warn(`Retry ${retryCount + 1} for habitaciones...`);
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait longer on retry
                     return fetchHabitaciones(retryCount + 1);
                 }
-                throw new Error('Error al cargar habitaciones');
+                throw new Error(`Error al cargar habitaciones (${response.status})`);
             }
 
             const data = await response.json();

@@ -96,7 +96,7 @@ export default async function ArticlePage({ params }: Props) {
 
     // Fetch related
     const relatedArticles = await getRelatedArticles(article.categoria, article.slug);
-    const tagsList = article.tags ? article.tags.split(',').map(t => t.trim()) : [];
+    const tagsList = article.tags ? Array.from(new Set(article.tags.split(',').map(t => t.trim()))) : [];
 
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans overflow-x-hidden">
