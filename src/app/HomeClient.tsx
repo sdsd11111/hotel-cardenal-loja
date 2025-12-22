@@ -347,7 +347,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                 {/* Resto del contenido */}
                 <div className="bg-white">
                     {/* Footer */}
-                    <Footer logo={customLogo} themeClass={themeClass} />
+                    <Footer logo={customLogo || headerData.logo} themeClass={themeClass} />
                 </div>
             </main >
         </div >

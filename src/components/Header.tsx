@@ -231,8 +231,7 @@ export const Header = ({
                   <div className="flex items-center flex-shrink-0">
                     <Link href="/" className="flex items-center gap-2">
                       <div className={cn(
-                        "p-1 transition-all duration-300",
-                        themeClass ? "bg-transparent shadow-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]" : "bg-white rounded-full shadow-md"
+                        "p-1 transition-all duration-300 bg-transparent shadow-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
                       )}>
                         <Image
                           src={logo || "/logo.jpg"}
