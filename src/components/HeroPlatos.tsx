@@ -257,7 +257,7 @@ export default function HeroPlatos() {
                 onLoad={() => {
                   setIsImageLoading(false);
                 }}
-                unoptimized={process.env.NODE_ENV !== 'production'}
+                unoptimized
               />
             </div>
           ) : (

@@ -74,7 +74,7 @@ export async function PUT(
       const arrayBuffer = await imagenFile.arrayBuffer();
       imagen_blob = Buffer.from(arrayBuffer);
       imagen_mime = imagenFile.type;
-      imagen_url = `/api/images/platos/${id}`;
+      imagen_url = `/api/images/platos/${id}?v=${Date.now()}`;
     }
 
     if (!titulo || !descripcion || isNaN(precio)) {

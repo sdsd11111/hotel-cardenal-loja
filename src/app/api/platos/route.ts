@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     // Si subimos una imagen nueva, generamos la URL interna
     if (imagen_blob) {
-      imagen_url = `/api/images/platos/${id}`;
+      imagen_url = `/api/images/platos/${id}?v=${Date.now()}`;
     }
 
     await query(
