@@ -14,6 +14,7 @@ import { RestauranteHome } from "@/components/RestauranteHome";
 import { FAQ } from "@/components/FAQ";
 import { headerData } from "@/types";
 import { ChevronLeft, ChevronRight, Minus, Plus, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Hero slides data
 const heroSlides = [
@@ -34,7 +35,7 @@ const HERO_CONTENT = {
     cta: 'Reserva Aquí'
 };
 
-export default function HomeClient() {
+export default function HomeClient({ customLogo, themeClass }: { customLogo?: string, themeClass?: string }) {
     const router = useRouter();
 
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -88,10 +89,11 @@ export default function HomeClient() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className={cn("flex flex-col min-h-screen", themeClass)}>
             <Header
-                logo={headerData.logo}
+                logo={customLogo || headerData.logo}
                 showReservationSearch={true}
+                themeClass={themeClass}
                 reservationSearchProps={{
                     fechaEntrada,
                     fechaSalida,
@@ -123,45 +125,43 @@ export default function HomeClient() {
                                 priority={index === 0}
                                 unoptimized
                             />
-                            <div className="absolute inset-0 bg-black/50 md:bg-black/40"></div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                            <div className={cn("absolute inset-0 transition-all duration-1000", themeClass ? "hero-theme-2-gradient opacity-90" : "bg-black/50 md:bg-black/40")}></div>
+                            <div className={cn("absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent", themeClass ? "opacity-30" : "opacity-100")}></div>
 
                             {/* Contenido del slide - Fijo para todos los slides */}
                             <div className="absolute inset-0 flex flex-col items-center justify-start md:justify-center z-20 px-4 pt-40 pb-20 md:pt-16 md:pb-0">
-                                <div className="max-w-6xl mx-auto text-center">
-                                    <h1 className="flex flex-col gap-1 md:gap-4 items-center">
-                                        <span className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white font-serif uppercase tracking-tighter drop-shadow-2xl leading-none">
-                                            {HERO_CONTENT.title}
-                                        </span>
-                                        <span className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl text-cardenal-gold font-script tracking-wide drop-shadow-xl mt-1">
+                                <div className="max-w-4xl text-center space-y-6 md:space-y-8 px-4">
+                                    <div className="inline-block px-4 py-2 bg-cardenal-gold/20 backdrop-blur-sm border-l-4 border-cardenal-gold mb-4 animate-fadeInDown">
+                                        <span className={cn("text-white text-xs md:text-sm font-bold uppercase tracking-[0.4em]", themeClass ? "italic" : "")}>
                                             {HERO_CONTENT.subtitle}
                                         </span>
-                                    </h1>
-
-                                    <div className="w-24 md:w-40 h-0.5 md:h-1 bg-cardenal-gold mx-auto mt-4 md:mt-6 mb-4 md:mb-8 shadow-xl opacity-60"></div>
-
-                                    <div className="max-w-4xl mx-auto px-2">
-                                        <p className="text-sm sm:text-base md:text-2xl text-white leading-relaxed font-body drop-shadow-md">
-                                            {expanded
-                                                ? HERO_CONTENT.description
-                                                : "En Hotel El Cardenal te ofrecemos una estancia acogedora y segura en el sector más tranquilo de la ciudad. Disfruta de la comodidad de nuestras 6 exclusivas habitaciones..."}
-                                        </p>
-                                        <button
-                                            onClick={() => setExpanded(!expanded)}
-                                            className="mt-3 md:mt-4 text-cardenal-gold font-bold hover:text-white transition-colors uppercase text-xs md:text-sm tracking-widest border-b border-cardenal-gold"
-                                        >
-                                            {expanded ? 'Ocultar' : 'Seguir leyendo'}
-                                        </button>
                                     </div>
+                                    <h1 className={cn(
+                                        "text-4xl md:text-8xl font-black text-white leading-[1.1] md:leading-tight animate-fadeInUp drop-shadow-2xl font-serif",
+                                        themeClass ? "tracking-wider" : ""
+                                    )}>
+                                        {HERO_CONTENT.title}
+                                    </h1>
+                                    <p className="text-lg md:text-2xl text-white/95 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-lg font-body animate-fadeInUp delay-200">
+                                        {expanded
+                                            ? HERO_CONTENT.description
+                                            : "En Hotel El Cardenal te ofrecemos una estancia acogedora y segura en el sector más tranquilo de la ciudad. Disfruta de la comodidad de nuestras 6 exclusivas habitaciones..."}
+                                    </p>
+                                    <button
+                                        onClick={() => setExpanded(!expanded)}
+                                        className="mt-3 md:mt-4 text-cardenal-gold font-bold hover:text-white transition-colors uppercase text-xs md:text-sm tracking-widest border-b border-cardenal-gold"
+                                    >
+                                        {expanded ? 'Ocultar' : 'Seguir leyendo'}
+                                    </button>
+                                </div>
 
-                                    <div className="mt-8 md:mt-12 group cursor-default">
-                                        <div className="flex flex-col items-center gap-1 md:gap-2">
-                                            <span className="text-white font-bold text-xs md:text-xl tracking-widest uppercase font-serif drop-shadow-md">
-                                                {HERO_CONTENT.cta}
-                                            </span>
-                                            <div className="animate-bounce">
-                                                <ChevronRight className="w-8 h-8 md:w-10 md:h-10 text-cardenal-gold rotate-90 filter drop-shadow-lg" />
-                                            </div>
+                                <div className="mt-8 md:mt-12 group cursor-default">
+                                    <div className="flex flex-col items-center gap-1 md:gap-2">
+                                        <span className="text-white font-bold text-xs md:text-xl tracking-widest uppercase font-serif drop-shadow-md">
+                                            {HERO_CONTENT.cta}
+                                        </span>
+                                        <div className="animate-bounce">
+                                            <ChevronRight className="w-8 h-8 md:w-10 md:h-10 text-cardenal-gold rotate-90 filter drop-shadow-lg" />
                                         </div>
                                     </div>
                                 </div>
@@ -308,7 +308,10 @@ export default function HomeClient() {
                                     <div className="flex-shrink-0">
                                         <button
                                             onClick={handleBuscarHabitaciones}
-                                            className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-3 px-10 rounded-lg transition-all duration-300 shadow-lg hover:shadow-cardenal-gold/20 font-serif tracking-widest text-sm"
+                                            className={cn(
+                                                "text-white font-bold py-3 px-10 rounded-lg transition-all duration-300 shadow-lg font-serif tracking-widest text-sm",
+                                                themeClass ? "bg-cardenal-gold hover:bg-cardenal-green-dark" : "bg-cardenal-green hover:bg-cardenal-gold hover:shadow-cardenal-gold/20"
+                                            )}
                                             type="button"
                                         >
                                             RESERVAR
@@ -327,7 +330,7 @@ export default function HomeClient() {
                 <AmenidadesCarousel />
 
                 {/* Sección Nuestras Habitaciones */}
-                <HabitacionesHome />
+                <HabitacionesHome themeClass={themeClass} />
 
                 {/* Sección Galería Preview */}
                 <GaleriaPreview />
@@ -344,9 +347,9 @@ export default function HomeClient() {
                 {/* Resto del contenido */}
                 <div className="bg-white">
                     {/* Footer */}
-                    <Footer />
+                    <Footer logo={customLogo} themeClass={themeClass} />
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }

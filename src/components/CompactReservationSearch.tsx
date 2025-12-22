@@ -37,7 +37,7 @@ export default function CompactReservationSearch({
                     value={fechaEntrada}
                     onChange={(e) => onFechaEntradaChange(e.target.value)}
                     min={today}
-                    className="w-28 px-2 py-1 text-xs border border-cardenal-sand focus:border-cardenal-gold focus:outline-none font-sans font-bold"
+                    className="w-28 px-2 py-1 text-xs border border-cardenal-sand focus:border-cardenal-gold focus:outline-none font-sans font-bold text-cardenal-green"
                 />
             </div>
 
@@ -51,7 +51,7 @@ export default function CompactReservationSearch({
                     value={fechaSalida}
                     onChange={(e) => onFechaSalidaChange(e.target.value)}
                     min={fechaEntrada || today}
-                    className="w-28 px-2 py-1 text-xs border border-cardenal-sand rounded focus:border-cardenal-gold focus:outline-none font-sans font-bold"
+                    className="w-28 px-2 py-1 text-xs border border-cardenal-sand rounded focus:border-cardenal-gold focus:outline-none font-sans font-bold text-cardenal-green"
                 />
             </div>
 
@@ -68,7 +68,7 @@ export default function CompactReservationSearch({
                     <Minus className="w-2.5 h-2.5" />
                 </button>
                 <Users className="w-3 h-3 text-cardenal-green" />
-                <span className="text-xs font-bold min-w-[12px] text-center font-sans">{adultos}</span>
+                <span className="text-xs font-black min-w-[12px] text-center font-sans text-cardenal-green">{adultos}</span>
                 <button
                     onClick={() => onAdultosChange(Math.min(10, adultos + 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
@@ -88,7 +88,7 @@ export default function CompactReservationSearch({
                     <Minus className="w-2.5 h-2.5" />
                 </button>
                 <Users className="w-2.5 h-2.5 text-cardenal-green" />
-                <span className="text-xs font-bold min-w-[12px] text-center font-sans">{ninos}</span>
+                <span className="text-xs font-black min-w-[12px] text-center font-sans text-cardenal-green">{ninos}</span>
                 <button
                     onClick={() => onNinosChange(Math.min(10, ninos + 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"

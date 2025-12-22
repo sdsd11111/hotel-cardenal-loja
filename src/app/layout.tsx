@@ -1,18 +1,32 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, Cinzel, Allura, Libre_Baskerville, Montserrat } from "next/font/google";
+import { Playfair_Display, Inter, Cinzel, Allura, Libre_Baskerville, Montserrat, Cormorant_Garamond, Lato, Outfit } from "next/font/google";
 import "./globals.css";
 import { FontAwesomeProvider } from "./providers";
 import GoogleTranslateWrapper from "@/components/GoogleTranslateWrapper";
 
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair",
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const montserrat = Montserrat({
   subsets: ["latin"],
+  variable: "--font-montserrat",
   weight: ["400", "500", "600", "700", "800", "900"],
 });
-
-const inter = Inter({
-  variable: "--font-inter",
+const cormorantGaramond = Cormorant_Garamond({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-cormorant",
+});
+const lato = Lato({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "700", "900"],
+  variable: "--font-lato",
+});
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
 });
 
 const cinzel = Cinzel({
@@ -31,12 +45,6 @@ const libre = Libre_Baskerville({
   variable: "--font-libre",
   subsets: ["latin"],
   weight: ["400", "700"],
-});
-
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -80,7 +88,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${playfairDisplay.variable} ${inter.variable} ${cinzel.variable} ${allura.variable} ${libre.variable} ${montserrat.variable} antialiased bg-cardenal-cream text-text-main flex flex-col min-h-screen font-sans`}>
+      <body className={`${cormorantGaramond.variable} ${lato.variable} ${playfairDisplay.variable} ${outfit.variable} ${inter.variable} ${cinzel.variable} ${allura.variable} ${libre.variable} ${montserrat.variable} antialiased bg-cardenal-cream text-text-main flex flex-col min-h-screen font-sans`}>
         <FontAwesomeProvider>
           <div className="flex flex-col flex-1">
             {children}

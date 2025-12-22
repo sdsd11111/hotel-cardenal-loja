@@ -29,6 +29,48 @@
   /* Para subtítulos o detalles */
 }
 
+.theme-home-2 {
+  /* Café/Beige Protagonista Corregido */
+  --cardenal-green: #c9a57b;
+  /* Café claro protagonisra */
+  --cardenal-green-dark: #8b7355;
+  /* Café medio */
+  --cardenal-gold: #2d5016;
+  /* Verde acento */
+  --cardenal-brown: #4A3324;
+  --cardenal-cream: #f5f0ea;
+  --cardenal-sand: #e8d5c4;
+
+  --font-serif: var(--font-playfair), serif;
+  --font-body: var(--font-outfit), sans-serif;
+  --font-sans: var(--font-outfit), sans-serif;
+}
+
+.theme-home-2 h1,
+.theme-home-2 h2,
+.theme-home-2 h3,
+.theme-home-2 .font-serif {
+  letter-spacing: 1px;
+}
+
+/* Hero Theme 2 - Regresando a opacidad equilibrada */
+.hero-theme-2-gradient {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.5) 100%) !important;
+}
+
+/* Botones en Theme 2 - Manteniendo Outfit con colores anteriores */
+.theme-home-2 button.bg-cardenal-green,
+.theme-home-2 a.bg-cardenal-green {
+  background-color: var(--cardenal-gold) !important;
+  font-family: var(--font-outfit) !important;
+  letter-spacing: 1px;
+}
+
+.theme-home-2 button.bg-cardenal-green:hover,
+.theme-home-2 a.bg-cardenal-green:hover {
+  background-color: var(--cardenal-green-dark) !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -58,10 +100,12 @@
   --breakpoint-xs: 400px;
 
   /* Fonts */
-  --font-sans: var(--font-montserrat), var(--font-inter), sans-serif;
-  --font-serif: var(--font-playfair), var(--font-cinzel), serif;
+  --font-sans: var(--font-lato), var(--font-inter), sans-serif;
+  --font-serif: var(--font-cormorant), var(--font-playfair), serif;
+  --font-body: var(--font-lato), var(--font-libre), serif;
   --font-script: var(--font-allura), cursive;
-  --font-body: var(--font-libre), serif;
+  --font-cormorant: var(--font-cormorant);
+  --font-lato: var(--font-lato);
 }
 
 @layer base {

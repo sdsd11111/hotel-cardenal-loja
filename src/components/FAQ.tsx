@@ -113,7 +113,7 @@ export const FAQ = () => {
                                 className="w-full flex items-center justify-between p-6 md:p-8 text-left group"
                                 aria-expanded={openId === faq.id}
                             >
-                                <h4 className={`text-lg md:text-xl font-bold font-serif pr-4 transition-colors ${openId === faq.id ? 'text-cardenal-green' : 'text-cardenal-green/80 group-hover:text-cardenal-green'}`}>
+                                <h4 className={`text-lg md:text-xl font-black font-serif pr-4 transition-colors ${openId === faq.id ? 'text-cardenal-green' : 'text-cardenal-green/80 group-hover:text-cardenal-green'}`}>
                                     {faq.pregunta}
                                 </h4>
                                 <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center transition-all duration-300 ${openId === faq.id ? 'bg-cardenal-gold text-white rotate-180' : 'bg-cardenal-gold/10 text-cardenal-gold group-hover:bg-cardenal-gold group-hover:text-white'}`}>

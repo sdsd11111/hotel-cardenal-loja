@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Check, ArrowRight, BedDouble, Users, Maximize, Wind } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // New Habitaciones data based on user request
 const habitaciones = [
@@ -70,19 +71,21 @@ const habitaciones = [
     }
 ];
 
-export const HabitacionesHome = () => {
+export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
     const [activeId, setActiveId] = useState(habitaciones[0].id);
     const activeHabitacion = habitaciones.find(h => h.id === activeId) || habitaciones[0];
 
+    const isTheme2 = themeClass === 'theme-home-2';
+
     return (
-        <section className="py-24 bg-cardenal-cream/30">
+        <section className={cn("py-24 transition-colors duration-700", isTheme2 ? "bg-[#0a1f0a] text-white" : "bg-cardenal-cream/30")}>
             <div className="container mx-auto px-4">
                 {/* Section Title */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
-                    <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif">
+                    <h2 className={cn("text-3xl md:text-5xl font-bold mb-6 font-serif", isTheme2 ? "text-white" : "text-cardenal-green")}>
                         Habitaciones y Alojamiento en Loja: <span className="text-cardenal-gold italic">Descanso Íntimo junto a la Naturaleza</span>
                     </h2>
-                    <p className="text-lg md:text-xl text-text-main font-medium leading-relaxed">
+                    <p className={cn("text-lg md:text-xl font-medium leading-relaxed", isTheme2 ? "text-white/90" : "text-text-main")}>
                         Descubra la armonía entre el diseño neoclásico y el descanso moderno en nuestras 6 exclusivas habitaciones.
                     </p>
                     <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
@@ -94,7 +97,7 @@ export const HabitacionesHome = () => {
 
                         {/* 1. Sidebar Grid Selection (Left - 2x2 items) */}
                         <div className="lg:col-span-5 order-1 lg:order-1 flex flex-col">
-                            <h3 className="text-xs font-bold text-cardenal-green/60 uppercase tracking-[0.2em] mb-6 font-serif">
+                            <h3 className={cn("text-xs font-bold uppercase tracking-[0.2em] mb-6 font-serif", isTheme2 ? "text-white/60" : "text-cardenal-green/60")}>
                                 Categorías Disponibles
                             </h3>
                             <div className="grid grid-cols-2 gap-3 md:gap-4 flex-grow">
@@ -103,8 +106,8 @@ export const HabitacionesHome = () => {
                                         key={h.id}
                                         onClick={() => setActiveId(h.id)}
                                         className={`group relative flex flex-col p-1 transition-all duration-500 border ${activeId === h.id
-                                            ? 'border-cardenal-gold bg-white shadow-xl scale-[1.02] z-10'
-                                            : 'border-transparent bg-white/40 hover:border-cardenal-gold/30 hover:bg-white/60'
+                                            ? (isTheme2 ? 'border-cardenal-gold bg-white/10 shadow-xl scale-[1.02] z-10' : 'border-cardenal-gold bg-white shadow-xl scale-[1.02] z-10')
+                                            : (isTheme2 ? 'border-transparent bg-white/5 hover:border-cardenal-gold/30 hover:bg-white/10' : 'border-transparent bg-white/40 hover:border-cardenal-gold/30 hover:bg-white/60')
                                             }`}
                                     >
                                         <div className="relative aspect-square overflow-hidden mb-0">
@@ -121,7 +124,7 @@ export const HabitacionesHome = () => {
                                             )}
                                         </div>
                                         <div className="p-3 text-center">
-                                            <p className={`text-[11px] md:text-xs font-bold font-serif uppercase tracking-widest transition-colors ${activeId === h.id ? 'text-cardenal-green' : 'text-gray-500'}`}>
+                                            <p className={`text-[11px] md:text-xs font-bold font-serif uppercase tracking-widest transition-colors ${activeId === h.id ? (isTheme2 ? 'text-white' : 'text-cardenal-green') : (isTheme2 ? 'text-white/40' : 'text-gray-500')}`}>
                                                 {h.nombre}
                                             </p>
                                         </div>
@@ -132,7 +135,7 @@ export const HabitacionesHome = () => {
 
                         {/* 2. Main Content Detail Area (Right) */}
                         <div className="lg:col-span-7 order-2 lg:order-2">
-                            <div className="bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-cardenal-gold/10 overflow-hidden h-full flex flex-col">
+                            <div className={cn("shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border overflow-hidden h-full flex flex-col", isTheme2 ? "bg-[#112a11] border-white/10" : "bg-white border-cardenal-gold/10")}>
 
                                 {/* Image Column */}
                                 <div className="w-full relative aspect-[16/9] overflow-hidden">
@@ -145,7 +148,7 @@ export const HabitacionesHome = () => {
                                         priority
                                         unoptimized
                                     />
-                                    <div className="absolute top-6 left-6 bg-cardenal-green text-white p-3 shadow-lg flex items-center gap-2">
+                                    <div className={cn("absolute top-6 left-6 p-3 shadow-lg flex items-center gap-2", isTheme2 ? "bg-cardenal-gold text-white" : "bg-cardenal-green text-white")}>
                                         {activeHabitacion.icon}
                                         <span className="text-xs font-bold uppercase tracking-widest">Premium</span>
                                     </div>
@@ -154,7 +157,7 @@ export const HabitacionesHome = () => {
                                 {/* Text content Column */}
                                 <div className="w-full p-8 md:p-12 flex flex-col animate-fadeInRight">
                                     <div className="mb-6">
-                                        <h3 className="text-3xl md:text-4xl font-bold text-[#1B5E5E] font-serif mb-2">
+                                        <h3 className={cn("text-3xl md:text-4xl font-bold font-serif mb-2", isTheme2 ? "text-white" : "text-[#1B5E5E]")}>
                                             {activeHabitacion.nombre}
                                         </h3>
                                         <p className="text-cardenal-gold font-serif italic text-lg">
@@ -168,7 +171,7 @@ export const HabitacionesHome = () => {
                                                 <div className="mt-1.5 flex-shrink-0">
                                                     <Check className="w-4 h-4 text-[#C9A86A]" />
                                                 </div>
-                                                <p className="text-[#2D3436] font-body leading-relaxed text-base md:text-lg">
+                                                <p className={cn("font-body leading-relaxed text-base md:text-lg", isTheme2 ? "text-white/90" : "text-[#2D3436]")}>
                                                     {detalle}
                                                 </p>
                                             </div>
@@ -194,9 +197,14 @@ export const HabitacionesHome = () => {
                 <div className="mt-20 text-center">
                     <Link
                         href="/habitaciones"
-                        className="group inline-flex flex-col items-center gap-4 py-8 px-12 border-2 border-cardenal-gold/20 hover:border-cardenal-gold transition-all duration-700 bg-white/50 backdrop-blur-sm"
+                        className={cn(
+                            "group inline-flex flex-col items-center gap-4 py-8 px-12 border-2 transition-all duration-700 backdrop-blur-sm",
+                            isTheme2
+                                ? "border-cardenal-gold/40 hover:border-cardenal-gold bg-white/5"
+                                : "border-cardenal-gold/20 hover:border-cardenal-gold bg-white/50"
+                        )}
                     >
-                        <span className="text-cardenal-green font-serif text-xl md:text-2xl font-bold">
+                        <span className={cn("font-serif text-xl md:text-2xl font-bold", isTheme2 ? "text-white" : "text-cardenal-green")}>
                             Consultar disponibilidad de habitaciones
                         </span>
                         <div className="flex items-center gap-2 text-cardenal-gold font-bold uppercase tracking-[0.3em] text-xs">
