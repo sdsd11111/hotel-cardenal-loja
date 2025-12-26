@@ -874,6 +874,7 @@ function HabitacionesContent() {
                         fechaEntrada={appliedFilters.entrada}
                         fechaSalida={appliedFilters.salida}
                         onClose={() => setAvailabilityRoom(null)}
+                        initialMeals={pendingMeals[availabilityRoom.id]}
                         onAddToCart={(hab, cantidad, opciones) => {
                             // Agregar al carrito con las opciones seleccionadas
                             for (let i = 0; i < cantidad; i++) {

@@ -224,8 +224,8 @@ export const Header = ({
               </div>
             </div>
 
-            {/* Transparent Header */}
-            <header className={cn("w-full absolute top-10 z-50 backdrop-blur-[2px] bg-black/5", className)}>
+            {/* Transparent Header - Fixed during hero scroll */}
+            <header className={cn("w-full fixed top-10 z-50 backdrop-blur-[2px] bg-black/5", className)}>
               <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center h-20">
                   <div className="flex items-center flex-shrink-0">

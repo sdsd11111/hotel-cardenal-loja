@@ -71,6 +71,11 @@ interface RoomAvailabilityModalProps {
         cena: boolean;
         personas: number;
     }) => void;
+    initialMeals?: {
+        desayuno: boolean;
+        almuerzo: boolean;
+        cena: boolean;
+    };
 }
 
 // Opciones de precio basadas en número de personas
@@ -88,7 +93,8 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     fechaEntrada,
     fechaSalida,
     onClose,
-    onAddToCart
+    onAddToCart,
+    initialMeals
 }) => {
     const [config, setConfig] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -101,17 +107,17 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     // Initialize meals logic
     useEffect(() => {
         if (!config) return;
-        const initialMeals: Record<number, { desayuno: boolean, almuerzo: boolean, cena: boolean }> = {};
+        const initialMealsState: Record<number, { desayuno: boolean, almuerzo: boolean, cena: boolean }> = {};
         const options = config.price_options_json as PriceOption[];
         options.forEach((_, idx) => {
-            initialMeals[idx] = {
-                desayuno: habitacion.incluyeDesayuno || false,
-                almuerzo: habitacion.incluyeAlmuerzo || false,
-                cena: habitacion.incluyeCena || false
+            initialMealsState[idx] = {
+                desayuno: initialMeals?.desayuno ?? habitacion.incluyeDesayuno ?? false,
+                almuerzo: initialMeals?.almuerzo ?? habitacion.incluyeAlmuerzo ?? false,
+                cena: initialMeals?.cena ?? habitacion.incluyeCena ?? false
             };
         });
-        setSelectedMeals(initialMeals);
-    }, [config, habitacion]);
+        setSelectedMeals(initialMealsState);
+    }, [config, habitacion, initialMeals]);
 
     const toggleMealSelection = (optionIdx: number, meal: 'desayuno' | 'almuerzo' | 'cena') => {
         setSelectedMeals(prev => ({
@@ -433,11 +439,22 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                         </div>
                                     </div>
 
-                                    {/* Precio de hoy (Nueva Columna) */}
+                                    {/* Precio de hoy (Columna Dinámica) */}
                                     <div className="md:col-span-1 px-4 py-4 flex flex-col items-center justify-center border-r border-gray-200 text-center bg-gray-50/50">
                                         <div className="font-bold text-gray-400 mb-2 md:hidden">Precio:</div>
                                         <div className="text-xl font-bold text-gray-900 leading-tight">
-                                            US${option.precioBase + option.impuestos}
+                                            US${(
+                                                (option.precioBase + option.impuestos) +
+                                                (Object.keys(selectedMeals[index] || {}).reduce((total, mealKey) => {
+                                                    const isSelected = selectedMeals[index]?.[mealKey as keyof typeof selectedMeals[number]];
+                                                    const isIncluded = mealKey === 'desayuno' ? habitacion.incluyeDesayuno :
+                                                        mealKey === 'almuerzo' ? habitacion.incluyeAlmuerzo :
+                                                            habitacion.incluyeCena;
+
+                                                    // Only add $1 if selected and NOT included
+                                                    return total + (isSelected && !isIncluded ? 1 : 0);
+                                                }, 0))
+                                            ).toFixed(2)}
                                         </div>
                                         <div className="text-[10px] text-gray-500">
                                             Incluye impuestos y cargos
@@ -483,8 +500,15 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                                     {isSelected && <Check className="w-2 h-2 text-white" />}
                                                                 </div>
                                                                 <span className="capitalize">{meal}</span>
-                                                                {!isIncluded && !isSelected && <span className="ml-auto text-[8px] opacity-70">+$1</span>}
-                                                                {isIncluded && <span className="ml-auto text-[8px] bg-green-200 text-green-700 px-1 rounded">INC</span>}
+                                                                {isIncluded ? (
+                                                                    <span className="ml-auto text-[8px] bg-green-200 text-green-700 px-1 rounded">INC</span>
+                                                                ) : (
+                                                                    isSelected ? (
+                                                                        <span className="ml-auto text-[8px] bg-blue-200 text-blue-700 px-1 rounded">ADD</span>
+                                                                    ) : (
+                                                                        <span className="ml-auto text-[8px] opacity-70">+$1</span>
+                                                                    )
+                                                                )}
                                                             </button>
                                                         );
                                                     })}

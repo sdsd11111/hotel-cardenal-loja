@@ -123,7 +123,7 @@ const testimonios = [
     }
 ];
 
-const GOOGLE_REVIEWS_URL = 'https://www.google.com/travel/search?q=hotel%20cardenal%20loja&g2lb=4965990%2C72317059%2C72414906%2C72471280%2C72485658%2C72560029%2C72573224%2C72647020%2C72686036%2C72803964%2C72882230%2C72958624%2C73059275%2C73064764%2C73104946%2C73107089%2C73169520%2C73192290%2C73198319&hl=es-419&gl=ec&ssta=1&ts=CAEaRwopEicyJTB4OTFjYjM3OGFlMzY0YTgwNzoweDExNGQwYTAwMjM4MGE4MTUSGhIUCgcI6Q8QDBgaEgcI6Q8QDBgbGAEyAhAA&qs=CAEyE0Nnb0lsZENDbklMQXdxWVJFQUU4AkIJCRWogCMACk0RQgkJFaiAIwAKTRE&ap=ugEHcmV2aWV3cw&ictx=111&ved=0CAAQ5JsGahcKEwjA_IHGj8iRAxUAAAAAHQAAAAAQBA';
+const GOOGLE_REVIEWS_URL = 'https://www.google.com/travel/search?q=hotel%20el%20cardenal%20loja&g2lb=4965990%2C72317059%2C72414906%2C72471280%2C72485658%2C72560029%2C72573224%2C72647020%2C72686036%2C72803964%2C72882230%2C72958624%2C73059275%2C73064764%2C73104946%2C73107089%2C73169520%2C73192290&hl=es-419&gl=ec&ssta=1&ts=CAEaRwopEicyJTB4OTFjYjM3OGFlMzY0YTgwNzoweDExNGQwYTAwMjM4MGE4MTUSGhIUCgcI6Q8QDBgbEgcI6Q8QDBgcGAEyAhAA&qs=CAEyE0Nnb0lsZENDbklMQXdxWVJFQUU4AkIJCRWogCMACk0RQgkJFaiAIwAKTRE&ap=ugEHcmV2aWV3cw&ictx=111&ved=0CAAQ5JsGahcKEwiw1PfJ1tuRAxUAAAAAHQAAAAAQBA';
 
 export const ConfianzaCredibilidad = () => {
     const [expandedTestimonios, setExpandedTestimonios] = useState<number[]>([]);
@@ -141,8 +141,8 @@ export const ConfianzaCredibilidad = () => {
 
     return (
         <section className="py-24 bg-cardenal-cream relative overflow-hidden">
-            {/* Subtle texture overlay */}
-            <div className="absolute inset-0 opacity-[0.03]" style={{
+            {/* Subtle texture overlay - Pointer events none to prevent blocking clicks */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
             }}></div>
 
@@ -203,7 +203,7 @@ export const ConfianzaCredibilidad = () => {
                     </div>
 
                     {/* LADO DERECHO: Desglose Detallado de Booking.com */}
-                    <div className="bg-white p-8 shadow-xl border border-[#003580]/5 relative overflow-hidden flex flex-col">
+                    <div className="bg-white p-8 shadow-xl border border-[#003580]/5 relative overflow-hidden flex flex-col" ref={stat1.ref}>
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-3 mb-1">
@@ -232,7 +232,10 @@ export const ConfianzaCredibilidad = () => {
                                         <span>9,8</span>
                                     </div>
                                     <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#003580] w-[98%] transition-all duration-1000 delay-300"></div>
+                                        <div
+                                            className="h-full bg-[#003580] transition-all duration-[1.5s] ease-out delay-300"
+                                            style={{ width: stat1.count > 0 ? '98%' : '0%' }}
+                                        ></div>
                                     </div>
                                 </div>
 
@@ -243,7 +246,10 @@ export const ConfianzaCredibilidad = () => {
                                         <span>9,6</span>
                                     </div>
                                     <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#003580] w-[96%] transition-all duration-1000 delay-500"></div>
+                                        <div
+                                            className="h-full bg-[#003580] transition-all duration-[1.5s] ease-out delay-500"
+                                            style={{ width: stat1.count > 0 ? '96%' : '0%' }}
+                                        ></div>
                                     </div>
                                 </div>
 
@@ -254,7 +260,10 @@ export const ConfianzaCredibilidad = () => {
                                         <span>9,4</span>
                                     </div>
                                     <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#003580] w-[94%] transition-all duration-1000 delay-700"></div>
+                                        <div
+                                            className="h-full bg-[#003580] transition-all duration-[1.5s] ease-out delay-700"
+                                            style={{ width: stat1.count > 0 ? '94%' : '0%' }}
+                                        ></div>
                                     </div>
                                 </div>
 
@@ -265,7 +274,10 @@ export const ConfianzaCredibilidad = () => {
                                         <span>9,4</span>
                                     </div>
                                     <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#003580] w-[94%] transition-all duration-1000 delay-900"></div>
+                                        <div
+                                            className="h-full bg-[#003580] transition-all duration-[1.5s] ease-out delay-900"
+                                            style={{ width: stat1.count > 0 ? '94%' : '0%' }}
+                                        ></div>
                                     </div>
                                 </div>
 
@@ -276,7 +288,10 @@ export const ConfianzaCredibilidad = () => {
                                         <span>9,5</span>
                                     </div>
                                     <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#003580] w-[95%] transition-all duration-1000 delay-1100"></div>
+                                        <div
+                                            className="h-full bg-[#003580] transition-all duration-[1.5s] ease-out delay-1100"
+                                            style={{ width: stat1.count > 0 ? '95%' : '0%' }}
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
@@ -406,16 +421,27 @@ export const ConfianzaCredibilidad = () => {
 
             {/* COMPONENTE 4: Sello de Garantía y CTA */}
             <div className="max-w-4xl mx-auto bg-[#F1E6D2] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
-                <p className="text-lg md:text-xl text-cardenal-brown font-serif text-center md:text-left">
+                <p className="text-lg md:text-xl text-cardenal-brown font-serif text-center md:text-left flex-1">
                     ¿Listo para vivir la experiencia calificada como <span className="font-bold text-cardenal-green">'Excelente'</span> por nuestros huéspedes?
                 </p>
-                <Link
-                    href="/habitaciones"
-                    className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-4 px-10 transition-all duration-500 shadow-lg font-serif tracking-widest text-sm whitespace-nowrap flex items-center gap-2"
-                >
-                    ¡Reserva tu estancia ahora!
-                    <ArrowRight className="w-5 h-5" />
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto">
+                    <a
+                        href={GOOGLE_REVIEWS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white hover:bg-gray-50 text-cardenal-brown font-bold py-3 px-6 transition-all duration-300 shadow-md font-serif text-xs whitespace-nowrap flex items-center gap-2 border border-cardenal-gold/20 w-full sm:w-auto justify-center"
+                    >
+                        Ver todas las reseñas en Google
+                        <ExternalLink className="w-4 h-4" />
+                    </a>
+                    <Link
+                        href="/habitaciones"
+                        className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-4 px-8 transition-all duration-500 shadow-lg font-serif tracking-widest text-sm whitespace-nowrap flex items-center gap-2 w-full sm:w-auto justify-center"
+                    >
+                        ¡Reserva tu estancia ahora!
+                        <ArrowRight className="w-5 h-5" />
+                    </Link>
+                </div>
             </div>
         </section>
     );

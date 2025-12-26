@@ -161,8 +161,8 @@ export default function CheckoutPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20">
 
-                    {/* Sidebar Izquierdo */}
-                    <div className="lg:col-span-4 space-y-4">
+                    {/* Sidebar Izquierdo - Sticky */}
+                    <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-[160px] h-fit">
                         {/* Hotel Info Card */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                             <div className="p-4">
@@ -482,10 +482,6 @@ export default function CheckoutPage() {
 
                                     {/* Final Button */}
                                     <div className="pt-8 flex flex-col items-end gap-3">
-                                        <div className="flex items-center gap-2 text-[#0071c2] text-xs font-bold hover:underline cursor-pointer">
-                                            <Globe className="w-4 h-4" />
-                                            <span>Igualamos el precio</span>
-                                        </div>
                                         <button
                                             onClick={() => setStep(3)}
                                             className="bg-[#0071c2] text-white font-bold py-4 px-8 rounded flex items-center gap-2 hover:bg-[#003580] transition-colors shadow-lg shadow-blue-200"
@@ -493,7 +489,6 @@ export default function CheckoutPage() {
                                             Siguiente: últimos datos
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
-                                        <button className="text-[#0071c2] text-xs font-bold hover:underline">¿Cuáles son las condiciones de mi reserva?</button>
                                     </div>
                                 </div>
                             </>

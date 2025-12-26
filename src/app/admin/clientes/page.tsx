@@ -160,49 +160,48 @@ export default function AdminClientesPage() {
         if (!editingClient) return;
         setIsSaving(true);
         try {
-            const res = await fetch(`/api/clientes/${editingClient.id}`, {
-                method: 'PUT',
+            const isNew = editingClient.id === 0;
+            const url = isNew ? '/api/clientes' : `/api/clientes/${editingClient.id}`;
+            const method = isNew ? 'POST' : 'PUT';
+
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editingClient)
             });
             if (res.ok) {
-                alert('Cambios guardados correctamente');
+                alert(isNew ? 'Cliente creado correctamente' : 'Cambios guardados correctamente');
                 fetchClientes();
                 setExpandedClient(null);
                 setEditingClient(null);
             }
         } catch (error) {
-            console.error("Error updating cliente:", error);
-            alert('Error al guardar cambios');
+            console.error("Error saving cliente:", error);
+            alert('Error al guardar datos');
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleUpdateReservaStatus = async (id: number, nuevoEstado: string) => {
-        // Actualización optimista
         setReservas(prev => prev.map(r => r.id === id ? { ...r, estado: nuevoEstado } : r));
 
         try {
-            console.log(`Intentando actualizar reserva ${id} a ${nuevoEstado}`);
             const res = await fetch('/api/reservas', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id, estado: nuevoEstado })
             });
             const data = await res.json();
-            console.log('Respuesta del servidor:', data);
 
-            if (res.ok) {
-                // Estado actualizado optimísticamente; no refrescamos la lista
-            } else {
+            if (!res.ok) {
                 alert(`Error del servidor: ${data.error || 'Error desconocido'}`);
-                fetchReservas(); // Revertir si falló
+                fetchReservas();
             }
         } catch (error) {
             console.error("Error updating reserva status:", error);
             alert(`Error de red al actualizar estado: ${error}`);
-            fetchReservas(); // Revertir si falló
+            fetchReservas();
         }
     };
 
@@ -216,6 +215,303 @@ export default function AdminClientesPage() {
         } catch (error) {
             console.error("Error deleting cliente:", error);
         }
+    };
+
+    const renderDetailsForm = (client: Cliente) => {
+        if (!client) return null;
+        return (
+            <div className="space-y-8 animate-fadeIn">
+                {/* Datos Personales */}
+                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
+                        <User className="w-4 h-4" /> Datos Personales
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombres *</label>
+                            <Input
+                                value={client.nombre || ''}
+                                onChange={e => setEditingClient({ ...client, nombre: e.target.value })}
+                                className="text-sm h-10"
+                                placeholder="Nombres"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Apellidos</label>
+                            <Input
+                                value={client.apellidos || ''}
+                                onChange={e => setEditingClient({ ...client, apellidos: e.target.value })}
+                                className="text-sm h-10"
+                                placeholder="Apellidos"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email *</label>
+                            <Input
+                                type="email"
+                                value={client.email || ''}
+                                onChange={e => setEditingClient({ ...client, email: e.target.value })}
+                                className="text-sm h-10"
+                                placeholder="email@ejemplo.com"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Teléfono</label>
+                            <Input
+                                value={client.telefono || ''}
+                                onChange={e => setEditingClient({ ...client, telefono: e.target.value })}
+                                className="text-sm h-10"
+                                placeholder="099..."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Motivo</label>
+                            <Input
+                                value={client.motivo || ''}
+                                onChange={e => setEditingClient({ ...client, motivo: e.target.value })}
+                                className="text-sm h-10"
+                                placeholder="Ej: Reserva, Consulta"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-orange-500" /> Fecha entrada/evento
+                            </label>
+                            <Input
+                                type="date"
+                                value={client.fecha_entrada || ''}
+                                onChange={e => setEditingClient({ ...client, fecha_entrada: e.target.value })}
+                                className="text-sm h-10 border-orange-100"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-orange-600 uppercase flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> Hora del Evento
+                            </label>
+                            <Input
+                                type="text"
+                                value={client.hora_evento || ''}
+                                onChange={e => setEditingClient({ ...client, hora_evento: e.target.value })}
+                                className="text-sm h-10 border-orange-200 bg-orange-50 font-bold"
+                                placeholder="HH:MM"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                <Users className="w-3 h-3" /> Personas / Huéspedes
+                            </label>
+                            <Input
+                                type="number"
+                                value={client.adultos || 1}
+                                onChange={e => setEditingClient({ ...client, adultos: parseInt(e.target.value) || 1 })}
+                                className="text-sm h-10 border-blue-100"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Habitación Preferida</label>
+                            <Input
+                                value={client.habitacion_preferida || ''}
+                                onChange={e => setEditingClient({ ...client, habitacion_preferida: e.target.value })}
+                                className="text-sm h-10"
+                                placeholder="Ej: Suite Matrimonial"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Comentarios / Mensaje del Cliente</label>
+                        <Textarea
+                            value={client.comentarios || client.mensaje || ''}
+                            onChange={e => setEditingClient({ ...client, comentarios: e.target.value })}
+                            className="text-sm min-h-[80px]"
+                            placeholder="Notas que el cliente envió en el formulario..."
+                        />
+                    </div>
+                </div>
+
+                {/* Perfil Detallado */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                        <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
+                            <MapPin className="w-4 h-4" /> Ubicación y Perfil
+                        </h4>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ciudad de Residencia</label>
+                            <Input
+                                value={client.ciudad_residencia || ''}
+                                onChange={e => setEditingClient({ ...client, ciudad_residencia: e.target.value })}
+                                className="text-sm h-10"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">País</label>
+                            <Input
+                                value={client.pais || ''}
+                                onChange={e => setEditingClient({ ...client, pais: e.target.value })}
+                                className="text-sm h-10"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Profesión / Empresa</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={client.profesion || ''}
+                                    onChange={e => setEditingClient({ ...client, profesion: e.target.value })}
+                                    className="text-sm h-10 flex-1"
+                                    placeholder="Profesión"
+                                />
+                                <Input
+                                    value={client.empresa || ''}
+                                    onChange={e => setEditingClient({ ...client, empresa: e.target.value })}
+                                    className="text-sm h-10 flex-1"
+                                    placeholder="Empresa"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                        <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
+                            <Instagram className="w-4 h-4" /> Redes Sociales y CRM
+                        </h4>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                <Instagram className="w-3 h-3" /> Instagram
+                            </label>
+                            <Input
+                                value={client.instagram || ''}
+                                onChange={e => setEditingClient({ ...client, instagram: e.target.value })}
+                                className="text-sm h-10"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                <Facebook className="w-3 h-3" /> Facebook
+                            </label>
+                            <Input
+                                value={client.facebook || ''}
+                                onChange={e => setEditingClient({ ...client, facebook: e.target.value })}
+                                className="text-sm h-10"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">¿Cómo nos conoció?</label>
+                            <select
+                                value={client.como_nos_conocio || ''}
+                                onChange={e => setEditingClient({ ...client, como_nos_conocio: e.target.value })}
+                                className="w-full border rounded-md h-10 px-3 text-sm outline-none focus:ring-1 focus:ring-cardenal-gold"
+                            >
+                                <option value="">Seleccionar...</option>
+                                <option value="Redes Sociales">Redes Sociales</option>
+                                <option value="Recomendación">Recomendación</option>
+                                <option value="Booking">Booking / OTA</option>
+                                <option value="Publicidad">Publicidad</option>
+                                <option value="Pasante">Pasaba por el lugar</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Preferencias y Notas */}
+                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
+                        <Sparkles className="w-4 h-4" /> Preferencias y Alergias
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preferencias de Habitación</label>
+                            <Textarea
+                                value={client.preferencias_habitacion || ''}
+                                onChange={e => setEditingClient({ ...client, preferencias_habitacion: e.target.value })}
+                                className="text-sm min-h-[80px]"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alergias Alimentarias</label>
+                            <Textarea
+                                value={client.alergias_alimentarias || ''}
+                                onChange={e => setEditingClient({ ...client, alergias_alimentarias: e.target.value })}
+                                className="text-sm min-h-[80px]"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Notas Internas */}
+                <div className="bg-white p-6 rounded-xl border border-blue-100 shadow-sm space-y-4">
+                    <h4 className="font-bold text-blue-600 flex items-center gap-2 text-sm border-b pb-2">
+                        <AlertCircle className="w-4 h-4" /> Notas Internas (Solo Admin)
+                    </h4>
+                    <div className="bg-blue-50/30 p-4 rounded-lg space-y-3 min-h-[100px] max-h-[200px] overflow-y-auto">
+                        {client.notas_internas ? (
+                            client.notas_internas.split('---').map((nota, i) => (
+                                <div key={i} className="text-xs text-gray-600 pb-2 border-b border-blue-50 last:border-0 italic">
+                                    {nota.trim()}
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-xs text-gray-400">Sin notas internas para este cliente.</p>
+                        )}
+                    </div>
+                    <div className="flex gap-2">
+                        <Input
+                            id="newNote"
+                            placeholder="Escribir nueva nota..."
+                            className="text-xs h-10 flex-1"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    const btn = document.getElementById('addNoteBtn');
+                                    if (btn) btn.click();
+                                }
+                            }}
+                        />
+                        <Button
+                            id="addNoteBtn"
+                            onClick={() => {
+                                const noteInput = document.getElementById('newNote') as HTMLInputElement;
+                                if (!noteInput || !noteInput.value.trim()) return;
+                                const date = new Date().toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+                                const newNote = `[${date}] ${noteInput.value}`;
+                                const currentNotes = client.notas_internas || '';
+                                setEditingClient({
+                                    ...client,
+                                    notas_internas: currentNotes ? `${currentNotes}\n---\n${newNote}` : newNote
+                                });
+                                noteInput.value = '';
+                            }}
+                            variant="outline"
+                            className="h-10 text-blue-600 border-blue-200 px-4 font-bold text-xs"
+                        >
+                            <Plus className="w-3 h-3 mr-1" /> Agregar Nota
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button
+                        onClick={() => { setExpandedClient(null); setEditingClient(null); }}
+                        variant="outline"
+                        className="h-11 px-8 border-gray-300 font-bold"
+                    >
+                        <X className="w-4 h-4 mr-2" /> Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="h-11 px-10 bg-cardenal-green hover:bg-cardenal-green/90 text-white font-bold shadow-lg"
+                    >
+                        {isSaving ? 'Guardando...' : <><Save className="w-4 h-4 mr-2" /> {client.id === 0 ? 'Crear Cliente' : 'Guardar Cambios'}</>}
+                    </Button>
+                </div>
+            </div>
+        );
     };
 
     return (
@@ -241,9 +537,45 @@ export default function AdminClientesPage() {
                         <Button variant="outline" size="sm" onClick={view === 'gestion' ? fetchClientes : fetchReservas} className="gap-2 h-9">
                             <RotateCcw className="w-4 h-4" /> Actualizar
                         </Button>
-                        <Button className="bg-[#1D8348] hover:bg-[#196F3D] text-white gap-2 text-sm font-bold h-9">
-                            <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
+                        <Button
+                            onClick={() => {
+                                if (view === 'gestion') {
+                                    window.open('/api/clientes/export', '_blank');
+                                } else {
+                                    window.open(`/api/reservas/export?desde=${filterDesde}&hasta=${filterHasta}&tipoFecha=${filterTipo}`, '_blank');
+                                }
+                            }}
+                            className="bg-[#1D8348] hover:bg-[#196F3D] text-white gap-2 text-sm font-bold h-9"
+                        >
+                            <FileSpreadsheet className="w-4 h-4" /> Descargar Excel
                         </Button>
+                        {view === 'gestion' && (
+                            <Button
+                                onClick={() => {
+                                    setEditingClient({
+                                        id: 0,
+                                        nombre: '',
+                                        apellidos: '',
+                                        email: '',
+                                        telefono: '',
+                                        motivo: 'Registro Manual',
+                                        fecha_entrada: '',
+                                        fecha_salida: '',
+                                        hora_evento: '',
+                                        adultos: 1,
+                                        ninos: 0,
+                                        habitacion_preferida: '',
+                                        comentarios: '',
+                                        notas_internas: '',
+                                        created_at: new Date().toISOString()
+                                    } as any);
+                                    setExpandedClient(0);
+                                }}
+                                className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white gap-2 text-sm font-bold h-9"
+                            >
+                                <Plus className="w-4 h-4" /> Nuevo Cliente
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -320,278 +652,121 @@ export default function AdminClientesPage() {
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cardenal-gold mx-auto mb-4"></div>
                                     <p className="text-gray-500 text-sm">Cargando base de datos...</p>
                                 </div>
-                            ) : clientes.length === 0 ? (
-                                <div className="text-center py-20 bg-white rounded-xl border text-gray-500">
-                                    No se encontraron clientes
-                                </div>
                             ) : (
-                                clientes.map(cliente => (
-                                    <div key={cliente.id} className="bg-white rounded-xl border overflow-hidden shadow-sm transition-all">
-                                        <div className="p-4 flex items-center justify-between hover:bg-gray-50/50">
-                                            <div className="flex items-center gap-4 flex-1">
-                                                <button
-                                                    onClick={() => handleExpand(cliente.id)}
-                                                    className={cn(
-                                                        "p-1 border rounded transition-colors",
-                                                        expandedClient === cliente.id ? "bg-cardenal-gold text-white border-cardenal-gold" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
-                                                    )}
-                                                >
-                                                    {expandedClient === cliente.id ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                                                </button>
-                                                <div className="w-10 h-10 bg-cardenal-green text-white rounded flex items-center justify-center font-bold text-lg">
-                                                    {cliente.nombre.charAt(0)}
-                                                </div>
-                                                <div className="min-w-[150px]">
-                                                    <h3 className="font-bold text-gray-800 uppercase text-sm">{cliente.nombre} {cliente.apellidos}</h3>
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="text-[10px] text-gray-400">{cliente.motivo || 'Cliente Registrado'}</p>
-                                                        {cliente.motivo === 'Consulta para Eventos Corporativos' && (
-                                                            <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Evento</span>
-                                                        )}
+                                <>
+                                    {/* Manual Creation Entry at the top */}
+                                    {expandedClient === 0 && editingClient && (
+                                        <div className="bg-white rounded-xl border-2 border-cardenal-gold overflow-hidden shadow-lg animate-fadeIn mb-6">
+                                            <div className="p-4 bg-cardenal-gold/5 flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-cardenal-gold text-white rounded flex items-center justify-center">
+                                                        <Plus className="w-6 h-6" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-gray-800 uppercase text-sm">Crear Nuevo Cliente</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Formulario de Registro Manual</p>
                                                     </div>
                                                 </div>
-                                                <div className="hidden lg:grid grid-cols-2 gap-y-1 gap-x-8 flex-1 ml-8">
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                        <Mail className="w-3.5 h-3.5" /> {cliente.email}
-                                                    </div>
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="text-xs text-gray-400">{new Date(cliente.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                                                        <div className="text-xs font-bold text-gray-600">{cliente.habitacion_preferida}</div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                        <Phone className="w-3.5 h-3.5" /> {cliente.telefono}
-                                                    </div>
-                                                    <div className="flex items-center gap-8">
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="font-bold text-gray-800 text-sm">{cliente.total_estadias}</span>
-                                                            <span className="text-[10px] text-gray-400">estadías</span>
-                                                        </div>
-                                                        <div className="text-[10px] text-gray-400">{new Date(cliente.created_at).toLocaleDateString()} registro</div>
-                                                    </div>
-                                                </div>
+                                                <Button onClick={() => { setExpandedClient(null); setEditingClient(null); }} variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                    <X className="w-4 h-4" />
+                                                </Button>
                                             </div>
-                                            <div className="flex items-center gap-2 ml-4">
-                                                <button onClick={() => handleExpand(cliente.id)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
-                                                    <Eye className="w-4 h-4" />
-                                                </button>
-                                                <a href={`tel:${cliente.telefono}`} className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors">
-                                                    <Phone className="w-4 h-4" />
-                                                </a>
-                                                <button onClick={() => handleDelete(cliente.id)} className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                            <div className="p-8 space-y-8 bg-white">
+                                                {renderDetailsForm(editingClient)}
                                             </div>
                                         </div>
+                                    )}
 
-                                        {/* Detailed Expansion */}
-                                        {expandedClient === cliente.id && editingClient && (
-                                            <div className="border-t bg-gray-50/30 p-8 space-y-8 animate-fadeIn">
-                                                {/* Datos Personales */}
-                                                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-                                                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
-                                                        <User className="w-4 h-4" /> Datos Personales
-                                                    </h4>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                                                <Calendar className="w-3 h-3" /> Fecha de Cumpleaños
-                                                            </label>
-                                                            <Input
-                                                                type="date"
-                                                                value={editingClient.fecha_nacimiento ? editingClient.fecha_nacimiento.split('T')[0] : ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, fecha_nacimiento: e.target.value })}
-                                                                className="text-sm h-10"
-                                                            />
-                                                        </div>
-                                                        {editingClient.motivo?.toLowerCase().includes('evento') && (
-                                                            <div className="space-y-1">
-                                                                <label className="text-[10px] font-bold text-orange-600 uppercase flex items-center gap-1">
-                                                                    <Clock className="w-3 h-3" /> Hora del Evento
-                                                                </label>
-                                                                <Input
-                                                                    type="text"
-                                                                    value={editingClient.hora_evento || ''}
-                                                                    onChange={e => setEditingClient({ ...editingClient, hora_evento: e.target.value })}
-                                                                    className="text-sm h-10 border-orange-200 bg-orange-50 font-bold"
-                                                                />
-                                                            </div>
-                                                        )}
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                                                <MapPin className="w-3 h-3" /> Ciudad de Residencia
-                                                            </label>
-                                                            <Input
-                                                                value={editingClient.ciudad_residencia || ''}
-                                                                placeholder="Ej: Loja"
-                                                                onChange={e => setEditingClient({ ...editingClient, ciudad_residencia: e.target.value })}
-                                                                className="text-sm h-10"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">País</label>
-                                                            <Input
-                                                                value={editingClient.pais || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, pais: e.target.value })}
-                                                                className="text-sm h-10"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                                                <Briefcase className="w-3 h-3" /> Profesión
-                                                            </label>
-                                                            <Input
-                                                                value={editingClient.profesion || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, profesion: e.target.value })}
-                                                                className="text-sm h-10"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                                                <Briefcase className="w-3 h-3" /> Empresa
-                                                            </label>
-                                                            <Input
-                                                                value={editingClient.empresa || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, empresa: e.target.value })}
-                                                                className="text-sm h-10"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">¿Cómo nos conoció?</label>
-                                                            <select
-                                                                value={editingClient.como_nos_conocio || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, como_nos_conocio: e.target.value })}
-                                                                className="w-full border rounded-md h-10 px-3 text-sm outline-none focus:ring-1 focus:ring-cardenal-gold"
-                                                            >
-                                                                <option value="">Seleccionar...</option>
-                                                                <option value="Redes Sociales">Redes Sociales</option>
-                                                                <option value="Recomendación">Recomendación</option>
-                                                                <option value="Booking">Booking / OTA</option>
-                                                                <option value="Publicidad">Publicidad</option>
-                                                                <option value="Pasante">Pasaba por el lugar</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Redes Sociales */}
-                                                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-                                                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
-                                                        <Instagram className="w-4 h-4" /> Redes Sociales
-                                                    </h4>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                                                <Instagram className="w-3 h-3" /> Instagram
-                                                            </label>
-                                                            <Input
-                                                                value={editingClient.instagram || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, instagram: e.target.value })}
-                                                                className="text-sm h-10"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                                                <Facebook className="w-3 h-3" /> Facebook
-                                                            </label>
-                                                            <Input
-                                                                value={editingClient.facebook || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, facebook: e.target.value })}
-                                                                className="text-sm h-10"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Preferencias */}
-                                                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-                                                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
-                                                        <Sparkles className="w-4 h-4" /> Preferencias
-                                                    </h4>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preferencias de Habitación</label>
-                                                            <Textarea
-                                                                value={editingClient.preferencias_habitacion || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, preferencias_habitacion: e.target.value })}
-                                                                className="text-sm min-h-[100px]"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alergias Alimentarias</label>
-                                                            <Textarea
-                                                                value={editingClient.alergias_alimentarias || ''}
-                                                                onChange={e => setEditingClient({ ...editingClient, alergias_alimentarias: e.target.value })}
-                                                                className="text-sm min-h-[100px]"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Notas Internas */}
-                                                <div className="bg-white p-6 rounded-xl border border-blue-100 shadow-sm space-y-4">
-                                                    <h4 className="font-bold text-blue-600 flex items-center gap-2 text-sm border-b pb-2">
-                                                        <AlertCircle className="w-4 h-4" /> Notas Internas
-                                                    </h4>
-                                                    <div className="bg-blue-50/30 p-4 rounded-lg space-y-3 min-h-[100px]">
-                                                        {editingClient.notas_internas ? (
-                                                            editingClient.notas_internas.split('---').map((nota, i) => (
-                                                                <div key={i} className="text-xs text-gray-600 pb-2 border-b border-blue-50 last:border-0 italic">
-                                                                    {nota.trim()}
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <p className="text-xs text-gray-400">Sin notas internas para este cliente.</p>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <Input
-                                                            id="newNote"
-                                                            placeholder="Escribir nueva nota..."
-                                                            className="text-xs h-10 flex-1"
-                                                            defaultValue=""
-                                                        />
-                                                        <Button
-                                                            onClick={() => {
-                                                                const noteInput = document.getElementById('newNote') as HTMLInputElement;
-                                                                if (!noteInput.value.trim()) return;
-                                                                const date = new Date().toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-                                                                const newNote = `[${date}] ${noteInput.value}`;
-                                                                const currentNotes = editingClient.notas_internas || '';
-                                                                setEditingClient({
-                                                                    ...editingClient,
-                                                                    notas_internas: currentNotes ? `${currentNotes}\n---\n${newNote}` : newNote
-                                                                });
-                                                                noteInput.value = '';
-                                                            }}
-                                                            variant="outline"
-                                                            className="h-10 text-blue-600 border-blue-200 px-4 font-bold text-xs"
+                                    {clientes.length === 0 ? (
+                                        <div className="text-center py-20 bg-white rounded-xl border text-gray-500">
+                                            No se encontraron clientes
+                                        </div>
+                                    ) : (
+                                        clientes.map(cliente => (
+                                            <div key={cliente.id} className="bg-white rounded-xl border overflow-hidden shadow-sm transition-all">
+                                                <div className="p-4 flex items-center justify-between hover:bg-gray-50/50">
+                                                    <div className="flex items-center gap-4 flex-1">
+                                                        <button
+                                                            onClick={() => handleExpand(cliente.id)}
+                                                            className={cn(
+                                                                "p-1 border rounded transition-colors",
+                                                                expandedClient === cliente.id ? "bg-cardenal-gold text-white border-cardenal-gold" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                                                            )}
                                                         >
-                                                            <Plus className="w-3 h-3 mr-1" /> Agregar Nota
-                                                        </Button>
+                                                            {expandedClient === cliente.id ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                                        </button>
+                                                        <div className="w-10 h-10 bg-cardenal-green text-white rounded flex items-center justify-center font-bold text-lg">
+                                                            {cliente.nombre.charAt(0)}
+                                                        </div>
+                                                        <div className="min-w-[150px]">
+                                                            <h3 className="font-bold text-gray-800 uppercase text-sm">{cliente.nombre} {cliente.apellidos}</h3>
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-[10px] text-gray-400">{cliente.motivo || 'Cliente Registrado'}</p>
+                                                                {cliente.motivo?.toLowerCase().includes('evento') && (
+                                                                    <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Evento</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="hidden lg:grid grid-cols-4 gap-y-1 gap-x-4 flex-1 ml-8">
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Contacto</p>
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium truncate max-w-[150px]">
+                                                                    <Mail className="w-3 h-3 text-gray-400" /> {cliente.email}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+                                                                    <Phone className="w-3 h-3 text-gray-400" /> {cliente.telefono}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Detalles del Evento</p>
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-700 font-bold">
+                                                                    <Calendar className="w-3 h-3 text-orange-500" /> {cliente.fecha_entrada || '---'}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-700 font-bold">
+                                                                    <Clock className="w-3 h-3 text-orange-500" /> {cliente.hora_evento || '---'}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Personas / Hab.</p>
+                                                                <div className="flex items-center gap-1.5 text-xs text-gray-700 font-bold">
+                                                                    <Users className="w-3 h-3 text-blue-500" /> {cliente.adultos} personas
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-500 font-medium truncate">{cliente.habitacion_preferida || 'Sin preferencia'}</div>
+                                                            </div>
+
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Comentarios</p>
+                                                                <div className="text-[11px] text-gray-600 italic leading-tight line-clamp-2 max-w-[200px]">
+                                                                    "{cliente.comentarios || cliente.mensaje || 'Sin comentarios'}"
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 ml-4">
+                                                        <button onClick={() => handleExpand(cliente.id)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
+                                                        <a href={`tel:${cliente.telefono}`} className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors">
+                                                            <Phone className="w-4 h-4" />
+                                                        </a>
+                                                        <button onClick={() => handleDelete(cliente.id)} className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 </div>
 
-                                                {/* Action Buttons */}
-                                                <div className="flex justify-end gap-3 pt-4 border-t">
-                                                    <Button
-                                                        onClick={() => setExpandedClient(null)}
-                                                        variant="outline"
-                                                        className="h-11 px-8 border-gray-300 font-bold"
-                                                    >
-                                                        <X className="w-4 h-4 mr-2" /> Cancelar
-                                                    </Button>
-                                                    <Button
-                                                        onClick={handleSave}
-                                                        disabled={isSaving}
-                                                        className="h-11 px-10 bg-cardenal-green hover:bg-cardenal-green/90 text-white font-bold shadow-lg"
-                                                    >
-                                                        {isSaving ? 'Guardando...' : <><Save className="w-4 h-4 mr-2" /> Guardar Cambios</>}
-                                                    </Button>
-                                                </div>
+                                                {/* Detailed Expansion */}
+                                                {expandedClient === cliente.id && editingClient && (
+                                                    <div className="border-t bg-gray-50/30 p-8">
+                                                        {renderDetailsForm(editingClient)}
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                ))
+                                        ))
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>

@@ -19,28 +19,33 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
         const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '50');
+        const limit = parseInt(searchParams.get('limit') || '100'); // Increased limit
         const offset = (page - 1) * limit;
 
         let sql = `
-            SELECT id, nombre, email, telefono, motivo, fecha_entrada, fecha_salida, 
-                   adultos, ninos, habitacion_preferida, desayuno, almuerzo, cena,
-                   desea_facturacion, trae_mascota, ciudad_residencia, pais,
-                   total_estadias, ultima_estadia, es_vip, calificacion,
-                   created_at, activo
+            SELECT 
+                id, nombre, apellidos, email, telefono, hora_evento, motivo, 
+                DATE_FORMAT(fecha_entrada, '%Y-%m-%d') as fecha_entrada,
+                DATE_FORMAT(fecha_salida, '%Y-%m-%d') as fecha_salida,
+                adultos, ninos, habitacion_preferida, desayuno, almuerzo, cena,
+                desea_facturacion, tipo_documento, identificacion, razon_social, direccion_facturacion,
+                trae_mascota, comentarios, mensaje, 
+                DATE_FORMAT(fecha_nacimiento, '%Y-%m-%d') as fecha_nacimiento,
+                ciudad_residencia, pais, profesion, empresa, como_nos_conocio,
+                instagram, facebook, preferencias_habitacion, alergias_alimentarias,
+                total_estadias, ultima_estadia, notas_internas, calificacion, es_vip,
+                created_at, activo
             FROM clientes 
             WHERE activo = 1
         `;
         const params: any[] = [];
 
         if (search) {
-            sql += ` AND (nombre LIKE ? OR email LIKE ? OR telefono LIKE ?)`;
+            sql += ` AND (nombre LIKE ? OR apellidos LIKE ? OR email LIKE ? OR telefono LIKE ? OR motivo LIKE ?)`;
             const searchPattern = `%${search}%`;
-            params.push(searchPattern, searchPattern, searchPattern);
+            params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
 
-        // LIMIT and OFFSET don't work well with prepared statements in some MySQL versions
-        // So we add them directly to the SQL string after sanitizing
         sql += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
         const clientes = await query(sql, params);
@@ -49,9 +54,9 @@ export async function GET(request: Request) {
         let countSql = `SELECT COUNT(*) as total FROM clientes WHERE activo = 1`;
         const countParams: any[] = [];
         if (search) {
-            countSql += ` AND (nombre LIKE ? OR email LIKE ? OR telefono LIKE ?)`;
+            countSql += ` AND (nombre LIKE ? OR apellidos LIKE ? OR email LIKE ? OR telefono LIKE ? OR motivo LIKE ?)`;
             const searchPattern = `%${search}%`;
-            countParams.push(searchPattern, searchPattern, searchPattern);
+            countParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
         const countResult = await query(countSql, countParams) as any[];
         const total = countResult[0]?.total || 0;
@@ -71,22 +76,25 @@ export async function GET(request: Request) {
     }
 }
 
-// POST - Create new client from contact form
+// POST - Create new client (from form or manual)
 export async function POST(request: Request) {
     try {
         const data = await request.json();
 
         // Format dates properly
-        const fechaEntrada = data.fechaEntrada || null;
-        const fechaSalida = data.fechaSalida || null;
+        const fechaEntrada = data.fecha_entrada || data.fechaEntrada || null;
+        const fechaSalida = data.fecha_salida || data.fechaSalida || null;
 
         const result = await query(
             `INSERT INTO clientes (
                 nombre, apellidos, email, telefono, hora_evento, motivo, fecha_entrada, fecha_salida,
                 adultos, ninos, habitacion_preferida, desayuno, almuerzo, cena,
                 desea_facturacion, tipo_documento, identificacion, razon_social, direccion_facturacion,
-                trae_mascota, comentarios, mensaje, ultima_estadia
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                trae_mascota, comentarios, mensaje, 
+                fecha_nacimiento, ciudad_residencia, pais, profesion, empresa, como_nos_conocio,
+                instagram, facebook, preferencias_habitacion, alergias_alimentarias,
+                notas_internas, es_vip, total_estadias, ultima_estadia
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 data.nombre,
                 data.apellidos || null,
@@ -98,18 +106,31 @@ export async function POST(request: Request) {
                 fechaSalida,
                 data.adultos || 2,
                 data.ninos || 0,
-                data.habitacion || null,
+                data.habitacion_preferida || data.habitacion || null,
                 data.desayuno ? 1 : 0,
                 data.almuerzo ? 1 : 0,
                 data.cena ? 1 : 0,
-                data.deseaFacturacion ? 1 : 0,
-                data.tipoDocumento || null,
+                data.desea_facturacion || data.deseaFacturacion ? 1 : 0,
+                data.tipo_documento || data.tipoDocumento || null,
                 data.identificacion || null,
-                data.razonSocial || null,
-                data.direccionFacturacion || null,
-                data.traeMascota ? 1 : 0,
+                data.razon_social || data.razonSocial || null,
+                data.direccion_facturacion || data.direccionFacturacion || null,
+                data.trae_mascota || data.traeMascota ? 1 : 0,
                 data.comentarios || null,
                 data.mensaje || null,
+                data.fecha_nacimiento || null,
+                data.ciudad_residencia || null,
+                data.pais || 'Ecuador',
+                data.profesion || null,
+                data.empresa || null,
+                data.como_nos_conocio || null,
+                data.instagram || null,
+                data.facebook || null,
+                data.preferencias_habitacion || null,
+                data.alergias_alimentarias || null,
+                data.notas_internas || null,
+                data.es_vip ? 1 : 0,
+                data.total_estadias || 1,
                 fechaEntrada // Set as last stay date
             ]
         ) as any;
