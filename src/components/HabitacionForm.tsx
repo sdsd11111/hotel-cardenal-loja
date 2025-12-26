@@ -48,10 +48,20 @@ const habitacionSchema = z.object({
     max_ninos: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
         message: 'Mínimo 0 niños',
     }),
+    ninos_gratis: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+        message: 'Mínimo 0 niños gratis',
+    }),
+    precio_nino_extra: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+        message: 'El precio debe ser un número válido',
+    }),
+    incluye_desayuno: z.boolean().default(false),
+    incluye_almuerzo: z.boolean().default(false),
+    incluye_cena: z.boolean().default(false),
     camas: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 1, {
         message: 'Mínimo 1 cama',
     }),
-    activo: z.any().transform(val => !!val),
+
+    activo: z.boolean(),
     disponible: z.boolean(),
     fecha_entrada_date: z.string().optional().nullable(),
     fecha_entrada_time: z.string().optional().nullable(),
@@ -60,6 +70,7 @@ const habitacionSchema = z.object({
     imagen: z.any().optional(),
     imagen_url: z.string().optional(),
 });
+
 
 type HabitacionFormValues = z.infer<typeof habitacionSchema>;
 
@@ -88,7 +99,7 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
         watch,
         formState: { errors },
     } = useForm<HabitacionFormValues>({
-        resolver: zodResolver(habitacionSchema),
+        resolver: zodResolver(habitacionSchema) as any,
         defaultValues: {
             nombre: habitacion?.nombre || '',
             slug: habitacion?.slug || '',
@@ -97,7 +108,14 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
             precio_numerico: habitacion?.precio_numerico?.toString() || '26.78',
             max_adultos: habitacion?.max_adultos?.toString() || '2',
             max_ninos: habitacion?.max_ninos?.toString() || '0',
+            ninos_gratis: habitacion?.ninos_gratis?.toString() || '1',
+            precio_nino_extra: habitacion?.precio_nino_extra?.toString() || '0',
+            incluye_desayuno: habitacion?.incluye_desayuno === 1 || habitacion?.incluye_desayuno === true,
+            incluye_almuerzo: habitacion?.incluye_almuerzo === 1 || habitacion?.incluye_almuerzo === true,
+            incluye_cena: habitacion?.incluye_cena === 1 || habitacion?.incluye_cena === true,
             camas: habitacion?.camas?.toString() || '1',
+
+
             activo: habitacion?.activo !== undefined ? (habitacion.activo === 1 || habitacion.activo === true) : true,
             disponible: habitacion?.disponible !== undefined ? (habitacion.disponible === 1 || habitacion.disponible === true) : true,
             fecha_entrada_date: formatDateForInput(habitacion?.fecha_entrada),
@@ -157,9 +175,16 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
             formData.append('precio_numerico', data.precio_numerico);
             formData.append('max_adultos', data.max_adultos);
             formData.append('max_ninos', data.max_ninos);
+            formData.append('ninos_gratis', data.ninos_gratis);
+            formData.append('precio_nino_extra', data.precio_nino_extra);
+            formData.append('incluye_desayuno', data.incluye_desayuno.toString());
+            formData.append('incluye_almuerzo', data.incluye_almuerzo.toString());
+            formData.append('incluye_cena', data.incluye_cena.toString());
             formData.append('camas', data.camas);
             formData.append('activo', data.activo.toString());
             formData.append('disponible', data.disponible.toString());
+
+
 
             // Combine date and time
             const entrada = data.fecha_entrada_date && data.fecha_entrada_time
@@ -260,6 +285,43 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
                             <Input type="number" {...register('camas')} error={errors.camas?.message} />
                         </div>
                     </div>
+
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
+                        <h4 className="text-sm font-bold text-blue-700 uppercase tracking-wider">Configuración de Niños</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Niños Gratis</label>
+                                <Input type="number" {...register('ninos_gratis')} error={errors.ninos_gratis?.message} />
+                                <p className="text-xs text-gray-500 mt-1">Cantidad de niños sin cargo adicional</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Precio Niño Extra (USD)</label>
+                                <Input type="number" step="0.01" {...register('precio_nino_extra')} error={errors.precio_nino_extra?.message} />
+                                <p className="text-xs text-gray-500 mt-1">Cobro por cada niño adicional</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-4">
+                        <h4 className="text-sm font-bold text-yellow-700 uppercase tracking-wider">Comidas Incluidas</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" {...register('incluye_desayuno')} className="form-checkbox h-5 w-5 text-cardenal-gold rounded focus:ring-cardenal-gold" />
+                                <span className="text-sm font-medium">Desayuno Incluido</span>
+                            </label>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" {...register('incluye_almuerzo')} className="form-checkbox h-5 w-5 text-cardenal-gold rounded focus:ring-cardenal-gold" />
+                                <span className="text-sm font-medium">Almuerzo Incluido</span>
+                            </label>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" {...register('incluye_cena')} className="form-checkbox h-5 w-5 text-cardenal-gold rounded focus:ring-cardenal-gold" />
+                                <span className="text-sm font-medium">Cena Incluida</span>
+                            </label>
+                        </div>
+                        <p className="text-xs text-gray-500 italic">Marca las opciones que vienen incluidas en el precio base de la habitación.</p>
+                    </div>
+
+
 
                     <div className="p-4 bg-cardenal-gold/5 border border-cardenal-gold/20 rounded-lg space-y-4">
                         <h4 className="text-sm font-bold text-cardenal-green uppercase tracking-wider flex items-center gap-2">

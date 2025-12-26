@@ -17,6 +17,8 @@ export async function GET(
             sql = 'SELECT imagen_blob, imagen_mime FROM blog_articles WHERE id = ?';
         } else if (type === 'habitaciones') {
             sql = 'SELECT imagen_blob, imagen_mime FROM habitaciones WHERE id = ?';
+        } else if (type === 'anuncios') {
+            sql = 'SELECT imagen_blob, imagen_mime FROM anuncios WHERE id = ?';
         } else {
             return new NextResponse('Tipo no válido', { status: 400 });
         }

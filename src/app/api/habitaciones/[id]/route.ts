@@ -18,11 +18,18 @@ export async function PUT(
         const precio_numerico = parseFloat(formData.get('precio_numerico')?.toString() || '0');
         const max_adultos = parseInt(formData.get('max_adultos')?.toString() || '2');
         const max_ninos = parseInt(formData.get('max_ninos')?.toString() || '0');
+        const ninos_gratis = parseInt(formData.get('ninos_gratis')?.toString() || '1');
+        const precio_nino_extra = parseFloat(formData.get('precio_nino_extra')?.toString() || '0');
+        const incluye_desayuno = formData.get('incluye_desayuno') === 'true' ? 1 : 0;
+        const incluye_almuerzo = formData.get('incluye_almuerzo') === 'true' ? 1 : 0;
+        const incluye_cena = formData.get('incluye_cena') === 'true' ? 1 : 0;
         const camas = parseInt(formData.get('camas')?.toString() || '1');
+
         const activo = formData.get('activo') === 'true' ? 1 : 0;
         const disponible = formData.get('disponible') === 'false' ? 0 : 1;
         const fecha_entrada = formData.get('fecha_entrada')?.toString() || null;
         const fecha_salida = formData.get('fecha_salida')?.toString() || null;
+
 
         // Manejo de imagen
         const imagenFile = formData.get('imagen') as File | null;
@@ -43,10 +50,12 @@ export async function PUT(
 
         if (imagen_blob) {
             sql = `UPDATE habitaciones 
-                   SET nombre = ?, slug = ?, descripcion = ?, amenidades = ?, precio_texto = ?, precio_numerico = ?, imagen = ?, imagen_blob = ?, imagen_mime = ?, max_adultos = ?, max_ninos = ?, camas = ?, activo = ?, disponible = ?, fecha_entrada = ?, fecha_salida = ?
+                   SET nombre = ?, slug = ?, descripcion = ?, amenidades = ?, precio_texto = ?, precio_numerico = ?, imagen = ?, imagen_blob = ?, imagen_mime = ?, max_adultos = ?, max_ninos = ?, ninos_gratis = ?, precio_nino_extra = ?, incluye_desayuno = ?, incluye_almuerzo = ?, incluye_cena = ?, camas = ?, activo = ?, disponible = ?, fecha_entrada = ?, fecha_salida = ?
                    WHERE id = ?`;
-            params_sql = [nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen_url, imagen_blob, imagen_mime, max_adultos, max_ninos, camas, activo, disponible, fecha_entrada, fecha_salida, id];
+            params_sql = [nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen_url, imagen_blob, imagen_mime, max_adultos, max_ninos, ninos_gratis, precio_nino_extra, incluye_desayuno, incluye_almuerzo, incluye_cena, camas, activo, disponible, fecha_entrada, fecha_salida, id];
         } else {
+
+
             // Si no hay nuevo blob pero la URL cambió (o se mantiene externa), 
             // nos aseguramos de limpiar el blob anterior si la URL ya no apunta a la API interna
             const isInternalUrl = imagen_url.includes(`/api/images/habitaciones/${id}`);
@@ -55,10 +64,12 @@ export async function PUT(
                    SET nombre = ?, slug = ?, descripcion = ?, amenidades = ?, precio_texto = ?, precio_numerico = ?, imagen = ?, 
                        imagen_blob = ${isInternalUrl ? 'imagen_blob' : 'NULL'}, 
                        imagen_mime = ${isInternalUrl ? 'imagen_mime' : 'NULL'},
-                       max_adultos = ?, max_ninos = ?, camas = ?, activo = ?, disponible = ?, fecha_entrada = ?, fecha_salida = ?
+                       max_adultos = ?, max_ninos = ?, ninos_gratis = ?, precio_nino_extra = ?, incluye_desayuno = ?, incluye_almuerzo = ?, incluye_cena = ?, camas = ?, activo = ?, disponible = ?, fecha_entrada = ?, fecha_salida = ?
                    WHERE id = ?`;
-            params_sql = [nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen_url, max_adultos, max_ninos, camas, activo, disponible, fecha_entrada, fecha_salida, id];
+            params_sql = [nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen_url, max_adultos, max_ninos, ninos_gratis, precio_nino_extra, incluye_desayuno, incluye_almuerzo, incluye_cena, camas, activo, disponible, fecha_entrada, fecha_salida, id];
         }
+
+
 
         await query(sql, params_sql);
 

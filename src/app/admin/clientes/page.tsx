@@ -1,703 +1,710 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
+import {
+    Download,
+    Search,
+    ChevronDown,
+    Calendar,
+    Users,
+    Check,
+    Clock,
+    User,
+    ArrowLeft,
+    RotateCcw,
+    FileSpreadsheet,
+    Mail,
+    Phone,
+    Plus,
+    Eye,
+    Trash2,
+    Crown,
+    X,
+    Save,
+    MapPin,
+    Briefcase,
+    Instagram,
+    Facebook,
+    Sparkles,
+    AlertCircle
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Users, Search, Download, Plus, Eye, Trash2, Star,
-    Phone, Mail, Calendar, ArrowLeft, RefreshCw, Crown,
-    ChevronDown, ChevronUp, Save, X, Instagram, Facebook,
-    Cake, Briefcase, Building, MapPin, MessageSquare, StickyNote
-} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface Cliente {
     id: number;
     nombre: string;
+    apellidos: string;
     email: string;
     telefono: string;
+    hora_evento: string;
     motivo: string;
     fecha_entrada: string;
     fecha_salida: string;
     adultos: number;
     ninos: number;
     habitacion_preferida: string;
+    desayuno: number;
+    almuerzo: number;
+    cena: number;
+    desea_facturacion: number;
+    tipo_documento: string;
+    identificacion: string;
+    razon_social: string;
+    direccion_facturacion: string;
+    trae_mascota: number;
+    comentarios: string;
+    mensaje: string;
+    fecha_nacimiento: string;
+    ciudad_residencia: string;
+    pais: string;
+    profesion: string;
+    empresa: string;
+    como_nos_conocio: string;
+    instagram: string;
+    facebook: string;
+    preferencias_habitacion: string;
+    alergias_alimentarias: string;
     total_estadias: number;
     ultima_estadia: string;
-    es_vip: boolean;
+    notas_internas: string;
     calificacion: number;
+    es_vip: number;
     created_at: string;
-    // Additional fields
-    fecha_nacimiento?: string;
-    ciudad_residencia?: string;
-    pais?: string;
-    profesion?: string;
-    empresa?: string;
-    como_nos_conocio?: string;
-    instagram?: string;
-    facebook?: string;
-    preferencias_habitacion?: string;
-    alergias_alimentarias?: string;
-    notas_internas?: string;
+}
+
+interface Reserva {
+    id: number;
+    nombre_cliente: string;
+    fecha_entrada: string;
+    fecha_salida: string;
+    habitacion_id: string;
+    adultos: number;
+    ninos: number;
+    precio: number;
+    comision: number;
+    numero_reserva: string;
+    estado: string;
+    created_at: string;
 }
 
 export default function AdminClientesPage() {
+    const [view, setView] = useState<'gestion' | 'reporte'>('gestion');
     const [clientes, setClientes] = useState<Cliente[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [reservas, setReservas] = useState<Reserva[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadingReservas, setLoadingReservas] = useState(false);
     const [search, setSearch] = useState('');
-    const [expandedId, setExpandedId] = useState<number | null>(null);
-    const [editData, setEditData] = useState<Partial<Cliente>>({});
-    const [newNote, setNewNote] = useState('');
+    const [expandedClient, setExpandedClient] = useState<number | null>(null);
+    const [editingClient, setEditingClient] = useState<Cliente | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [stats, setStats] = useState({ total: 0, nuevosEsteMes: 0, vips: 0 });
-    const [showDetail, setShowDetail] = useState(false);
-    const [detailData, setDetailData] = useState<any>(null);
+
+    // Filters for Report (Default to current month)
+    const [filterDesde, setFilterDesde] = useState(() => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+    });
+    const [filterHasta, setFilterHasta] = useState(() => {
+        const d = new Date();
+        const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${lastDay}`;
+    });
+    const [filterTipo, setFilterTipo] = useState('entrada');
 
     const fetchClientes = async () => {
+        setLoading(true);
         try {
-            setIsLoading(true);
-            const params = new URLSearchParams();
-            if (search) params.set('search', search);
-
-            const response = await fetch(`/api/clientes?${params.toString()}`);
-            if (!response.ok) throw new Error('Error al cargar clientes');
-
-            const data = await response.json();
+            const res = await fetch(`/api/clientes?search=${search}`, { cache: 'no-store' });
+            const data = await res.json();
             setClientes(data.clientes || []);
-
-            const total = data.pagination?.total || data.clientes?.length || 0;
-            const thisMonth = new Date().getMonth();
-            const thisYear = new Date().getFullYear();
-            const nuevos = (data.clientes || []).filter((c: Cliente) => {
-                const created = new Date(c.created_at);
-                return created.getMonth() === thisMonth && created.getFullYear() === thisYear;
-            }).length;
-            const vips = (data.clientes || []).filter((c: Cliente) => c.es_vip).length;
-
-            setStats({ total, nuevosEsteMes: nuevos, vips });
-        } catch (err) {
-            console.error('Error:', err);
+        } catch (error) {
+            console.error("Error fetching clientes:", error);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
+        }
+    };
+
+    const fetchReservas = async () => {
+        setLoadingReservas(true);
+        try {
+            const timestamp = new Date().getTime();
+            const res = await fetch(`/api/reservas?desde=${filterDesde}&hasta=${filterHasta}&tipoFecha=${filterTipo}&_=${timestamp}`, { cache: 'no-store' });
+            const data = await res.json();
+            setReservas(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Error fetching reservas:", error);
+        } finally {
+            setLoadingReservas(false);
         }
     };
 
     useEffect(() => {
-        fetchClientes();
-    }, []);
+        if (view === 'gestion') fetchClientes();
+        if (view === 'reporte') fetchReservas();
+    }, [search, view]);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        fetchClientes();
-    };
-
-    const handleExport = async () => {
-        try {
-            const response = await fetch('/api/clientes/export');
-            if (!response.ok) throw new Error('Error al exportar');
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `clientes_hotel_cardenal_${new Date().toISOString().split('T')[0]}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
-        } catch (err) {
-            console.error('Error exporting:', err);
-            alert('Error al exportar los clientes');
-        }
-    };
-
-    const handleExpand = async (cliente: Cliente) => {
-        if (expandedId === cliente.id) {
-            setExpandedId(null);
-            setEditData({});
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/clientes/${cliente.id}`);
-            if (!response.ok) throw new Error('Error al cargar detalles');
-            const data = await response.json();
-            setEditData(data);
-            setExpandedId(cliente.id);
-            setNewNote('');
-        } catch (err) {
-            console.error('Error:', err);
+    const handleExpand = (id: number) => {
+        if (expandedClient === id) {
+            setExpandedClient(null);
+            setEditingClient(null);
+        } else {
+            setExpandedClient(id);
+            setEditingClient(clientes.find(c => c.id === id) || null);
         }
     };
 
     const handleSave = async () => {
-        if (!expandedId) return;
-
+        if (!editingClient) return;
         setIsSaving(true);
         try {
-            const response = await fetch(`/api/clientes/${expandedId}`, {
+            const res = await fetch(`/api/clientes/${editingClient.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(editData),
+                body: JSON.stringify(editingClient)
             });
-
-            if (!response.ok) throw new Error('Error al guardar');
-
-            alert('Cliente actualizado correctamente');
-            fetchClientes();
-        } catch (err) {
-            console.error('Error:', err);
-            alert('Error al guardar los cambios');
+            if (res.ok) {
+                alert('Cambios guardados correctamente');
+                fetchClientes();
+                setExpandedClient(null);
+                setEditingClient(null);
+            }
+        } catch (error) {
+            console.error("Error updating cliente:", error);
+            alert('Error al guardar cambios');
         } finally {
             setIsSaving(false);
         }
     };
 
-    const handleAddNote = () => {
-        if (!newNote.trim()) return;
+    const handleUpdateReservaStatus = async (id: number, nuevoEstado: string) => {
+        // Actualización optimista
+        setReservas(prev => prev.map(r => r.id === id ? { ...r, estado: nuevoEstado } : r));
 
-        const timestamp = new Date().toLocaleString('es-EC', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
-        const formattedNote = `[${timestamp}] ${newNote.trim()}`;
-        const currentNotes = editData.notas_internas || '';
-        const updatedNotes = currentNotes ? `${currentNotes}\n---\n${formattedNote}` : formattedNote;
-
-        setEditData(prev => ({ ...prev, notas_internas: updatedNotes }));
-        setNewNote('');
-    };
-
-    const handleViewDetail = async (cliente: Cliente) => {
         try {
-            const response = await fetch(`/api/clientes/${cliente.id}`);
-            if (!response.ok) throw new Error('Error al cargar detalles');
-            const data = await response.json();
-            setDetailData(data);
-            setShowDetail(true);
-        } catch (err) {
-            console.error('Error:', err);
+            console.log(`Intentando actualizar reserva ${id} a ${nuevoEstado}`);
+            const res = await fetch('/api/reservas', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, estado: nuevoEstado })
+            });
+            const data = await res.json();
+            console.log('Respuesta del servidor:', data);
+
+            if (res.ok) {
+                // Estado actualizado optimísticamente; no refrescamos la lista
+            } else {
+                alert(`Error del servidor: ${data.error || 'Error desconocido'}`);
+                fetchReservas(); // Revertir si falló
+            }
+        } catch (error) {
+            console.error("Error updating reserva status:", error);
+            alert(`Error de red al actualizar estado: ${error}`);
+            fetchReservas(); // Revertir si falló
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm('¿Está seguro de ELIMINAR PERMANENTEMENTE este cliente? Esta acción no se puede deshacer.')) return;
-
+        if (!confirm('¿Estás seguro de eliminar este cliente permanentemente?')) return;
         try {
-            const response = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
-            if (!response.ok) throw new Error('Error al eliminar');
-            setExpandedId(null);
-            fetchClientes();
-        } catch (err) {
-            console.error('Error:', err);
-            alert('Error al eliminar el cliente');
+            const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                fetchClientes();
+            }
+        } catch (error) {
+            console.error("Error deleting cliente:", error);
         }
     };
 
-    const formatDate = (dateStr: string) => {
-        if (!dateStr) return '-';
-        return new Date(dateStr).toLocaleDateString('es-EC', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    const formatDateForInput = (dateStr: string) => {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        return date.toISOString().split('T')[0];
-    };
-
     return (
-        <div className="min-h-screen bg-cardenal-cream font-sans">
-            {/* Header */}
-            <header className="bg-white shadow sticky top-0 z-40">
-                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <Link href="/admin">
-                                <Button variant="outline" size="sm">
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Volver
-                                </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-2xl font-bold text-cardenal-green font-serif flex items-center gap-2">
-                                    <Users className="w-6 h-6" />
-                                    Gestión de Clientes
-                                </h1>
-                                <p className="text-sm text-gray-500">Base de datos de huéspedes</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button onClick={fetchClientes} variant="outline" size="sm">
-                                <RefreshCw className="w-4 h-4 mr-2" />
-                                Actualizar
+        <div className="bg-gray-50 min-h-screen font-outfit">
+            <div className="max-w-[1400px] mx-auto p-4 md:p-8">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                        <Link href="/admin">
+                            <Button variant="outline" size="sm" className="gap-2 text-gray-600 h-9">
+                                <ArrowLeft className="w-4 h-4" /> Volver
                             </Button>
-                            <Button onClick={handleExport} className="bg-green-600 hover:bg-green-700 text-white">
-                                <Download className="w-4 h-4 mr-2" />
-                                Exportar Excel
-                            </Button>
+                        </Link>
+                        <div>
+                            <h1 className="text-2xl font-bold text-cardenal-green flex items-center gap-2">
+                                <Users className="w-7 h-7" />
+                                Gestión de Clientes
+                            </h1>
+                            <p className="text-xs text-gray-500 font-medium">Base de datos de huéspedes</p>
                         </div>
                     </div>
-                </div>
-            </header>
-
-            <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white rounded-lg shadow p-6 border-l-4 border-cardenal-gold">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 uppercase tracking-wide">Total Clientes</p>
-                                <p className="text-3xl font-bold text-cardenal-green">{stats.total}</p>
-                            </div>
-                            <Users className="w-12 h-12 text-cardenal-gold/30" />
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 uppercase tracking-wide">Nuevos Este Mes</p>
-                                <p className="text-3xl font-bold text-blue-600">{stats.nuevosEsteMes}</p>
-                            </div>
-                            <Calendar className="w-12 h-12 text-blue-500/30" />
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 uppercase tracking-wide">Clientes VIP</p>
-                                <p className="text-3xl font-bold text-amber-600">{stats.vips}</p>
-                            </div>
-                            <Crown className="w-12 h-12 text-amber-500/30" />
-                        </div>
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" size="sm" onClick={view === 'gestion' ? fetchClientes : fetchReservas} className="gap-2 h-9">
+                            <RotateCcw className="w-4 h-4" /> Actualizar
+                        </Button>
+                        <Button className="bg-[#1D8348] hover:bg-[#196F3D] text-white gap-2 text-sm font-bold h-9">
+                            <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
+                        </Button>
                     </div>
                 </div>
 
-                {/* Search */}
-                <form onSubmit={handleSearch} className="mb-6">
-                    <div className="flex gap-2">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <Input
-                                type="text"
-                                placeholder="Buscar por nombre, email o teléfono..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-10"
-                            />
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white p-6 rounded-xl border-l-[6px] border-cardenal-gold shadow-sm flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Clientes</p>
+                            <h2 className="text-4xl font-bold text-cardenal-green mt-1">{clientes.length}</h2>
                         </div>
-                        <Button type="submit">Buscar</Button>
+                        <Users className="w-12 h-12 text-gray-100" />
                     </div>
-                </form>
-
-                {/* Clients List */}
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    {isLoading ? (
-                        <div className="p-8 text-center">
-                            <div className="animate-spin w-8 h-8 border-4 border-cardenal-gold border-t-transparent rounded-full mx-auto mb-4"></div>
-                            <p className="text-gray-500">Cargando clientes...</p>
+                    <div className="bg-white p-6 rounded-xl border-l-[6px] border-blue-500 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nuevos este mes</p>
+                            <h2 className="text-4xl font-bold text-blue-600 mt-1">{clientes.filter(c => new Date(c.created_at).getMonth() === new Date().getMonth()).length}</h2>
                         </div>
-                    ) : clientes.length === 0 ? (
-                        <div className="p-8 text-center">
-                            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500">No hay clientes registrados</p>
+                        <Calendar className="w-12 h-12 text-blue-50" />
+                    </div>
+                    <div className="bg-white p-6 rounded-xl border-l-[6px] border-orange-400 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Clientes VIP</p>
+                            <h2 className="text-4xl font-bold text-orange-400 mt-1">{clientes.filter(c => c.es_vip).length}</h2>
                         </div>
-                    ) : (
-                        <div className="divide-y divide-gray-200">
-                            {clientes.map((cliente) => (
-                                <div key={cliente.id}>
-                                    {/* Client Row */}
-                                    <div className={`flex items-center justify-between p-4 hover:bg-cardenal-cream/30 transition-colors ${expandedId === cliente.id ? 'bg-cardenal-cream/50' : ''}`}>
-                                        <div className="flex items-center gap-4 flex-1">
-                                            {/* Expand Button */}
-                                            <button
-                                                onClick={() => handleExpand(cliente)}
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${expandedId === cliente.id ? 'bg-cardenal-gold text-white rotate-180' : 'bg-gray-100 text-gray-600 hover:bg-cardenal-gold/20'}`}
-                                            >
-                                                {expandedId === cliente.id ? <ChevronUp className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                                            </button>
+                        <Crown className="w-12 h-12 text-orange-50" />
+                    </div>
+                </div>
 
-                                            {/* Avatar */}
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${cliente.es_vip ? 'bg-amber-500' : 'bg-cardenal-green'}`}>
-                                                {cliente.nombre.charAt(0).toUpperCase()}
-                                            </div>
+                {/* Tabs */}
+                <div className="flex border-b border-gray-200 mb-6">
+                    <button
+                        onClick={() => setView('gestion')}
+                        className={cn(
+                            "px-6 py-3 font-bold text-sm transition-all relative outline-none",
+                            view === 'gestion' ? "text-cardenal-green" : "text-gray-400 hover:text-gray-600"
+                        )}
+                    >
+                        Lista de Clientes
+                        {view === 'gestion' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cardenal-gold" />}
+                    </button>
+                    <button
+                        onClick={() => setView('reporte')}
+                        className={cn(
+                            "px-6 py-3 font-bold text-sm transition-all relative outline-none",
+                            view === 'reporte' ? "text-cardenal-green" : "text-gray-400 hover:text-gray-600"
+                        )}
+                    >
+                        Reporte de Reservas (TAB)
+                        {view === 'reporte' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cardenal-gold" />}
+                    </button>
+                </div>
 
-                                            {/* Client Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-gray-900 flex items-center gap-2 truncate">
-                                                    {cliente.nombre}
-                                                    {cliente.es_vip && <Crown className="w-4 h-4 text-amber-500 flex-shrink-0" />}
-                                                </p>
-                                                <p className="text-xs text-gray-500">{cliente.motivo || 'Sin motivo especificado'}</p>
-                                            </div>
+                {view === 'gestion' ? (
+                    <div className="space-y-4">
+                        <div className="bg-white p-2 rounded-lg border flex items-center gap-2 shadow-sm">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre, email o teléfono..."
+                                    className="w-full pl-10 pr-4 py-2 text-sm outline-none"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+                            </div>
+                            <Button onClick={fetchClientes} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 font-bold text-xs uppercase tracking-wider h-10">
+                                Buscar
+                            </Button>
+                        </div>
 
-                                            {/* Contact Info */}
-                                            <div className="hidden lg:block text-sm min-w-[180px]">
-                                                <p className="flex items-center gap-1 text-gray-700">
-                                                    <Mail className="w-3 h-3" /> {cliente.email}
-                                                </p>
-                                                {cliente.telefono && (
-                                                    <p className="flex items-center gap-1 text-gray-500">
-                                                        <Phone className="w-3 h-3" /> {cliente.telefono}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* Last Reservation */}
-                                            <div className="hidden md:block text-sm min-w-[120px]">
-                                                {cliente.fecha_entrada ? (
-                                                    <>
-                                                        <p className="text-gray-700">{formatDate(cliente.fecha_entrada)}</p>
-                                                        <p className="text-xs text-gray-500">{cliente.habitacion_preferida || 'Sin preferencia'}</p>
-                                                    </>
-                                                ) : (
-                                                    <span className="text-gray-400">-</span>
-                                                )}
-                                            </div>
-
-                                            {/* Quick Stats */}
-                                            <div className="hidden md:flex items-center gap-6 text-sm">
-                                                <div className="text-center">
-                                                    <p className="text-2xl font-bold text-cardenal-green">{cliente.total_estadias || 1}</p>
-                                                    <p className="text-xs text-gray-500">estadías</p>
+                        <div className="space-y-3">
+                            {loading ? (
+                                <div className="text-center py-20 bg-white rounded-xl border">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cardenal-gold mx-auto mb-4"></div>
+                                    <p className="text-gray-500 text-sm">Cargando base de datos...</p>
+                                </div>
+                            ) : clientes.length === 0 ? (
+                                <div className="text-center py-20 bg-white rounded-xl border text-gray-500">
+                                    No se encontraron clientes
+                                </div>
+                            ) : (
+                                clientes.map(cliente => (
+                                    <div key={cliente.id} className="bg-white rounded-xl border overflow-hidden shadow-sm transition-all">
+                                        <div className="p-4 flex items-center justify-between hover:bg-gray-50/50">
+                                            <div className="flex items-center gap-4 flex-1">
+                                                <button
+                                                    onClick={() => handleExpand(cliente.id)}
+                                                    className={cn(
+                                                        "p-1 border rounded transition-colors",
+                                                        expandedClient === cliente.id ? "bg-cardenal-gold text-white border-cardenal-gold" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                                                    )}
+                                                >
+                                                    {expandedClient === cliente.id ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                                </button>
+                                                <div className="w-10 h-10 bg-cardenal-green text-white rounded flex items-center justify-center font-bold text-lg">
+                                                    {cliente.nombre.charAt(0)}
                                                 </div>
-                                                <div>
-                                                    <p className="text-gray-700">{formatDate(cliente.created_at)}</p>
-                                                    <p className="text-xs text-gray-500">registro</p>
+                                                <div className="min-w-[150px]">
+                                                    <h3 className="font-bold text-gray-800 uppercase text-sm">{cliente.nombre} {cliente.apellidos}</h3>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-[10px] text-gray-400">{cliente.motivo || 'Cliente Registrado'}</p>
+                                                        {cliente.motivo === 'Consulta para Eventos Corporativos' && (
+                                                            <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Evento</span>
+                                                        )}
+                                                    </div>
                                                 </div>
+                                                <div className="hidden lg:grid grid-cols-2 gap-y-1 gap-x-8 flex-1 ml-8">
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                        <Mail className="w-3.5 h-3.5" /> {cliente.email}
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="text-xs text-gray-400">{new Date(cliente.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                                                        <div className="text-xs font-bold text-gray-600">{cliente.habitacion_preferida}</div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                        <Phone className="w-3.5 h-3.5" /> {cliente.telefono}
+                                                    </div>
+                                                    <div className="flex items-center gap-8">
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="font-bold text-gray-800 text-sm">{cliente.total_estadias}</span>
+                                                            <span className="text-[10px] text-gray-400">estadías</span>
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-400">{new Date(cliente.created_at).toLocaleDateString()} registro</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-4">
+                                                <button onClick={() => handleExpand(cliente.id)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                                <a href={`tel:${cliente.telefono}`} className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors">
+                                                    <Phone className="w-4 h-4" />
+                                                </a>
+                                                <button onClick={() => handleDelete(cliente.id)} className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
 
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-1 ml-4">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleViewDetail(cliente)}
-                                                className="text-blue-600 hover:text-blue-800"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </Button>
-                                            <a
-                                                href={`https://wa.me/${cliente.telefono?.replace(/\D/g, '')}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
-                                            >
-                                                <Phone className="w-4 h-4" />
-                                            </a>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleDelete(cliente.id)}
-                                                className="text-red-600 hover:text-red-800"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Expanded Edit Form */}
-                                    {expandedId === cliente.id && (
-                                        <div className="bg-gradient-to-b from-cardenal-cream/50 to-white p-6 border-t border-cardenal-gold/30">
-                                            <div className="max-w-4xl mx-auto space-y-6">
-                                                {/* Personal Data Section */}
-                                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                                                    <h3 className="text-lg font-bold text-cardenal-green mb-4 flex items-center gap-2">
-                                                        <Users className="w-5 h-5" />
-                                                        Datos Personales
-                                                    </h3>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">
-                                                                <Cake className="w-3 h-3 inline mr-1" />
-                                                                Fecha de Cumpleaños
+                                        {/* Detailed Expansion */}
+                                        {expandedClient === cliente.id && editingClient && (
+                                            <div className="border-t bg-gray-50/30 p-8 space-y-8 animate-fadeIn">
+                                                {/* Datos Personales */}
+                                                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                                                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
+                                                        <User className="w-4 h-4" /> Datos Personales
+                                                    </h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                                                <Calendar className="w-3 h-3" /> Fecha de Cumpleaños
                                                             </label>
                                                             <Input
                                                                 type="date"
-                                                                value={formatDateForInput(editData.fecha_nacimiento || '')}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, fecha_nacimiento: e.target.value }))}
+                                                                value={editingClient.fecha_nacimiento ? editingClient.fecha_nacimiento.split('T')[0] : ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, fecha_nacimiento: e.target.value })}
+                                                                className="text-sm h-10"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">
-                                                                <MapPin className="w-3 h-3 inline mr-1" />
-                                                                Ciudad de Residencia
+                                                        {editingClient.motivo?.toLowerCase().includes('evento') && (
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-bold text-orange-600 uppercase flex items-center gap-1">
+                                                                    <Clock className="w-3 h-3" /> Hora del Evento
+                                                                </label>
+                                                                <Input
+                                                                    type="text"
+                                                                    value={editingClient.hora_evento || ''}
+                                                                    onChange={e => setEditingClient({ ...editingClient, hora_evento: e.target.value })}
+                                                                    className="text-sm h-10 border-orange-200 bg-orange-50 font-bold"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                                                <MapPin className="w-3 h-3" /> Ciudad de Residencia
                                                             </label>
                                                             <Input
-                                                                value={editData.ciudad_residencia || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, ciudad_residencia: e.target.value }))}
+                                                                value={editingClient.ciudad_residencia || ''}
                                                                 placeholder="Ej: Loja"
+                                                                onChange={e => setEditingClient({ ...editingClient, ciudad_residencia: e.target.value })}
+                                                                className="text-sm h-10"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">País</label>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">País</label>
                                                             <Input
-                                                                value={editData.pais || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, pais: e.target.value }))}
-                                                                placeholder="Ecuador"
+                                                                value={editingClient.pais || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, pais: e.target.value })}
+                                                                className="text-sm h-10"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">
-                                                                <Briefcase className="w-3 h-3 inline mr-1" />
-                                                                Profesión
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                                                <Briefcase className="w-3 h-3" /> Profesión
                                                             </label>
                                                             <Input
-                                                                value={editData.profesion || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, profesion: e.target.value }))}
-                                                                placeholder="Ej: Médico, Abogado..."
+                                                                value={editingClient.profesion || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, profesion: e.target.value })}
+                                                                className="text-sm h-10"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">
-                                                                <Building className="w-3 h-3 inline mr-1" />
-                                                                Empresa
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                                                <Briefcase className="w-3 h-3" /> Empresa
                                                             </label>
                                                             <Input
-                                                                value={editData.empresa || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, empresa: e.target.value }))}
-                                                                placeholder="Nombre de la empresa"
+                                                                value={editingClient.empresa || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, empresa: e.target.value })}
+                                                                className="text-sm h-10"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">¿Cómo nos conoció?</label>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">¿Cómo nos conoció?</label>
                                                             <select
-                                                                value={editData.como_nos_conocio || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, como_nos_conocio: e.target.value }))}
-                                                                className="w-full px-3 py-2 border rounded-md text-sm"
+                                                                value={editingClient.como_nos_conocio || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, como_nos_conocio: e.target.value })}
+                                                                className="w-full border rounded-md h-10 px-3 text-sm outline-none focus:ring-1 focus:ring-cardenal-gold"
                                                             >
                                                                 <option value="">Seleccionar...</option>
-                                                                <option value="Google">Google</option>
-                                                                <option value="Facebook">Facebook</option>
-                                                                <option value="Instagram">Instagram</option>
+                                                                <option value="Redes Sociales">Redes Sociales</option>
                                                                 <option value="Recomendación">Recomendación</option>
-                                                                <option value="Booking">Booking</option>
+                                                                <option value="Booking">Booking / OTA</option>
                                                                 <option value="Publicidad">Publicidad</option>
-                                                                <option value="Otro">Otro</option>
+                                                                <option value="Pasante">Pasaba por el lugar</option>
                                                             </select>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Social Media Section */}
-                                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                                                    <h3 className="text-lg font-bold text-cardenal-green mb-4 flex items-center gap-2">
-                                                        <Instagram className="w-5 h-5" />
-                                                        Redes Sociales
-                                                    </h3>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">
-                                                                <Instagram className="w-3 h-3 inline mr-1" />
-                                                                Instagram
+                                                {/* Redes Sociales */}
+                                                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                                                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
+                                                        <Instagram className="w-4 h-4" /> Redes Sociales
+                                                    </h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                                                <Instagram className="w-3 h-3" /> Instagram
                                                             </label>
                                                             <Input
-                                                                value={editData.instagram || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, instagram: e.target.value }))}
-                                                                placeholder="@usuario"
+                                                                value={editingClient.instagram || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, instagram: e.target.value })}
+                                                                className="text-sm h-10"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">
-                                                                <Facebook className="w-3 h-3 inline mr-1" />
-                                                                Facebook
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                                                <Facebook className="w-3 h-3" /> Facebook
                                                             </label>
                                                             <Input
-                                                                value={editData.facebook || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, facebook: e.target.value }))}
-                                                                placeholder="facebook.com/usuario"
+                                                                value={editingClient.facebook || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, facebook: e.target.value })}
+                                                                className="text-sm h-10"
                                                             />
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Preferences Section */}
-                                                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                                                    <h3 className="text-lg font-bold text-cardenal-green mb-4 flex items-center gap-2">
-                                                        <Star className="w-5 h-5" />
-                                                        Preferencias
-                                                    </h3>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">Preferencias de Habitación</label>
+                                                {/* Preferencias */}
+                                                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
+                                                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
+                                                        <Sparkles className="w-4 h-4" /> Preferencias
+                                                    </h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preferencias de Habitación</label>
                                                             <Textarea
-                                                                value={editData.preferencias_habitacion || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, preferencias_habitacion: e.target.value }))}
-                                                                placeholder="Ej: Piso alto, vista al jardín..."
-                                                                rows={2}
+                                                                value={editingClient.preferencias_habitacion || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, preferencias_habitacion: e.target.value })}
+                                                                className="text-sm min-h-[100px]"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-600 mb-1">Alergias Alimentarias</label>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alergias Alimentarias</label>
                                                             <Textarea
-                                                                value={editData.alergias_alimentarias || ''}
-                                                                onChange={(e) => setEditData(prev => ({ ...prev, alergias_alimentarias: e.target.value }))}
-                                                                placeholder="Ej: Mariscos, gluten..."
-                                                                rows={2}
+                                                                value={editingClient.alergias_alimentarias || ''}
+                                                                onChange={e => setEditingClient({ ...editingClient, alergias_alimentarias: e.target.value })}
+                                                                className="text-sm min-h-[100px]"
                                                             />
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Notes Section */}
-                                                <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-200">
-                                                    <h3 className="text-lg font-bold text-cardenal-green mb-4 flex items-center gap-2">
-                                                        <StickyNote className="w-5 h-5" />
-                                                        Notas Internas
-                                                    </h3>
-
-                                                    {/* Existing Notes */}
-                                                    {editData.notas_internas && (
-                                                        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100 max-h-48 overflow-y-auto">
-                                                            {editData.notas_internas.split('\n---\n').map((note, idx) => (
-                                                                <div key={idx} className={`text-sm text-gray-700 ${idx > 0 ? 'mt-3 pt-3 border-t border-blue-200' : ''}`}>
-                                                                    {note}
+                                                {/* Notas Internas */}
+                                                <div className="bg-white p-6 rounded-xl border border-blue-100 shadow-sm space-y-4">
+                                                    <h4 className="font-bold text-blue-600 flex items-center gap-2 text-sm border-b pb-2">
+                                                        <AlertCircle className="w-4 h-4" /> Notas Internas
+                                                    </h4>
+                                                    <div className="bg-blue-50/30 p-4 rounded-lg space-y-3 min-h-[100px]">
+                                                        {editingClient.notas_internas ? (
+                                                            editingClient.notas_internas.split('---').map((nota, i) => (
+                                                                <div key={i} className="text-xs text-gray-600 pb-2 border-b border-blue-50 last:border-0 italic">
+                                                                    {nota.trim()}
                                                                 </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Add New Note */}
+                                                            ))
+                                                        ) : (
+                                                            <p className="text-xs text-gray-400">Sin notas internas para este cliente.</p>
+                                                        )}
+                                                    </div>
                                                     <div className="flex gap-2">
                                                         <Input
-                                                            value={newNote}
-                                                            onChange={(e) => setNewNote(e.target.value)}
+                                                            id="newNote"
                                                             placeholder="Escribir nueva nota..."
-                                                            className="flex-1"
-                                                            onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
+                                                            className="text-xs h-10 flex-1"
+                                                            defaultValue=""
                                                         />
-                                                        <Button onClick={handleAddNote} variant="outline" className="bg-blue-50 hover:bg-blue-100 text-blue-700">
-                                                            <Plus className="w-4 h-4 mr-1" />
-                                                            Agregar Nota
+                                                        <Button
+                                                            onClick={() => {
+                                                                const noteInput = document.getElementById('newNote') as HTMLInputElement;
+                                                                if (!noteInput.value.trim()) return;
+                                                                const date = new Date().toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+                                                                const newNote = `[${date}] ${noteInput.value}`;
+                                                                const currentNotes = editingClient.notas_internas || '';
+                                                                setEditingClient({
+                                                                    ...editingClient,
+                                                                    notas_internas: currentNotes ? `${currentNotes}\n---\n${newNote}` : newNote
+                                                                });
+                                                                noteInput.value = '';
+                                                            }}
+                                                            variant="outline"
+                                                            className="h-10 text-blue-600 border-blue-200 px-4 font-bold text-xs"
+                                                        >
+                                                            <Plus className="w-3 h-3 mr-1" /> Agregar Nota
                                                         </Button>
                                                     </div>
                                                 </div>
 
-                                                {/* Save Button */}
-                                                <div className="flex justify-end gap-3">
-                                                    <Button variant="outline" onClick={() => setExpandedId(null)}>
-                                                        <X className="w-4 h-4 mr-2" />
-                                                        Cancelar
+                                                {/* Action Buttons */}
+                                                <div className="flex justify-end gap-3 pt-4 border-t">
+                                                    <Button
+                                                        onClick={() => setExpandedClient(null)}
+                                                        variant="outline"
+                                                        className="h-11 px-8 border-gray-300 font-bold"
+                                                    >
+                                                        <X className="w-4 h-4 mr-2" /> Cancelar
                                                     </Button>
                                                     <Button
                                                         onClick={handleSave}
                                                         disabled={isSaving}
-                                                        className="bg-cardenal-green hover:bg-cardenal-green-dark text-white"
+                                                        className="h-11 px-10 bg-cardenal-green hover:bg-cardenal-green/90 text-white font-bold shadow-lg"
                                                     >
-                                                        {isSaving ? (
-                                                            <>
-                                                                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                                                                Guardando...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Save className="w-4 h-4 mr-2" />
-                                                                Guardar Cambios
-                                                            </>
-                                                        )}
+                                                        {isSaving ? 'Guardando...' : <><Save className="w-4 h-4 mr-2" /> Guardar Cambios</>}
                                                     </Button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </main>
-
-            {/* Detail Modal */}
-            {showDetail && detailData && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-cardenal-green text-white p-6 flex items-center justify-between">
-                            <div>
-                                <h2 className="text-2xl font-bold font-serif">{detailData.nombre}</h2>
-                                <p className="text-cardenal-gold">{detailData.email}</p>
-                            </div>
-                            <button onClick={() => setShowDetail(false)} className="text-white/80 hover:text-white">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-6">
-                            {/* Contact Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="font-bold text-cardenal-green mb-2">📞 Contacto Original</h3>
-                                    <p>Email: {detailData.email}</p>
-                                    <p>Teléfono: {detailData.telefono || '-'}</p>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="font-bold text-cardenal-green mb-2">📍 Ubicación</h3>
-                                    <p>Ciudad: {detailData.ciudad_residencia || '-'}</p>
-                                    <p>País: {detailData.pais || 'Ecuador'}</p>
-                                </div>
-                            </div>
-
-                            {/* Reservation Details from Form */}
-                            <div className="bg-amber-50 p-4 rounded border border-amber-200">
-                                <h3 className="font-bold text-cardenal-green mb-2">🏨 Datos de la Solicitud</h3>
-                                <p className="mb-2"><strong>Motivo:</strong> {detailData.motivo}</p>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-3">
-                                    <div><strong>Entrada:</strong> {formatDate(detailData.fecha_entrada)}</div>
-                                    <div><strong>Salida:</strong> {formatDate(detailData.fecha_salida)}</div>
-                                    <div><strong>Adultos:</strong> {detailData.adultos}</div>
-                                    <div><strong>Niños:</strong> {detailData.ninos}</div>
-                                </div>
-                                <div className="mt-3 pt-3 border-t border-amber-200/50">
-                                    <p><strong>Habitación:</strong> {detailData.habitacion_preferida || 'Sin preferencia'}</p>
-                                    <p><strong>Comidas:</strong> {[
-                                        detailData.desayuno ? 'Desayuno' : '',
-                                        detailData.almuerzo ? 'Almuerzo' : '',
-                                        detailData.cena ? 'Cena' : ''
-                                    ].filter(Boolean).join(', ') || 'Ninguna'}</p>
-                                </div>
-                            </div>
-
-                            {/* Billing & Requirements */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="font-bold text-cardenal-green mb-2">💳 Facturación</h3>
-                                    <p><strong>Requiere Factura:</strong> {detailData.desea_facturacion ? 'Sí' : 'No'}</p>
-                                    {detailData.desea_facturacion && (
-                                        <div className="mt-2 text-sm text-gray-600">
-                                            <p>{detailData.razon_social}</p>
-                                            <p>{detailData.identificacion}</p>
-                                            <p>{detailData.direccion_facturacion}</p>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="font-bold text-cardenal-green mb-2">🐾 Otros Requerimientos</h3>
-                                    <p><strong>Mascota:</strong> {detailData.trae_mascota ? 'Sí' : 'No'}</p>
-                                </div>
-                            </div>
-
-                            {/* Messages */}
-                            {(detailData.comentarios || detailData.mensaje) && (
-                                <div className="bg-blue-50 p-4 rounded border border-blue-100">
-                                    <h3 className="font-bold text-cardenal-green mb-2">💬 Mensaje del Cliente</h3>
-                                    <p className="italic text-gray-700">"{detailData.comentarios || detailData.mensaje}"</p>
-                                </div>
+                                        )}
+                                    </div>
+                                ))
                             )}
+                        </div>
+                    </div>
+                ) : (
+                    /* Reporte de Reservas (TAB) */
+                    <div className="space-y-6">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div className="flex flex-wrap items-end gap-6 mb-8">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fecha de</label>
+                                    <div className="relative">
+                                        <select
+                                            value={filterTipo}
+                                            onChange={(e) => setFilterTipo(e.target.value)}
+                                            className="appearance-none bg-gray-50 border border-gray-100 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium outline-none w-40"
+                                        >
+                                            <option value="entrada">Check-in</option>
+                                            <option value="reserva">Reserva</option>
+                                        </select>
+                                        <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400" />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 flex-1 max-w-[200px]">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Desde</label>
+                                    <input
+                                        type="date"
+                                        value={filterDesde}
+                                        onChange={(e) => setFilterDesde(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5 flex-1 max-w-[200px]">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hasta</label>
+                                    <input
+                                        type="date"
+                                        value={filterHasta}
+                                        onChange={(e) => setFilterHasta(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 text-sm"
+                                    />
+                                </div>
+                                <Button onClick={fetchReservas} className="bg-[#0071c2] hover:bg-[#005a9c] text-white font-bold h-10 px-8">Mostrar</Button>
+                            </div>
 
-                            <div className="flex justify-end pt-4">
-                                <Button onClick={() => setShowDetail(false)}>Cerrar</Button>
+                            <div className="border rounded-xl overflow-hidden bg-white">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-gray-50 border-b">
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Nombre del huésped</th>
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Check-in</th>
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Check-out</th>
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Habitaciones</th>
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-center">Estado</th>
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-right">Precio</th>
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-right">Nro Reserva</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {loadingReservas ? (
+                                            <tr>
+                                                <td colSpan={7} className="px-4 py-10 text-center text-gray-400 text-sm italic">Cargando reportes...</td>
+                                            </tr>
+                                        ) : reservas.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={7} className="px-4 py-10 text-center text-gray-400 text-sm italic">No hay datos en el rango seleccionado.</td>
+                                            </tr>
+                                        ) : (
+                                            reservas.map(reserva => (
+                                                <tr key={reserva.id} className="hover:bg-gray-50/50 transition-colors">
+                                                    <td className="px-4 py-4">
+                                                        <div className="text-sm font-bold text-[#0071c2] uppercase">{reserva.nombre_cliente}</div>
+                                                        <div className="text-[10px] text-gray-400">{reserva.adultos} adultos, {reserva.ninos} niños</div>
+                                                    </td>
+                                                    <td className="px-4 py-4 text-sm font-medium">{new Date(reserva.fecha_entrada).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                    <td className="px-4 py-4 text-sm text-gray-600">{new Date(reserva.fecha_salida).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                    <td className="px-4 py-4 text-sm font-bold text-gray-700">{reserva.habitacion_id}</td>
+                                                    <td className="px-4 py-4">
+                                                        <select
+                                                            value={reserva.estado}
+                                                            onChange={(e) => handleUpdateReservaStatus(reserva.id, e.target.value)}
+                                                            className={cn(
+                                                                "text-xs font-bold border rounded px-2 py-1 outline-none",
+                                                                reserva.estado === 'OK' ? "text-green-600 border-green-200 bg-green-50" :
+                                                                    reserva.estado === 'CANCELADA' ? "text-red-600 border-red-200 bg-red-50" :
+                                                                        reserva.estado === 'PENDIENTE' ? "text-orange-600 border-orange-200 bg-orange-50 font-bold" :
+                                                                            "text-gray-600 border-gray-200"
+                                                            )}
+                                                        >
+                                                            <option value="PENDIENTE">PENDIENTE</option>
+                                                            <option value="OK">OK</option>
+                                                            <option value="CANCELADA">CANCELADA</option>
+                                                            <option value="NO PRESENTADO">NO PRESENTADO</option>
+                                                        </select>
+                                                    </td>
+                                                    <td className="px-4 py-4 text-sm text-right font-bold text-gray-800">US${Number(reserva.precio).toFixed(2)}</td>
+                                                    <td className="px-4 py-4 text-sm text-right text-[#0071c2] font-medium">{reserva.numero_reserva || '---'}</td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="mt-8 p-6 bg-blue-50/50 rounded-lg border border-blue-100 flex items-center gap-4">
+                                <Clock className="w-8 h-8 text-blue-400" />
+                                <div>
+                                    <h4 className="text-sm font-bold text-blue-800 uppercase tracking-tighter">Sincronización de Pasarela TAB</h4>
+                                    <p className="text-xs text-blue-600">Este reporte se actualiza automáticamente con cada pago confirmado vía Webhook. Los cambios manuales de estado se guardan al instante.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

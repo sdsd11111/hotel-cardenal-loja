@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { LogOut, LayoutDashboard, Home, Users, UtensilsCrossed, Calendar } from 'lucide-react';
+import { LogOut, LayoutDashboard, Home, Users, UtensilsCrossed, Calendar, Megaphone } from 'lucide-react';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -36,9 +36,17 @@ export default function AdminDashboard() {
       title: 'Hero Dinámico (Platos)',
       description: 'Administra los platos destacados en el slider principal.',
       icon: UtensilsCrossed,
-      href: '/admin/platos', // Nueva ruta
+      href: '/admin/platos',
       color: 'bg-orange-500 text-white',
       hover: 'hover:bg-orange-600'
+    },
+    {
+      title: 'Gestión de Anuncios',
+      description: 'Crea y administra promociones y avisos tipo popup.',
+      icon: Megaphone,
+      href: '/admin/anuncios',
+      color: 'bg-indigo-600 text-white',
+      hover: 'hover:bg-indigo-700'
     },
     {
       title: 'Gestión del Blog',
@@ -82,7 +90,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {menuItems.map((item) => (
             <Link key={item.href} href={item.href} className="group">
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 h-full flex flex-col items-center text-center group-hover:-translate-y-1">

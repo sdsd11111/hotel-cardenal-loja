@@ -7,13 +7,15 @@ import { cn } from '@/lib/utils';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import ReservationSearchPanel from '@/components/ReservationSearchPanel';
-import { RoomDetailsModal } from '@/components/RoomDetailsModal';
+import { RoomDetailBookingModal } from '@/components/RoomDetailBookingModal';
+import { RoomAvailabilityModal } from '@/components/RoomAvailabilityModal';
 import { headerData, Habitacion } from '@/types';
 import {
     Bed, Coffee, Briefcase, Wifi, Users, Tv, Car, Bath, Wind,
     ConciergeBell, Award, Eye, Droplets, Sofa, Sparkles,
     ArrowRight, Plus, Minus, X, Check, Loader2, Clock, Calendar
 } from 'lucide-react';
+import AnnouncementPopup from '@/components/AnnouncementPopup';
 
 // Tipos de amenidades
 const amenidadesIconos: Record<string, React.ReactNode> = {
@@ -49,6 +51,30 @@ interface CartItem {
     };
 }
 
+// Helper function to calculate dynamic price based on guest count
+const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninos: number): number => {
+    const totalGuests = adultos + ninos;
+
+    // If no priceOptions or totalGuests is 0, return base price
+    if (!habitacion.priceOptions || habitacion.priceOptions.length === 0 || totalGuests <= 0) {
+        return habitacion.precioNumerico;
+    }
+
+    // Sort priceOptions by personas ascending
+    const sortedOptions = [...habitacion.priceOptions].sort((a, b) => a.personas - b.personas);
+
+    // Find the option that best matches the guest count
+    // We want the option with personas >= totalGuests, or the highest if none match
+    let bestOption = sortedOptions.find(opt => opt.personas >= totalGuests);
+    if (!bestOption) {
+        // Use the highest tier if guest count exceeds all options
+        bestOption = sortedOptions[sortedOptions.length - 1];
+    }
+
+    return bestOption.precioBase + bestOption.impuestos;
+};
+
+
 function HabitacionesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -56,6 +82,7 @@ function HabitacionesContent() {
     const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedRoom, setSelectedRoom] = useState<Habitacion | null>(null);
+    const [availabilityRoom, setAvailabilityRoom] = useState<Habitacion | null>(null);
     const [validationMessage, setValidationMessage] = useState('');
     const [scrolledPastHero, setScrolledPastHero] = useState(false);
 
@@ -85,14 +112,36 @@ function HabitacionesContent() {
     const [fechaEntrada, setFechaEntrada] = useState('');
     const [fechaSalida, setFechaSalida] = useState('');
 
-    const fetchHabitaciones = async (retryCount = 0) => {
+    // Applied filters (the ones that actually trigger search/filtering)
+    const [appliedFilters, setAppliedFilters] = useState({
+        entrada: '',
+        salida: '',
+        adultos: 0,
+        ninos: 0
+    });
+
+    const handleAplicarFiltros = () => {
+        setAppliedFilters({
+            entrada: fechaEntrada,
+            salida: fechaSalida,
+            adultos: filtroAdultos,
+            ninos: filtroNinos
+        });
+        fetchHabitaciones(fechaEntrada, fechaSalida);
+    };
+
+    const fetchHabitaciones = async (entradaVal?: string, salidaVal?: string, retryCount = 0) => {
         try {
             setIsLoading(true);
             const params = new URLSearchParams();
-            if (fechaEntrada) params.append('entrada', fechaEntrada);
-            if (fechaSalida) params.append('salida', fechaSalida);
+            const ent = entradaVal !== undefined ? entradaVal : appliedFilters.entrada;
+            const sal = salidaVal !== undefined ? salidaVal : appliedFilters.salida;
 
-            const response = await fetch(`/api/habitaciones?${params.toString()}`);
+            if (ent) params.append('entrada', ent);
+            if (sal) params.append('salida', sal);
+
+            const response = await fetch(`/api/habitaciones?${params.toString()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache' } });
+
 
             if (!response.ok) {
                 const errorText = await response.text().catch(() => 'No error details');
@@ -102,7 +151,7 @@ function HabitacionesContent() {
                 if (retryCount < 2) {
                     console.warn(`Retry ${retryCount + 1} for habitaciones...`);
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait longer on retry
-                    return fetchHabitaciones(retryCount + 1);
+                    return fetchHabitaciones(ent, sal, retryCount + 1);
                 }
                 throw new Error(`Error al cargar habitaciones (${response.status})`);
             }
@@ -110,34 +159,56 @@ function HabitacionesContent() {
             const data = await response.json();
 
             // Transform DB data to interface format
-            const mappedData: Habitacion[] = data.map((room: any) => ({
-                id: room.id,
-                nombre: room.nombre,
-                slug: room.slug,
-                descripcion: room.descripcion,
-                amenidades: typeof room.amenidades === 'string' ? JSON.parse(room.amenidades) : room.amenidades,
-                precio: room.precio_texto,
-                precioNumerico: Number(room.precio_numerico),
-                imagen: room.imagen,
-                capacidad: {
-                    maxAdultos: room.max_adultos,
-                    maxNiños: room.max_ninos,
-                    camas: room.camas
-                },
-                // Trust database/API value primarily. 
-                disponible: room.disponible === 1,
-                fecha_entrada: room.fecha_entrada,
-                fecha_salida: room.fecha_salida
-            }));
+            const mappedData: Habitacion[] = data.map((room: any) => {
+                let priceOptions = [];
+                if (room.price_options_json) {
+                    try {
+                        priceOptions = typeof room.price_options_json === 'string'
+                            ? JSON.parse(room.price_options_json)
+                            : room.price_options_json;
+                    } catch { priceOptions = []; }
+                }
+
+                return {
+                    id: room.id,
+                    nombre: room.nombre,
+                    slug: room.slug,
+                    descripcion: room.descripcion,
+                    amenidades: typeof room.amenidades === 'string' ? JSON.parse(room.amenidades) : room.amenidades,
+                    precio: room.precio_texto,
+                    precioNumerico: Number(room.precio_numerico),
+                    imagen: room.imagen,
+                    capacidad: {
+                        maxAdultos: room.max_adultos,
+                        maxNiños: room.max_ninos,
+                        camas: room.camas
+                    },
+                    ninosGratis: room.ninos_gratis ?? 1,
+                    precioNinoExtra: Number(room.precio_nino_extra ?? 0),
+                    incluyeDesayuno: room.incluye_desayuno === 1,
+                    incluyeAlmuerzo: room.incluye_almuerzo === 1,
+                    incluyeCena: room.incluye_cena === 1,
+                    priceOptions: priceOptions,
+                    // Trust database/API value primarily. 
+                    disponible: room.disponible === 1,
+                    fecha_entrada: room.fecha_entrada,
+                    fecha_salida: room.fecha_salida
+                };
+            });
 
             setHabitaciones(mappedData);
 
-            // Initialize pendingMeals for each room
+            // Initialize pendingMeals for each room - Preselect included meals which have no extra cost
             const initialMeals: Record<number, { desayuno: boolean; almuerzo: boolean; cena: boolean }> = {};
             mappedData.forEach(room => {
-                initialMeals[room.id] = { desayuno: false, almuerzo: false, cena: false };
+                initialMeals[room.id] = {
+                    desayuno: !!room.incluyeDesayuno,
+                    almuerzo: !!room.incluyeAlmuerzo,
+                    cena: !!room.incluyeCena
+                };
             });
             setPendingMeals(initialMeals);
+
         } catch (err) {
             console.error('Error loading habitaciones:', err);
         } finally {
@@ -146,23 +217,39 @@ function HabitacionesContent() {
     };
 
     useEffect(() => {
-        fetchHabitaciones();
-    }, [fechaEntrada, fechaSalida]);
-
-    useEffect(() => {
         const entrada = searchParams.get('entrada');
         const salida = searchParams.get('salida');
         const adultos = searchParams.get('adultos');
         const ninos = searchParams.get('ninos');
+
+        if (entrada) {
+            setFechaEntrada(entrada);
+            setAppliedFilters(prev => ({ ...prev, entrada }));
+        }
+        if (salida) {
+            setFechaSalida(salida);
+            setAppliedFilters(prev => ({ ...prev, salida }));
+        }
+        if (adultos) {
+            const val = parseInt(adultos);
+            setFiltroAdultos(val);
+            setAppliedFilters(prev => ({ ...prev, adultos: val }));
+        }
+        if (ninos) {
+            const val = parseInt(ninos);
+            setFiltroNinos(val);
+            setAppliedFilters(prev => ({ ...prev, ninos: val }));
+        }
+
+        // Initial fetch with URL params (or default empty)
+        fetchHabitaciones(entrada || '', salida || '');
+    }, [searchParams]);
+
+    useEffect(() => {
         const desayuno = searchParams.get('desayuno');
         const almuerzo = searchParams.get('almuerzo');
         const cena = searchParams.get('cena');
         const source = searchParams.get('source');
-
-        if (entrada) setFechaEntrada(entrada);
-        if (salida) setFechaSalida(salida);
-        if (adultos) setFiltroAdultos(parseInt(adultos));
-        if (ninos) setFiltroNinos(parseInt(ninos));
 
         // If we have room data and meal/source params, pre-fill them
         if (habitaciones.length > 0 && (desayuno || almuerzo || cena)) {
@@ -196,18 +283,21 @@ function HabitacionesContent() {
                 return newMeals;
             });
         }
-    }, [searchParams, habitaciones]);
+    }, [habitaciones, searchParams]);
 
     const [cart, setCart] = useState<CartItem[]>([]);
     const [showCart, setShowCart] = useState(false);
 
-    const habitacionesFiltradas = habitaciones.filter(hab => {
-        // Filtrado por capacidad
-        const cumpleCapacidad = (filtroAdultos === 0 && filtroNinos === 0) ||
-            (hab.capacidad.maxAdultos >= filtroAdultos && hab.capacidad.maxNiños >= filtroNinos);
-
-        return cumpleCapacidad;
-        // La disponibilidad se maneja visualmente con badges y deshabilitando el botón.
+    const habitacionesFiltradas = habitaciones.sort((a, b) => {
+        // Ordenar: Matrimonial (301) primero, luego Doble Twin (302), luego Triple (303)
+        const getRoomTypeOrder = (hab: Habitacion) => {
+            const nombre = hab.nombre.toLowerCase();
+            if (nombre.includes('triple')) return 3; // 303
+            if (nombre.includes('2 camas') || nombre.includes('twin')) return 2; // 302
+            if (nombre.includes('doble') || nombre.includes('matrimonial')) return 1; // 301
+            return 4; // Otras al final
+        };
+        return getRoomTypeOrder(a) - getRoomTypeOrder(b);
     });
 
     const resetFiltros = () => {
@@ -237,7 +327,6 @@ function HabitacionesContent() {
             }
             return [...prev, { habitacion, cantidad: 1, comidas: { ...meals } }];
         });
-        setShowCart(true);
     };
 
     const removeFromCart = (index: number) => {
@@ -262,12 +351,18 @@ function HabitacionesContent() {
         if (noches <= 0) return 0;
         return cart.reduce((total, item) => {
             let mealsPrice = 0;
-            if (item.comidas.desayuno) mealsPrice += 1.5;
-            if (item.comidas.almuerzo) mealsPrice += 1.5;
-            if (item.comidas.cena) mealsPrice += 1.5;
-            return total + ((item.habitacion.precioNumerico + mealsPrice) * item.cantidad * noches);
+            // Only charge if NOT included
+            if (item.comidas.desayuno && !item.habitacion.incluyeDesayuno) mealsPrice += 1.0;
+            if (item.comidas.almuerzo && !item.habitacion.incluyeAlmuerzo) mealsPrice += 1.0;
+            if (item.comidas.cena && !item.habitacion.incluyeCena) mealsPrice += 1.0;
+
+            // Calculate dynamic base price
+            const basePrice = getDynamicPrice(item.habitacion, filtroAdultos, filtroNinos);
+
+            return total + ((basePrice + mealsPrice) * item.cantidad * noches);
         }, 0);
     };
+
 
     const handleReservar = async () => {
         if (!fechaEntrada || !fechaSalida) {
@@ -435,15 +530,15 @@ function HabitacionesContent() {
                                 </label>
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => setFiltroAdultos(Math.max(1, filtroAdultos - 1))}
+                                        onClick={() => setFiltroAdultos(prev => Math.max(0, prev - 1))}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
                                         <Minus className="w-2.5 h-2.5 md:w-4 md:h-4" />
                                     </button>
-                                    <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroAdultos || 1}</span>
+                                    <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroAdultos}</span>
                                     <button
-                                        onClick={() => setFiltroAdultos(filtroAdultos + 1)}
+                                        onClick={() => setFiltroAdultos(prev => prev === 0 ? 1 : prev + 1)}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
@@ -476,22 +571,14 @@ function HabitacionesContent() {
                                 </div>
                             </div>
 
-                            {/* Carrito / Reservar */}
-                            <div className="col-span-1 xs:col-span-2">
+                            {/* Botón Aplicar */}
+                            <div className="col-span-1 xs:col-span-2 md:col-span-2">
                                 <button
-                                    onClick={() => setShowCart(true)}
-                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-2 md:py-3 px-3 md:px-6 rounded shadow-lg shadow-amber-500/20 transition-all active:scale-95 flex items-center justify-center gap-1 md:gap-3 uppercase tracking-wider text-[9px] md:text-xs"
-                                    type="button"
+                                    onClick={handleAplicarFiltros}
+                                    className="w-full bg-cardenal-gold hover:bg-cardenal-green text-white font-bold py-2 md:py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 group tracking-widest text-xs md:text-sm"
                                 >
-                                    <div className="relative">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart w-3 h-3 md:w-5 md:h-5"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
-                                        {cart.length > 0 && (
-                                            <span className="absolute -top-1.5 -right-1.5 md:-top-2 md:-right-2 bg-white text-amber-600 w-3 h-3 md:w-5 md:h-5 rounded-full flex items-center justify-center text-[7px] md:text-[10px] font-black border border-amber-500">
-                                                {cart.reduce((sum, item) => sum + item.cantidad, 0)}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {cart.length > 0 ? `Carrito (${cart.reduce((sum, item) => sum + item.cantidad, 0)})` : 'RESERVAR'}
+                                    <Sparkles className="w-4 h-4 group-hover:animate-pulse" />
+                                    APLICAR CAMBIOS
                                 </button>
                             </div>
                         </div>
@@ -503,13 +590,13 @@ function HabitacionesContent() {
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 shadow-sm border border-cardenal-gold/10">
                         <p className="text-cardenal-green font-medium text-lg md:text-xl">
                             Mostrando <span className="font-bold text-amber-500 text-2xl px-2">{habitacionesFiltradas.length}</span> habitaciones exclusivas
-                            {(filtroAdultos > 0 || filtroNinos > 0) && (
+                            {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) && (
                                 <span className="text-cardenal-gold ml-2">
-                                    (Búsqueda para: {filtroAdultos} adultos, {filtroNinos} niños)
+                                    (Búsqueda para: {appliedFilters.adultos} adultos, {appliedFilters.ninos} niños)
                                 </span>
                             )}
                         </p>
-                        {(filtroAdultos > 0 || filtroNinos > 0) && (
+                        {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) && (
                             <button
                                 onClick={resetFiltros}
                                 className="text-cardenal-gold hover:text-cardenal-green font-bold uppercase tracking-widest text-xs transition-colors underline decoration-2 underline-offset-4"
@@ -520,101 +607,17 @@ function HabitacionesContent() {
                     </div>
                 </div>
 
-                {/* Cart Sidebar */}
-                {showCart && (
-                    <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={() => setShowCart(false)}>
-                        <div
-                            className="absolute right-0 top-0 bottom-0 w-full md:w-[450px] bg-white shadow-2xl overflow-y-auto"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="p-8">
-                                <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-6">
-                                    <h3 className="text-2xl font-bold font-serif text-cardenal-green uppercase tracking-tight">Tu Reserva</h3>
-                                    <button
-                                        onClick={() => setShowCart(false)}
-                                        className="p-2 hover:bg-cardenal-cream transition-colors"
-                                    >
-                                        <X className="w-8 h-8 text-cardenal-green" />
-                                    </button>
-                                </div>
+                {/* Cart Sidebar has been removed according to user request */}
 
-                                {cart.length === 0 ? (
-                                    <div className="text-center py-20">
-                                        <p className="text-gray-400 italic mb-4">No has seleccionado ninguna habitación todavía.</p>
-                                        <button onClick={() => setShowCart(false)} className="text-cardenal-gold font-bold uppercase tracking-widest text-sm">Explorar categorías</button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="space-y-6 mb-8">
-                                            {cart.map((item, index) => (
-                                                <div key={index} className="border-b border-gray-50 pb-6">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <h4 className="font-bold text-lg text-cardenal-green font-serif">{item.habitacion.nombre}</h4>
-                                                            <div className="flex flex-wrap gap-1 mt-1">
-                                                                {item.comidas.desayuno && <span className="text-[10px] bg-cardenal-gold/20 text-cardenal-green px-2 py-0.5 rounded font-bold uppercase tracking-tighter">Desayuno</span>}
-                                                                {item.comidas.almuerzo && <span className="text-[10px] bg-cardenal-gold/20 text-cardenal-green px-2 py-0.5 rounded font-bold uppercase tracking-tighter">Almuerzo</span>}
-                                                                {item.comidas.cena && <span className="text-[10px] bg-cardenal-gold/20 text-cardenal-green px-2 py-0.5 rounded font-bold uppercase tracking-tighter">Cena</span>}
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => removeFromCart(index)}
-                                                            className="text-red-400 hover:text-red-600 transition-colors p-1"
-                                                        >
-                                                            <X className="w-5 h-5" />
-                                                        </button>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <button
-                                                                onClick={() => updateQuantity(index, -1)}
-                                                                className="w-8 h-8 flex items-center justify-center bg-cardenal-cream hover:bg-cardenal-gold hover:text-white transition-colors"
-                                                            >
-                                                                <Minus className="w-3 h-3" />
-                                                            </button>
-                                                            <span className="w-6 text-center font-bold text-cardenal-green">{item.cantidad}</span>
-                                                            <button
-                                                                onClick={() => updateQuantity(index, 1)}
-                                                                className="w-8 h-8 flex items-center justify-center bg-cardenal-cream hover:bg-cardenal-gold hover:text-white transition-colors"
-                                                            >
-                                                                <Plus className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                        <p className="font-bold text-cardenal-green italic">
-                                                            ${(item.habitacion.precioNumerico + (item.comidas.desayuno ? 1.5 : 0) + (item.comidas.almuerzo ? 1.5 : 0) + (item.comidas.cena ? 1.5 : 0)).toFixed(2)} USD <span className="text-xs font-normal text-gray-400">/ noche</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {fechaEntrada && fechaSalida && (
-                                            <div className="bg-cardenal-green text-white p-6 mb-8 shadow-inner shadow-black/20">
-                                                <div className="flex justify-between mb-4 border-b border-white/10 pb-4 text-sm font-serif italic">
-                                                    <span className="opacity-80">Duración:</span>
-                                                    <span className="font-bold">{Math.ceil((new Date(fechaSalida).getTime() - new Date(fechaEntrada).getTime()) / (1000 * 60 * 60 * 24))} Noches</span>
-                                                </div>
-                                                <div className="flex justify-between items-end">
-                                                    <span className="text-xs uppercase tracking-[0.3em] font-bold opacity-60">Total Estimado:</span>
-                                                    <span className="text-4xl font-bold font-serif text-cardenal-gold drop-shadow-lg">${calcularTotal().toFixed(2)} USD</span>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {validationMessage && (
-                                            <div className="mb-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 text-xs font-bold animate-pulse">
-                                                {validationMessage}
-                                            </div>
-                                        )}
-                                        <button
-                                            onClick={handleReservar}
-                                            className="w-full bg-cardenal-gold hover:bg-white border-2 border-cardenal-gold text-cardenal-green hover:text-cardenal-gold font-bold py-5 px-6 transition-all duration-500 flex items-center justify-center gap-3 tracking-[0.2em] uppercase shadow-2xl text-xs"
-                                        >
-                                            <Check className="w-6 h-6" />
-                                            CONFIRMAR RESERVA
-                                        </button>
-                                    </>
-                                )}
+                {validationMessage && (
+                    <div className="container mx-auto px-4 mb-8">
+                        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 shadow-md animate-slideInRight">
+                            <div className="flex items-center gap-3">
+                                <Sparkles className="w-5 h-5 text-amber-500" />
+                                <p className="text-amber-800 font-bold text-sm">{validationMessage}</p>
+                                <button onClick={() => setValidationMessage('')} className="ml-auto text-amber-500 hover:text-amber-700">
+                                    <X className="w-4 h-4" />
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -642,143 +645,254 @@ function HabitacionesContent() {
                             </button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-12">
-                            {habitacionesFiltradas.map((habitacion) => (
-                                <div
-                                    key={habitacion.id}
-                                    className="group bg-white overflow-hidden shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] transition-all duration-700 flex flex-col border border-cardenal-gold/10 rounded-2xl md:rounded-none"
-                                >
-                                    <div className="w-full relative aspect-[16/9] shrink-0 overflow-hidden border-b border-cardenal-gold/10">
-                                        <Image
-                                            src={habitacion.imagen ? (habitacion.imagen.startsWith('/api') ? `${habitacion.imagen}${habitacion.imagen.includes('?') ? '&' : '?'}v=${Date.now()}` : habitacion.imagen) : '/placeholder.jpg'}
-                                            alt={habitacion.nombre}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
-                                            className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                                            unoptimized
-                                        />
-                                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                        <div className="space-y-16">
+                            {[1, 2, 3, 4].map(priority => {
+                                const groupRooms = habitacionesFiltradas.filter(h => {
+                                    const n = h.nombre.toLowerCase();
 
-                                        {/* Availability Badge */}
-                                        <div className={cn(
-                                            "absolute top-4 left-4 px-4 py-2 font-bold text-[10px] uppercase tracking-widest shadow-lg z-10",
-                                            habitacion.disponible ? "bg-cardenal-green text-white" : "bg-red-500 text-white"
-                                        )}>
-                                            {habitacion.disponible ? 'Disponible' : (habitacion.reservada ? 'Reservada' : 'Ocupada')}
-                                        </div>
+                                    // Explicit Priority Logic based on User Screenshot Numbers (301, 302, 303)
+                                    let p = 4;
 
-                                        {/* Price overlay */}
-                                        <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-3 font-serif font-bold italic text-lg shadow-2xl">
-                                            ${habitacion.precioNumerico.toFixed(2)} <span className="text-[10px] font-normal not-italic">/ noche</span>
-                                        </div>
-                                    </div>
+                                    if (n.includes('301')) p = 1;
+                                    else if (n.includes('302')) p = 2;
+                                    else if (n.includes('303')) p = 3;
+                                    else {
+                                        // Fallback to name-based if number missing
+                                        if (n.includes('triple')) p = 3;
+                                        else if (n.includes('2 camas') || n.includes('twin')) p = 2;
+                                        else if (n.includes('doble') || n.includes('matrimonial')) p = 1;
+                                    }
 
-                                    <div className="w-full p-8 flex flex-col">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <h3 className="text-2xl md:text-3xl font-bold text-cardenal-green font-serif tracking-tight">
-                                                {habitacion.nombre}
-                                            </h3>
-                                            <div className="flex items-center gap-2 bg-cardenal-cream px-3 py-1 border border-cardenal-gold/20">
-                                                <Users className="w-4 h-4 text-cardenal-gold" />
-                                                <span className="text-xs font-bold text-cardenal-green">Cap. {habitacion.capacidad.maxAdultos}</span>
-                                            </div>
-                                        </div>
+                                    return p === priority;
+                                });
 
-                                        {!habitacion.disponible && habitacion.fecha_salida && (
-                                            <div className="mb-4 p-2 bg-red-50 border border-red-100 rounded text-[10px] font-bold text-red-600 uppercase tracking-widest flex items-center gap-2">
-                                                <Clock className="w-3 h-3" />
-                                                Disponible desde: {new Date(habitacion.fecha_salida).toLocaleString('es-EC', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                                            </div>
-                                        )}
+                                if (groupRooms.length === 0) return null;
 
-                                        <p className="text-text-muted mb-6 leading-relaxed font-medium">
-                                            {habitacion.descripcion}
-                                        </p>
-
-                                        {/* Meal Selection Integration */}
-                                        <div className="mb-6 p-5 bg-white border-2 border-cardenal-gold/30 shadow-sm relative overflow-hidden group/meals">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-cardenal-gold/5 -rotate-45 translate-x-8 -translate-y-8 group-hover/meals:scale-150 transition-transform duration-700"></div>
-                                            <p className="text-sm font-bold text-cardenal-green mb-4 flex items-center gap-2 font-serif italic">
-                                                <Sparkles className="w-4 h-4 text-cardenal-gold animate-pulse" />
-                                                Agrega si quieres tu residencia con:
-                                            </p>
-                                            <div className="grid grid-cols-1 xs:grid-cols-3 gap-2">
-                                                {(['desayuno', 'almuerzo', 'cena'] as const).map((meal) => (
-                                                    <button
-                                                        key={meal}
-                                                        onClick={() => toggleMeal(habitacion.id, meal)}
-                                                        className={cn(
-                                                            "px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all duration-300 border-2 flex-1 text-center",
-                                                            pendingMeals[habitacion.id]?.[meal]
-                                                                ? "bg-cardenal-gold border-cardenal-gold text-white shadow-md shadow-cardenal-gold/20"
-                                                                : "bg-white border-cardenal-gold/10 text-cardenal-green/50 hover:border-cardenal-gold hover:text-cardenal-gold"
-                                                        )}
-                                                    >
-                                                        {meal}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 mb-8 border-t border-gray-50 pt-6">
-                                            {habitacion.amenidades.slice(0, 4).map((amenidad, idx) => (
+                                return (
+                                    <div key={priority} className="w-full">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-12">
+                                            {groupRooms.map((habitacion) => (
                                                 <div
-                                                    key={idx}
-                                                    className="flex items-center gap-3 text-xs font-bold text-cardenal-green/70 uppercase tracking-widest"
+                                                    key={habitacion.id}
+                                                    className="group bg-white overflow-hidden shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] transition-all duration-700 flex flex-col border border-cardenal-gold/10 rounded-2xl md:rounded-none"
                                                 >
-                                                    <div className="text-cardenal-gold">
-                                                        {amenidadesIconos[amenidad]}
+                                                    <div className="w-full relative aspect-[16/9] shrink-0 overflow-hidden border-b border-cardenal-gold/10">
+                                                        <Image
+                                                            src={habitacion.imagen ? (habitacion.imagen.startsWith('/api') ? `${habitacion.imagen}${habitacion.imagen.includes('?') ? '&' : '?'}v=${Date.now()}` : habitacion.imagen) : '/placeholder.jpg'}
+                                                            alt={habitacion.nombre}
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
+                                                            className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                                                            unoptimized
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700"></div>
+
+                                                        {/* Availability Badge */}
+                                                        <div className={cn(
+                                                            "absolute top-4 left-4 px-4 py-2 font-bold text-[10px] uppercase tracking-widest shadow-lg z-10",
+                                                            habitacion.disponible ? "bg-cardenal-green text-white" : "bg-red-500 text-white"
+                                                        )}>
+                                                            {habitacion.disponible ? 'Disponible' : (habitacion.reservada ? 'Reservada' : 'Ocupada')}
+                                                        </div>
+
+                                                        {/* Price overlay - Dynamic pricing based on guest count */}
+                                                        <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-3 font-serif font-bold italic text-3xl shadow-2xl">
+                                                            ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninos).toFixed(2)} <span className="text-[10px] font-normal not-italic">/ noche</span>
+                                                        </div>
                                                     </div>
-                                                    <span>{amenidad}</span>
+
+                                                    <div className="w-full p-8 flex flex-col">
+                                                        <div className="flex justify-between items-start mb-4">
+                                                            <h3 className="text-2xl md:text-3xl font-bold text-cardenal-green font-serif tracking-tight">
+                                                                {habitacion.nombre}
+                                                            </h3>
+                                                            <div className="flex items-center gap-2 bg-cardenal-cream px-3 py-1 border border-cardenal-gold/20">
+                                                                <Users className="w-4 h-4 text-cardenal-gold" />
+                                                                <span className="text-xs font-bold text-cardenal-green">Cap. {habitacion.capacidad.maxAdultos}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Children pricing info badge */}
+                                                        {habitacion.ninosGratis !== undefined && (
+                                                            <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 flex items-center gap-2">
+                                                                <Users className="w-3 h-3" />
+                                                                {habitacion.ninosGratis > 0 ? (
+                                                                    <span>
+                                                                        <strong>{habitacion.ninosGratis} niño{habitacion.ninosGratis > 1 ? 's' : ''} gratis</strong>
+                                                                        {habitacion.precioNinoExtra && habitacion.precioNinoExtra > 0 && (
+                                                                            <> • Niño extra: +${habitacion.precioNinoExtra.toFixed(2)}</>
+                                                                        )}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span>
+                                                                        Niños: +${(habitacion.precioNinoExtra || 0).toFixed(2)} c/u
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {!habitacion.disponible && habitacion.fecha_salida && (
+                                                            <div className="mb-4 p-2 bg-red-50 border border-red-100 rounded text-[10px] font-bold text-red-600 uppercase tracking-widest flex items-center gap-2">
+                                                                <Clock className="w-3 h-3" />
+                                                                Disponible desde: {new Date(habitacion.fecha_salida).toLocaleString('es-EC', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                        )}
+
+                                                        <p className="text-text-muted mb-6 leading-relaxed font-medium">
+                                                            {habitacion.descripcion}
+                                                        </p>
+
+
+                                                        {/* Meal Selection Integration */}
+                                                        <div className="mb-6 p-5 bg-white border-2 border-cardenal-gold/30 shadow-sm relative overflow-hidden group/meals">
+                                                            <div className="absolute top-0 right-0 w-16 h-16 bg-cardenal-gold/5 -rotate-45 translate-x-8 -translate-y-8 group-hover/meals:scale-150 transition-transform duration-700"></div>
+                                                            <p className="text-base font-extrabold text-cardenal-green mb-4 flex items-center gap-2 font-serif italic">
+                                                                <Sparkles className="w-5 h-5 text-cardenal-gold animate-pulse" />
+                                                                Agrega si quieres tu residencia con:
+                                                            </p>
+                                                            <div className="grid grid-cols-1 xs:grid-cols-3 gap-2">
+                                                                {([
+                                                                    { key: 'desayuno', label: 'Desayuno', included: habitacion.incluyeDesayuno },
+                                                                    { key: 'almuerzo', label: 'Almuerzo', included: habitacion.incluyeAlmuerzo },
+                                                                    { key: 'cena', label: 'Cena', included: habitacion.incluyeCena }
+                                                                ] as const).map(({ key, label, included }) => (
+                                                                    <button
+                                                                        key={key}
+                                                                        onClick={() => {
+                                                                            // Only toggle if not included. Included means always ON.
+                                                                            if (!included) toggleMeal(habitacion.id, key as any);
+                                                                        }}
+                                                                        disabled={!!included}
+                                                                        className={cn(
+                                                                            "relative flex items-center justify-center gap-2 px-3 py-2 rounded border transition-all duration-300",
+                                                                            included
+                                                                                ? "bg-green-100 border-green-300 text-green-800 cursor-default"
+                                                                                : (pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena']
+                                                                                    ? "bg-cardenal-gold text-white border-cardenal-gold shadow-md transform scale-105"
+                                                                                    : "bg-white border-gray-200 text-gray-600 hover:border-cardenal-gold hover:text-cardenal-gold")
+                                                                        )}
+                                                                    >
+                                                                        {included ? (
+                                                                            // Add Check icon import if needed, or use text/emoji
+                                                                            <Check className="w-3 h-3" />
+                                                                        ) : (
+                                                                            <div className={cn(
+                                                                                "w-3 h-3 rounded-full border border-current flex items-center justify-center transition-colors",
+                                                                                pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena'] ? "bg-white/20" : "bg-transparent"
+                                                                            )}>
+                                                                                {pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena'] && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                                            </div>
+                                                                        )}
+                                                                        <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
+                                                                        {included && <span className="text-[9px] ml-1 bg-green-200 text-green-800 px-1 rounded">Incluido</span>}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 mb-8 border-t border-gray-50 pt-6">
+                                                            {habitacion.amenidades.slice(0, 4).map((amenidad, idx) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    className="flex items-center gap-3 text-xs font-bold text-cardenal-green/70 uppercase tracking-widest"
+                                                                >
+                                                                    <div className="text-cardenal-gold">
+                                                                        {amenidadesIconos[amenidad]}
+                                                                    </div>
+                                                                    <span>{amenidad}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="flex flex-col xs:flex-row gap-3 mt-auto">
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (!fechaEntrada || !fechaSalida || (filtroAdultos + filtroNinos) === 0) {
+                                                                        setValidationMessage('Por favor, selecciona tus fechas y número de personas antes de agregar.');
+                                                                        // Scroll to search bar
+                                                                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                                                                        setTimeout(() => setValidationMessage(''), 5000);
+                                                                        return;
+                                                                    }
+                                                                    setAvailabilityRoom(habitacion);
+                                                                }}
+                                                                disabled={!habitacion.disponible}
+                                                                className={cn(
+                                                                    "flex-1 font-bold py-4 px-4 transition-all duration-300 flex items-center justify-center gap-2 tracking-[0.2em] text-xs shadow-md",
+                                                                    habitacion.disponible
+                                                                        ? (fechaEntrada && fechaSalida && (filtroAdultos + filtroNinos) > 0
+                                                                            ? "bg-cardenal-gold border-2 border-cardenal-gold text-white hover:bg-white hover:text-cardenal-gold"
+                                                                            : "bg-amber-100 border-2 border-amber-200 text-amber-700 hover:bg-amber-200")
+                                                                        : "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed"
+                                                                )}
+                                                            >
+                                                                {habitacion.disponible ? (
+                                                                    <>
+                                                                        <Plus className="w-4 h-4" />
+                                                                        AGREGAR
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <X className="w-4 h-4" />
+                                                                        OCUPADA
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setSelectedRoom(habitacion)}
+                                                                className="flex-1 bg-transparent hover:bg-cardenal-cream border-2 border-cardenal-green text-cardenal-green font-bold py-4 px-4 transition-all duration-300 flex items-center justify-center gap-2 tracking-[0.2em] text-xs"
+                                                            >
+                                                                DETALLE
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
-
-                                        <div className="flex flex-col xs:flex-row gap-3 mt-auto">
-                                            <button
-                                                onClick={() => addToCart(habitacion)}
-                                                disabled={!habitacion.disponible}
-                                                className={cn(
-                                                    "flex-1 font-bold py-4 px-4 transition-all duration-300 flex items-center justify-center gap-2 tracking-[0.2em] text-xs shadow-md",
-                                                    habitacion.disponible
-                                                        ? "bg-cardenal-gold border-2 border-cardenal-gold text-white hover:bg-white hover:text-cardenal-gold"
-                                                        : "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed"
-                                                )}
-                                            >
-                                                {habitacion.disponible ? (
-                                                    <>
-                                                        <Plus className="w-4 h-4" />
-                                                        AGREGAR
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <X className="w-4 h-4" />
-                                                        OCUPADA
-                                                    </>
-                                                )}
-                                            </button>
-                                            <button
-                                                onClick={() => setSelectedRoom(habitacion)}
-                                                className="flex-1 bg-transparent hover:bg-cardenal-cream border-2 border-cardenal-green text-cardenal-green font-bold py-4 px-4 transition-all duration-300 flex items-center justify-center gap-2 tracking-[0.2em] text-xs"
-                                            >
-                                                DETALLE
-                                            </button>
-                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
 
-                {/* Room Details Modal */}
+                {/* Room Details Modal - New Booking Style */}
                 {selectedRoom && (
-                    <RoomDetailsModal
+                    <RoomDetailBookingModal
                         habitacion={selectedRoom}
                         onClose={() => setSelectedRoom(null)}
                         onAddToCart={addToCart}
                     />
                 )}
+
+                {/* Room Availability Modal - Booking style */}
+                {availabilityRoom && (
+                    <RoomAvailabilityModal
+                        habitacion={availabilityRoom}
+                        initialOccupancy={appliedFilters.adultos + appliedFilters.ninos}
+                        fechaEntrada={appliedFilters.entrada}
+                        fechaSalida={appliedFilters.salida}
+                        onClose={() => setAvailabilityRoom(null)}
+                        onAddToCart={(hab, cantidad, opciones) => {
+                            // Agregar al carrito con las opciones seleccionadas
+                            for (let i = 0; i < cantidad; i++) {
+                                setPendingMeals(prev => ({
+                                    ...prev,
+                                    [hab.id]: {
+                                        desayuno: opciones.desayuno,
+                                        almuerzo: opciones.almuerzo,
+                                        cena: opciones.cena
+                                    }
+                                }));
+                                addToCart(hab);
+                            }
+                            setAvailabilityRoom(null);
+                        }}
+                    />
+                )}
+
+                <AnnouncementPopup />
             </main>
 
             <Footer />

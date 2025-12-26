@@ -82,15 +82,17 @@ export async function POST(request: Request) {
 
         const result = await query(
             `INSERT INTO clientes (
-                nombre, email, telefono, motivo, fecha_entrada, fecha_salida,
+                nombre, apellidos, email, telefono, hora_evento, motivo, fecha_entrada, fecha_salida,
                 adultos, ninos, habitacion_preferida, desayuno, almuerzo, cena,
                 desea_facturacion, tipo_documento, identificacion, razon_social, direccion_facturacion,
                 trae_mascota, comentarios, mensaje, ultima_estadia
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 data.nombre,
+                data.apellidos || null,
                 data.email,
                 data.telefono || null,
+                data.hora_evento || null,
                 data.motivo || null,
                 fechaEntrada,
                 fechaSalida,
@@ -159,13 +161,14 @@ export async function POST(request: Request) {
                                 <p>¡Gracias por contactarnos! Hemos recibido su solicitud y nuestro equipo la está procesando.</p>
                                 
                                 <div class="section">
-                                    <h3>📋 Resumen de su Solicitud</h3>
+                                    <p><strong>Cliente:</strong> ${data.nombre} ${data.apellidos || ''}</p>
                                     <p><strong>Motivo:</strong> ${data.motivo || 'Consulta General'}</p>
-                                    ${fechaEntrada ? `<p><strong>Fecha de Entrada:</strong> ${fechaEntrada}</p>` : ''}
-                                    ${fechaSalida ? `<p><strong>Fecha de Salida:</strong> ${fechaSalida}</p>` : ''}
+                                    ${data.hora_evento ? `<p><strong>Hora:</strong> ${data.hora_evento}</p>` : ''}
+                                    ${fechaEntrada ? `<p><strong>${data.motivo?.toLowerCase().includes('evento') ? 'Fecha del Evento' : 'Fecha de Entrada'}:</strong> ${fechaEntrada}</p>` : ''}
+                                    ${fechaSalida && !data.motivo?.toLowerCase().includes('evento') ? `<p><strong>Fecha de Salida:</strong> ${fechaSalida}</p>` : ''}
                                     ${data.habitacion ? `<p><strong>Habitación:</strong> ${data.habitacion}</p>` : ''}
-                                    <p><strong>Huéspedes:</strong> ${data.adultos || 2} adultos, ${data.ninos || 0} niños</p>
-                                    <p><strong>Comidas:</strong> ${comidas}</p>
+                                    <p><strong>Asistentes/Huéspedes:</strong> ${data.adultos || 2} adultos ${data.ninos ? `, ${data.ninos} niños` : ''}</p>
+                                    ${!data.motivo?.toLowerCase().includes('evento') ? `<p><strong>Comidas:</strong> ${comidas}</p>` : ''}
                                 </div>
 
                                 <div class="section">
@@ -205,12 +208,13 @@ export async function POST(request: Request) {
                 subject: `🔔 Nueva Solicitud: ${data.nombre} - ${data.motivo || 'Consulta'}`,
                 html: `
                     <h2>Nueva solicitud recibida</h2>
-                    <p><strong>Cliente:</strong> ${data.nombre}</p>
+                    <p><strong>Cliente:</strong> ${data.nombre} ${data.apellidos || ''}</p>
                     <p><strong>Email:</strong> ${data.email}</p>
                     <p><strong>Teléfono:</strong> ${data.telefono || 'No proporcionado'}</p>
                     <p><strong>Motivo:</strong> ${data.motivo || 'Consulta General'}</p>
-                    <p><strong>Fechas:</strong> ${fechaEntrada || 'N/A'} - ${fechaSalida || 'N/A'}</p>
-                    <p><strong>Habitación:</strong> ${data.habitacion || 'Sin preferencia'}</p>
+                    <p><strong>Fecha:</strong> ${fechaEntrada || 'N/A'}</p>
+                    <p><strong>Hora:</strong> ${data.hora_evento || 'N/A'}</p>
+                    <p><strong>Personas:</strong> ${data.adultos || 'N/A'}</p>
                     <p><strong>Mensaje:</strong> ${data.mensaje || data.comentarios || 'Ninguno'}</p>
                     <hr>
                     <p><a href="https://wa.me/${data.telefono?.replace(/\D/g, '')}">Contactar por WhatsApp</a></p>

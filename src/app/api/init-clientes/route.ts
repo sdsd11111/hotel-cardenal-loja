@@ -10,8 +10,10 @@ export async function GET() {
                 
                 -- Datos Básicos del Formulario
                 nombre VARCHAR(255) NOT NULL,
+                apellidos VARCHAR(255),
                 email VARCHAR(255) NOT NULL,
                 telefono VARCHAR(50),
+                hora_evento VARCHAR(50),
                 
                 -- Datos de Reserva
                 motivo VARCHAR(100),
@@ -72,6 +74,37 @@ export async function GET() {
                 INDEX idx_created_at (created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
+
+        // Alter table to add new columns if they don't exist
+        // Using a try-catch without IF NOT EXISTS for better compatibility with older MySQL
+        try {
+            await query(`ALTER TABLE clientes ADD COLUMN apellidos VARCHAR(255) AFTER nombre`);
+        } catch (e: any) {
+            if (!e.message.includes('Duplicate column name')) {
+                console.error('Error adding apellidos:', e.message);
+            }
+        }
+
+        try {
+            await query(`ALTER TABLE clientes ADD COLUMN hora_evento VARCHAR(50) AFTER telefono`);
+        } catch (e: any) {
+            if (!e.message.includes('Duplicate column name')) {
+                console.error('Error adding hora_evento:', e.message);
+            }
+        }
+
+        // Versión 2: Agregar campos para eventos si no existen
+        try {
+            await query("ALTER TABLE clientes ADD COLUMN IF NOT EXISTS apellidos VARCHAR(255) AFTER nombre");
+        } catch (e) {
+            console.log("Columna 'apellidos' ya existe o el motor no soporta IF NOT EXISTS en ALTER");
+        }
+
+        try {
+            await query("ALTER TABLE clientes ADD COLUMN IF NOT EXISTS hora_evento VARCHAR(50) AFTER fecha_salida");
+        } catch (e) {
+            console.log("Columna 'hora_evento' ya existe o el motor no soporta IF NOT EXISTS en ALTER");
+        }
 
         return NextResponse.json({
             success: true,

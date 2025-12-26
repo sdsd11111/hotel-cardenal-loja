@@ -81,6 +81,13 @@ export default function HomePage() {
             "url": "https://hotelelcardenalloja.com",
             "telephone": "+593996616878",
             "priceRange": "$$",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "9.2",
+              "bestRating": "10",
+              "reviewCount": "104",
+              "ratingExplanation": "Calificación basada en reseñas reales de Booking.com"
+            },
             "address": {
               "@type": "PostalAddress",
               "streetAddress": "Gladiolos 154-42 y Av. 18 de Noviembre",

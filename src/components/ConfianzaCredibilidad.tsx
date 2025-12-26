@@ -148,7 +148,7 @@ export const ConfianzaCredibilidad = () => {
 
             <div className="container mx-auto px-4 relative z-10">
                 {/* COMPONENTE 1: Headline Magnético */}
-                <div className="text-center mb-20 max-w-4xl mx-auto">
+                <div className="text-center mb-16 max-w-4xl mx-auto">
                     <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif leading-tight">
                         4.7 Estrellas de Calidez: <span className="text-cardenal-gold italic">Lo que nos hace únicos en Loja</span>
                     </h2>
@@ -158,185 +158,264 @@ export const ConfianzaCredibilidad = () => {
                     <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
                 </div>
 
-                {/* COMPONENTE 2: Barra de Logros (Animated Stats) */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-20 max-w-5xl mx-auto">
-                    {/* Stat 1 */}
-                    <div ref={stat1.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
-                        <div className="text-cardenal-gold mb-4 flex justify-center">
-                            {stats[0].icon}
+                {/* COMPONENTE 2: Rediseño 50/50 - Estadísticas y Booking.com */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20 max-w-6xl mx-auto items-stretch">
+
+                    {/* LADO IZQUIERDO: Rejilla de 2x2 para estadísticas actuales */}
+                    <div className="grid grid-cols-2 gap-4 md:gap-6">
+                        {/* Stat 1: Google Reviews */}
+                        <div ref={stat1.ref} className="bg-white p-6 shadow-md border border-cardenal-gold/10 flex flex-col items-center text-center justify-center hover:shadow-lg transition-all group">
+                            <div className="text-cardenal-gold mb-3">
+                                {stats[0].icon}
+                            </div>
+                            <div className="text-3xl md:text-4xl font-bold text-cardenal-green font-serif">
+                                {stat1.count}{stats[0].suffix}
+                            </div>
+                            <p className="text-[10px] md:text-xs text-text-muted font-bold uppercase tracking-tighter mt-1">{stats[0].label}</p>
                         </div>
-                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
-                            {stat1.count}{stats[0].suffix}
+
+                        {/* Stat 2: Breakfast */}
+                        <div ref={stat2.ref} className="bg-white p-6 shadow-md border border-cardenal-gold/10 flex flex-col items-center text-center justify-center hover:shadow-lg transition-all group">
+                            <Coffee className="w-8 h-8 text-cardenal-green mb-3" />
+                            <div className="text-3xl md:text-4xl font-bold text-cardenal-green font-serif">
+                                {(stat2.count / 10).toFixed(1)}{stats[1].suffix}
+                            </div>
+                            <p className="text-[10px] md:text-xs text-text-muted font-bold uppercase tracking-tighter mt-1">{stats[1].label}</p>
                         </div>
-                        <p className="text-sm text-text-muted font-medium">{stats[0].label}</p>
+
+                        {/* Stat 3: Pet Friendly */}
+                        <div ref={stat3.ref} className="bg-white p-6 shadow-md border border-cardenal-gold/10 flex flex-col items-center text-center justify-center hover:shadow-lg transition-all group">
+                            <PawPrint className="w-8 h-8 text-cardenal-green mb-3" />
+                            <div className="text-3xl md:text-4xl font-bold text-cardenal-green font-serif">
+                                {stat3.count}{stats[2].suffix}
+                            </div>
+                            <p className="text-[10px] md:text-xs text-text-muted font-bold uppercase tracking-tighter mt-1">{stats[2].label}</p>
+                        </div>
+
+                        {/* Stat 4: Exlucisve Rooms */}
+                        <div ref={stat4.ref} className="bg-white p-6 shadow-md border border-cardenal-gold/10 flex flex-col items-center text-center justify-center hover:shadow-lg transition-all group">
+                            <Home className="w-8 h-8 text-cardenal-green mb-3" />
+                            <div className="text-3xl md:text-4xl font-bold text-cardenal-green font-serif">
+                                {stat4.count}{stats[3].suffix}
+                            </div>
+                            <p className="text-[10px] md:text-xs text-text-muted font-bold uppercase tracking-tighter mt-1">{stats[3].label}</p>
+                        </div>
                     </div>
 
-                    {/* Stat 2 */}
-                    <div ref={stat2.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
-                        <div className="text-cardenal-green mb-4 flex justify-center">
-                            <Coffee className="w-10 h-10" />
+                    {/* LADO DERECHO: Desglose Detallado de Booking.com */}
+                    <div className="bg-white p-8 shadow-xl border border-[#003580]/5 relative overflow-hidden flex flex-col">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <div className="bg-[#003580] text-white font-bold text-2xl w-12 h-12 flex items-center justify-center rounded-sm shadow-sm ring-1 ring-white/20">
+                                        9,2
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[#003580] font-extrabold text-xl leading-none">Fantástico</span>
+                                        <span className="text-gray-500 text-xs mt-1">104 comentarios en Booking.com</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="text-[#003580] font-extrabold text-2xl tracking-tighter">Booking<span className="text-[#003580]">.com</span></span>
+                            </div>
                         </div>
-                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
-                            {(stat2.count / 10).toFixed(1)}{stats[1].suffix}
-                        </div>
-                        <p className="text-sm text-text-muted font-medium">{stats[1].label}</p>
-                    </div>
 
-                    {/* Stat 3 */}
-                    <div ref={stat3.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
-                        <div className="text-cardenal-green mb-4 flex justify-center">
-                            <PawPrint className="w-10 h-10" />
-                        </div>
-                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
-                            {stat3.count}{stats[2].suffix}
-                        </div>
-                        <p className="text-sm text-text-muted font-medium">{stats[2].label}</p>
-                    </div>
+                        <div className="space-y-4 flex-1 flex flex-col justify-between">
+                            <h4 className="text-gray-800 font-bold text-sm border-b pb-2 mb-2">Categorías puntuadas por huéspedes reales:</h4>
 
-                    {/* Stat 4 */}
-                    <div ref={stat4.ref} className="text-center p-6 bg-white shadow-lg hover:shadow-xl transition-all duration-500 border border-cardenal-gold/10 group hover:-translate-y-1">
-                        <div className="text-cardenal-green mb-4 flex justify-center">
-                            <Home className="w-10 h-10" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                {/* Personal: 9.8 */}
+                                <div>
+                                    <div className="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                                        <span>Personal</span>
+                                        <span>9,8</span>
+                                    </div>
+                                    <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#003580] w-[98%] transition-all duration-1000 delay-300"></div>
+                                    </div>
+                                </div>
+
+                                {/* Limpieza: 9.6 */}
+                                <div>
+                                    <div className="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                                        <span>Limpieza</span>
+                                        <span>9,6</span>
+                                    </div>
+                                    <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#003580] w-[96%] transition-all duration-1000 delay-500"></div>
+                                    </div>
+                                </div>
+
+                                {/* Confort: 9.4 */}
+                                <div>
+                                    <div className="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                                        <span>Confort</span>
+                                        <span>9,4</span>
+                                    </div>
+                                    <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#003580] w-[94%] transition-all duration-1000 delay-700"></div>
+                                    </div>
+                                </div>
+
+                                {/* Relación Calidad-Precio: 9.4 */}
+                                <div>
+                                    <div className="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                                        <span>Calidad-Precio</span>
+                                        <span>9,4</span>
+                                    </div>
+                                    <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#003580] w-[94%] transition-all duration-1000 delay-900"></div>
+                                    </div>
+                                </div>
+
+                                {/* WiFi Gratis: 9.5 */}
+                                <div className="md:col-span-2">
+                                    <div className="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                                        <span>WiFi Gratis</span>
+                                        <span>9,5</span>
+                                    </div>
+                                    <div className="h-1.5 bg-gray-100 w-full rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#003580] w-[95%] transition-all duration-1000 delay-1100"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-4xl md:text-5xl font-bold text-cardenal-green font-serif mb-2">
-                            {stat4.count}{stats[3].suffix}
-                        </div>
-                        <p className="text-sm text-text-muted font-medium">{stats[3].label}</p>
                     </div>
                 </div>
+            </div>
 
-                {/* COMPONENTE 3: Bento Grid de Testimonios */}
-                <div className="max-w-6xl mx-auto mb-16">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                        {/* Large Testimonial */}
-                        <div className="md:col-span-2 md:row-span-2 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className={`w-14 h-14 ${testimonios[0].color} text-white flex items-center justify-center text-2xl font-bold font-serif flex-shrink-0`}>
-                                    {testimonios[0].inicial}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-cardenal-green font-serif">{testimonios[0].autor}</p>
-                                    <p className="text-xs text-cardenal-gold uppercase tracking-widest">{testimonios[0].tipo}</p>
-                                </div>
+            {/* COMPONENTE 3: Bento Grid de Testimonios */}
+            <div className="max-w-6xl mx-auto mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                    {/* Large Testimonial */}
+                    <div className="md:col-span-2 md:row-span-2 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className={`w-14 h-14 ${testimonios[0].color} text-white flex items-center justify-center text-2xl font-bold font-serif flex-shrink-0`}>
+                                {testimonios[0].inicial}
                             </div>
-                            <blockquote className="text-lg md:text-xl text-text-main leading-relaxed italic">
-                                "{expandedTestimonios.includes(testimonios[0].id) || testimonios[0].texto.length <= 150
-                                    ? testimonios[0].texto
-                                    : `${testimonios[0].texto.substring(0, 150)}...`}"
-                            </blockquote>
-                            {testimonios[0].texto.length > 150 && (
-                                <button
-                                    onClick={() => toggleTestimonio(testimonios[0].id)}
-                                    className="mt-4 text-cardenal-gold hover:text-cardenal-green text-sm font-bold flex items-center gap-1 transition-colors"
-                                >
-                                    {expandedTestimonios.includes(testimonios[0].id) ? (
-                                        <>Leer menos <ChevronUp className="w-4 h-4" /></>
-                                    ) : (
-                                        <>Seguir leyendo <ChevronDown className="w-4 h-4" /></>
-                                    )}
-                                </button>
-                            )}
-                            <div className="flex mt-4">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" />
-                                ))}
+                            <div>
+                                <p className="font-bold text-cardenal-green font-serif">{testimonios[0].autor}</p>
+                                <p className="text-xs text-cardenal-gold uppercase tracking-widest">{testimonios[0].tipo}</p>
                             </div>
                         </div>
+                        <blockquote className="text-lg md:text-xl text-text-main leading-relaxed italic">
+                            "{expandedTestimonios.includes(testimonios[0].id) || testimonios[0].texto.length <= 150
+                                ? testimonios[0].texto
+                                : `${testimonios[0].texto.substring(0, 150)}...`}"
+                        </blockquote>
+                        {testimonios[0].texto.length > 150 && (
+                            <button
+                                onClick={() => toggleTestimonio(testimonios[0].id)}
+                                className="mt-4 text-cardenal-gold hover:text-cardenal-green text-sm font-bold flex items-center gap-1 transition-colors"
+                            >
+                                {expandedTestimonios.includes(testimonios[0].id) ? (
+                                    <>Leer menos <ChevronUp className="w-4 h-4" /></>
+                                ) : (
+                                    <>Seguir leyendo <ChevronDown className="w-4 h-4" /></>
+                                )}
+                            </button>
+                        )}
+                        <div className="flex mt-4">
+                            {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-5 h-5 fill-cardenal-gold text-cardenal-gold" />
+                            ))}
+                        </div>
+                    </div>
 
-                        {/* Medium Testimonial 1 */}
-                        <div className="bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
-                            <div className="flex items-start gap-3 mb-3">
-                                <div className={`w-10 h-10 ${testimonios[1].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
-                                    {testimonios[1].inicial}
+                    {/* Medium Testimonial 1 */}
+                    <div className="bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className={`w-10 h-10 ${testimonios[1].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
+                                {testimonios[1].inicial}
+                            </div>
+                            <div>
+                                <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[1].autor}</p>
+                                <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[1].tipo}</p>
+                            </div>
+                        </div>
+                        <blockquote className="text-sm text-text-main leading-relaxed italic">
+                            "{testimonios[1].texto}"
+                        </blockquote>
+                        <div className="flex mt-3">
+                            {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Medium Testimonial 2 */}
+                    <div className="bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className={`w-10 h-10 ${testimonios[2].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
+                                {testimonios[2].inicial}
+                            </div>
+                            <div>
+                                <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[2].autor}</p>
+                                <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[2].tipo}</p>
+                            </div>
+                        </div>
+                        <blockquote className="text-sm text-text-main leading-relaxed italic">
+                            "{testimonios[2].texto}"
+                        </blockquote>
+                        <div className="flex mt-3">
+                            {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Small Testimonial */}
+                    <div className="md:col-span-3 bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
+                        <div className="flex flex-col md:flex-row md:items-center gap-4">
+                            <div className="flex items-start gap-3">
+                                <div className={`w-10 h-10 ${testimonios[3].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
+                                    {testimonios[3].inicial}
                                 </div>
                                 <div>
-                                    <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[1].autor}</p>
-                                    <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[1].tipo}</p>
+                                    <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[3].autor}</p>
+                                    <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[3].tipo}</p>
                                 </div>
                             </div>
-                            <blockquote className="text-sm text-text-main leading-relaxed italic">
-                                "{testimonios[1].texto}"
+                            <blockquote className="text-sm text-text-main leading-relaxed italic flex-1">
+                                "{testimonios[3].texto}"
                             </blockquote>
-                            <div className="flex mt-3">
+                            <div className="flex">
                                 {[...Array(5)].map((_, i) => (
                                     <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
                                 ))}
                             </div>
                         </div>
-
-                        {/* Medium Testimonial 2 */}
-                        <div className="bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
-                            <div className="flex items-start gap-3 mb-3">
-                                <div className={`w-10 h-10 ${testimonios[2].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
-                                    {testimonios[2].inicial}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[2].autor}</p>
-                                    <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[2].tipo}</p>
-                                </div>
-                            </div>
-                            <blockquote className="text-sm text-text-main leading-relaxed italic">
-                                "{testimonios[2].texto}"
-                            </blockquote>
-                            <div className="flex mt-3">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Small Testimonial */}
-                        <div className="md:col-span-3 bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-500 border border-transparent hover:border-cardenal-gold group hover:-translate-y-1">
-                            <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 ${testimonios[3].color} text-white flex items-center justify-center text-lg font-bold font-serif flex-shrink-0`}>
-                                        {testimonios[3].inicial}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[3].autor}</p>
-                                        <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[3].tipo}</p>
-                                    </div>
-                                </div>
-                                <blockquote className="text-sm text-text-main leading-relaxed italic flex-1">
-                                    "{testimonios[3].texto}"
-                                </blockquote>
-                                <div className="flex">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className="w-4 h-4 fill-cardenal-gold text-cardenal-gold" />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Google Reviews Button */}
-                    <div className="text-center mt-10">
-                        <a
-                            href={GOOGLE_REVIEWS_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-3 text-cardenal-green hover:text-cardenal-gold font-bold transition-colors font-serif tracking-wide group"
-                        >
-                            <ExternalLink className="w-5 h-5" />
-                            Ver todas las reseñas en Google
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </a>
                     </div>
                 </div>
 
-                {/* COMPONENTE 4: Sello de Garantía y CTA */}
-                <div className="max-w-4xl mx-auto bg-[#F1E6D2] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
-                    <p className="text-lg md:text-xl text-cardenal-brown font-serif text-center md:text-left">
-                        ¿Listo para vivir la experiencia calificada como <span className="font-bold text-cardenal-green">'Excelente'</span> por nuestros huéspedes?
-                    </p>
-                    <Link
-                        href="/habitaciones"
-                        className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-4 px-10 transition-all duration-500 shadow-lg font-serif tracking-widest text-sm whitespace-nowrap flex items-center gap-2"
+                {/* Google Reviews Button */}
+                <div className="text-center mt-10">
+                    <a
+                        href={GOOGLE_REVIEWS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-3 text-cardenal-green hover:text-cardenal-gold font-bold transition-colors font-serif tracking-wide group"
                     >
-                        ¡Reserva tu estancia ahora!
-                        <ArrowRight className="w-5 h-5" />
-                    </Link>
+                        <ExternalLink className="w-5 h-5" />
+                        Ver todas las reseñas en Google
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </a>
                 </div>
+            </div>
+
+            {/* COMPONENTE 4: Sello de Garantía y CTA */}
+            <div className="max-w-4xl mx-auto bg-[#F1E6D2] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
+                <p className="text-lg md:text-xl text-cardenal-brown font-serif text-center md:text-left">
+                    ¿Listo para vivir la experiencia calificada como <span className="font-bold text-cardenal-green">'Excelente'</span> por nuestros huéspedes?
+                </p>
+                <Link
+                    href="/habitaciones"
+                    className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-4 px-10 transition-all duration-500 shadow-lg font-serif tracking-widest text-sm whitespace-nowrap flex items-center gap-2"
+                >
+                    ¡Reserva tu estancia ahora!
+                    <ArrowRight className="w-5 h-5" />
+                </Link>
             </div>
         </section>
     );

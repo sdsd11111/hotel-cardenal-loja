@@ -10,14 +10,20 @@ export async function GET(request: Request) {
         const entrada = searchParams.get('entrada');
         const salida = searchParams.get('salida');
 
-        let sql = `SELECT h.id, h.nombre, h.slug, h.descripcion, h.amenidades, h.precio_texto, h.precio_numerico, h.imagen, h.max_adultos, h.max_ninos, h.camas, h.activo, h.disponible, h.fecha_entrada, h.fecha_salida 
-                   FROM habitaciones h`;
+        // Incluir ninos_gratis, precio_nino_extra y hacer LEFT JOIN con room_type_configs para obtener price_options_json
+        let sql = `SELECT h.id, h.nombre, h.slug, h.descripcion, h.amenidades, h.precio_texto, h.precio_numerico, h.imagen, h.max_adultos, h.max_ninos, h.ninos_gratis, h.precio_nino_extra, h.incluye_desayuno, h.incluye_almuerzo, h.incluye_cena, h.camas, h.activo, h.disponible, h.fecha_entrada, h.fecha_salida,
+                          c.price_options_json
+                   FROM habitaciones h
+                   LEFT JOIN room_type_configs c ON c.identifier = h.nombre
+                   `;
+
 
         const conditions = [];
         if (!showAll) conditions.push(`h.activo = 1`);
 
         if (conditions.length > 0) sql += ` WHERE ` + conditions.join(' AND ');
         sql += ` ORDER BY h.id DESC`;
+
 
         const habitaciones: any = await query(sql);
 
@@ -80,11 +86,18 @@ export async function POST(request: Request) {
         const precio_numerico = parseFloat(formData.get('precio_numerico')?.toString() || '0');
         const max_adultos = parseInt(formData.get('max_adultos')?.toString() || '2');
         const max_ninos = parseInt(formData.get('max_ninos')?.toString() || '0');
+        const ninos_gratis = parseInt(formData.get('ninos_gratis')?.toString() || '1');
+        const precio_nino_extra = parseFloat(formData.get('precio_nino_extra')?.toString() || '0');
+        const incluye_desayuno = formData.get('incluye_desayuno') === 'true' ? 1 : 0;
+        const incluye_almuerzo = formData.get('incluye_almuerzo') === 'true' ? 1 : 0;
+        const incluye_cena = formData.get('incluye_cena') === 'true' ? 1 : 0;
         const camas = parseInt(formData.get('camas')?.toString() || '1');
+
         const activo = formData.get('activo') === 'true' ? 1 : 0;
         const disponible = formData.get('disponible') === 'false' ? 0 : 1;
         const fecha_entrada = formData.get('fecha_entrada')?.toString() || null;
         const fecha_salida = formData.get('fecha_salida')?.toString() || null;
+
 
         // Manejo de imagen
         const imagenFile = formData.get('imagen') as File | null;
@@ -99,10 +112,12 @@ export async function POST(request: Request) {
         }
 
         const result = await query(
-            `INSERT INTO habitaciones (nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen, imagen_blob, imagen_mime, max_adultos, max_ninos, camas, activo, disponible, fecha_entrada, fecha_salida) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen_url, imagen_blob, imagen_mime, max_adultos, max_ninos, camas, activo, disponible, fecha_entrada, fecha_salida]
+            `INSERT INTO habitaciones (nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen, imagen_blob, imagen_mime, max_adultos, max_ninos, ninos_gratis, precio_nino_extra, incluye_desayuno, incluye_almuerzo, incluye_cena, camas, activo, disponible, fecha_entrada, fecha_salida) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [nombre, slug, descripcion, amenidades, precio_texto, precio_numerico, imagen_url, imagen_blob, imagen_mime, max_adultos, max_ninos, ninos_gratis, precio_nino_extra, incluye_desayuno, incluye_almuerzo, incluye_cena, camas, activo, disponible, fecha_entrada, fecha_salida]
         ) as any;
+
+
 
         const insertedId = result.insertId;
 

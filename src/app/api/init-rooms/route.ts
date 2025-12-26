@@ -19,15 +19,40 @@ export async function GET() {
                 imagen VARCHAR(255),
                 max_adultos INT DEFAULT 2,
                 max_ninos INT DEFAULT 0,
+                ninos_gratis INT DEFAULT 1,
+                precio_nino_extra DECIMAL(10, 2) DEFAULT 0.00,
+                incluye_desayuno BOOLEAN DEFAULT FALSE,
+                incluye_almuerzo BOOLEAN DEFAULT FALSE,
+                incluye_cena BOOLEAN DEFAULT FALSE,
                 camas INT DEFAULT 1,
                 activo BOOLEAN DEFAULT TRUE,
+
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
         `);
 
+        // Add new columns for existing tables (will silently fail if they already exist)
+        try {
+            await query(`ALTER TABLE habitaciones ADD COLUMN ninos_gratis INT DEFAULT 1`);
+        } catch (e) { /* Column may already exist */ }
+        try {
+            await query(`ALTER TABLE habitaciones ADD COLUMN precio_nino_extra DECIMAL(10,2) DEFAULT 0.00`);
+        } catch (e) { /* Column may already exist */ }
+        try {
+            await query(`ALTER TABLE habitaciones ADD COLUMN incluye_desayuno BOOLEAN DEFAULT FALSE`);
+        } catch (e) { /* Column may already exist */ }
+        try {
+            await query(`ALTER TABLE habitaciones ADD COLUMN incluye_almuerzo BOOLEAN DEFAULT FALSE`);
+        } catch (e) { /* Column may already exist */ }
+        try {
+            await query(`ALTER TABLE habitaciones ADD COLUMN incluye_cena BOOLEAN DEFAULT FALSE`);
+        } catch (e) { /* Column may already exist */ }
+
+
         // Check if there's any data
         const check = await query("SELECT COUNT(*) as count FROM habitaciones") as any[];
+
 
         if (check[0].count === 0) {
             // Seed initial data

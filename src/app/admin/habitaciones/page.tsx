@@ -5,16 +5,21 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminHabitacionesList from '@/components/AdminHabitacionesList';
 import HabitacionForm from '@/components/HabitacionForm';
+import RoomConfigForm from '@/components/RoomConfigForm';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, LogOut, LayoutDashboard, Home } from 'lucide-react';
+import { Plus, ChevronLeft, LogOut, LayoutDashboard, Home, Settings2, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function AdminHabitacionesPage() {
     const router = useRouter();
     const [habitaciones, setHabitaciones] = useState<any[]>([]);
+    const [roomConfigs, setRoomConfigs] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingConfigs, setIsLoadingConfigs] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [selectedHabitacion, setSelectedHabitacion] = useState<any | null>(null);
+    const [activeTab, setActiveTab] = useState<'inventory' | 'configs'>('inventory');
 
     const fetchHabitaciones = async (retryCount = 0) => {
         try {
@@ -31,7 +36,7 @@ export default function AdminHabitacionesPage() {
             }
             const data = await response.json();
             setHabitaciones(data);
-            setError(null); // Clear error if successful
+            setError(null);
         } catch (err: any) {
             console.error('Admin Fetch Error:', err);
             setError(err.message);
@@ -40,9 +45,30 @@ export default function AdminHabitacionesPage() {
         }
     };
 
+    const fetchConfigs = async () => {
+        try {
+            setIsLoadingConfigs(true);
+            const response = await fetch('/api/admin/room-configs');
+            if (!response.ok) throw new Error('Error al cargar configuraciones');
+            const data = await response.json();
+            setRoomConfigs(data);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setIsLoadingConfigs(false);
+        }
+    };
+
     useEffect(() => {
         fetchHabitaciones();
     }, []);
+
+    useEffect(() => {
+        if (activeTab === 'configs') {
+            fetchConfigs();
+        }
+    }, [activeTab]);
 
     const handleToggleStatus = async (id: string, currentStatus: boolean) => {
         try {
@@ -82,16 +108,38 @@ export default function AdminHabitacionesPage() {
                         </Link>
                         <h1 className="text-2xl font-bold text-cardenal-green font-serif">Gestión de Habitaciones</h1>
                     </div>
-                    <div className="flex gap-2">
-                        <Button onClick={() => { setSelectedHabitacion(null); setShowForm(true); }} className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white">
-                            <Plus className="w-4 h-4 mr-2" /> Nueva Habitación
-                        </Button>
+                    <div className="flex gap-4">
+                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                            <button
+                                onClick={() => setActiveTab('inventory')}
+                                className={cn(
+                                    "px-4 py-1.5 text-sm font-bold rounded-md transition-all",
+                                    activeTab === 'inventory' ? "bg-white text-cardenal-green shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                )}
+                            >
+                                Inventario
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('configs')}
+                                className={cn(
+                                    "px-4 py-1.5 text-sm font-bold rounded-md transition-all",
+                                    activeTab === 'configs' ? "bg-white text-cardenal-green shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                )}
+                            >
+                                Configuración de Modales
+                            </button>
+                        </div>
+                        {activeTab === 'inventory' && (
+                            <Button onClick={() => { setSelectedHabitacion(null); setShowForm(true); }} className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white">
+                                <Plus className="w-4 h-4 mr-2" /> Nueva Habitación
+                            </Button>
+                        )}
                     </div>
                 </div>
             </header>
 
             <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-                {error && (
+                {error && (activeTab === 'inventory' || activeTab === 'configs') && (
                     <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
                         {error}
                     </div>
@@ -117,29 +165,48 @@ export default function AdminHabitacionesPage() {
                     </div>
                 )}
 
-                <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-cardenal-gold/10 rounded-lg">
-                            <Home className="w-5 h-5 text-cardenal-gold" />
+                {activeTab === 'inventory' ? (
+                    <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm animate-fadeIn">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-cardenal-gold/10 rounded-lg">
+                                <Home className="w-5 h-5 text-cardenal-gold" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-cardenal-green">Inventario Actual</h2>
+                                <p className="text-sm text-gray-500">Configure los precios y detalles que verán los clientes.</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-cardenal-green">Inventario Actual</h2>
-                            <p className="text-sm text-gray-500">Configure los precios y detalles que verán los clientes.</p>
-                        </div>
-                    </div>
 
-                    <AdminHabitacionesList
-                        habitaciones={habitaciones}
-                        isLoading={isLoading}
-                        onEdit={(h) => { setSelectedHabitacion(h); setShowForm(true); }}
-                        onDelete={handleDelete}
-                        onToggleStatus={handleToggleStatus}
-                    />
-                </div>
+                        <AdminHabitacionesList
+                            habitaciones={habitaciones}
+                            isLoading={isLoading}
+                            onEdit={(h) => { setSelectedHabitacion(h); setShowForm(true); }}
+                            onDelete={handleDelete}
+                            onToggleStatus={handleToggleStatus}
+                        />
+                    </div>
+                ) : (
+                    <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm animate-fadeIn">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-cardenal-gold/10 rounded-lg">
+                                <Settings2 className="w-5 h-5 text-cardenal-gold" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-cardenal-green">Configuración de Modales</h2>
+                                <p className="text-sm text-gray-500">Modifica los detalles, precios y opciones de los botones "AGREGAR" y "DETALLE" (Tipos 301, 302, 303).</p>
+                            </div>
+                        </div>
+
+                        {isLoadingConfigs ? (
+                            <div className="flex justify-center p-12">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cardenal-gold"></div>
+                            </div>
+                        ) : (
+                            <RoomConfigForm configs={roomConfigs} onUpdate={fetchConfigs} />
+                        )}
+                    </div>
+                )}
             </main>
         </div>
     );
 }
-
-// Re-using the X icon from lucide-react not imported in main list
-import { X } from 'lucide-react';

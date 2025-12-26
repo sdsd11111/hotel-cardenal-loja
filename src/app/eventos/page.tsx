@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { headerData } from '@/types';
 import { Wifi, Coffee, Car, MapPin, Users, Monitor, CalendarCheck, Lightbulb, UserCheck, ArrowRight, Phone, Mail } from 'lucide-react';
 import { ImageLightbox } from '@/components/ImageLightbox';
+import { EventForm } from '@/components/EventForm';
 
 export const metadata: Metadata = {
     title: 'Eventos Corporativos y Reuniones en Loja | Hotel El Cardenal',
@@ -255,6 +256,15 @@ export default function EventosPage() {
                         >
                             👉 Solicitar Cotización para Eventos
                         </Link>
+                    </section>
+
+                    {/* H2: Formulario de Solicitud Directa */}
+                    <section className="mt-20">
+                        <div className="text-center mb-10">
+                            <h2 className="text-3xl font-serif font-bold text-cardenal-green mb-4">Solicite su Cotización para Eventos</h2>
+                            <p className="text-gray-600 max-w-2xl mx-auto">Complete el siguiente formulario y nos pondremos en contacto con usted en menos de 24 horas.</p>
+                        </div>
+                        <EventForm />
                     </section>
 
                 </div>

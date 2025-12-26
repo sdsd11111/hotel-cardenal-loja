@@ -85,6 +85,14 @@ export const footerData = {
   ],
 };
 
+export interface PriceOption {
+  personas: number;
+  personasIconos?: number;
+  precioBase: number;
+  impuestos: number;
+  incluye?: string[];
+}
+
 export interface Habitacion {
   id: number;
   nombre: string;
@@ -99,9 +107,17 @@ export interface Habitacion {
     maxNiños: number;
     camas: number;
   };
+  ninosGratis?: number;
+  precioNinoExtra?: number;
+  incluyeDesayuno?: boolean;
+  incluyeAlmuerzo?: boolean;
+  incluyeCena?: boolean;
+  priceOptions?: PriceOption[];
   disponible?: boolean;
   reservada?: boolean;
   bloqueadaManual?: boolean;
+
   fecha_entrada?: string | null;
   fecha_salida?: string | null;
 }
+

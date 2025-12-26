@@ -58,7 +58,7 @@ export default function PlatoForm({ plato, onSuccess, onCancel }: PlatoFormProps
     watch,
     formState: { errors },
   } = useForm<PlatoFormValues>({
-    resolver: zodResolver(platoSchema),
+    resolver: zodResolver(platoSchema) as any,
     defaultValues: {
       titulo: plato?.titulo || '',
       descripcion: plato?.descripcion || '',
