@@ -8,7 +8,7 @@ import {
     Calendar, Users, MapPin, CheckCircle2, Lock, CreditCard,
     Star, MessageSquare, Info, ChevronDown, Check,
     Wifi, Car, Utensils, Coffee, UserCircle, Phone, Globe,
-    ChevronRight, Sparkles, AlertCircle
+    ChevronRight, Sparkles, AlertCircle, Loader2
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,9 @@ export default function CheckoutPage() {
     const [bookingData, setBookingData] = useState<any>(null);
     const [mounted, setMounted] = useState(false);
     const [step, setStep] = useState(2); // 2: Tus datos, 3: Terminar reserva
+    const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+    const [reservationSaved, setReservationSaved] = useState(false); // New state for 2-step flow
+
 
     const [formData, setFormData] = useState({
         nombre: '',
@@ -112,6 +115,58 @@ export default function CheckoutPage() {
     }, 0);
 
     const total = totalBase + impuestos + extraComidas;
+
+    // 1. Guardar Reserva (Paso 1 del Checkout Final)
+    const handleSaveReservation = () => {
+        if (!formData.nombre || !formData.apellido || !formData.email || !formData.telefono || !formData.pais) {
+            alert('Por favor completa todos los campos obligatorios');
+            return;
+        }
+
+        setIsPaymentLoading(true);
+
+        const personalData = {
+            nombre_cliente: `${formData.nombre} ${formData.apellido}`,
+            email_cliente: formData.email,
+            whatsapp: `${formData.codigoPais}${formData.telefono}`,
+            pais: formData.pais,
+            metodo_pago: 'tab',
+            adultos: option.personas,
+            ninos: 0,
+            precio: total,
+            comision: 0,
+            estado: 'PENDIENTE',
+            meta: JSON.stringify({
+                peticiones: formData.peticiones,
+                pais: formData.pais,
+                metodo_pago: 'tab'
+            })
+        };
+
+        fetch('/api/reservas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                habitacion_id: habitacion.id,
+                fecha_entrada: fechaEntrada,
+                fecha_salida: fechaSalida,
+                ...personalData
+            })
+        }).then(res => res.json())
+            .then(data => {
+                console.log('Reserva guardada:', data);
+                setReservationSaved(true);
+
+                // Redirigir a la nueva página de pagos dedicada
+                console.log('Redirigiendo a pasarela de pagos...');
+                router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=${data.id || 'new'}`);
+            })
+            .catch(err => {
+                console.error('Error al guardar reserva:', err);
+                setIsPaymentLoading(false);
+                alert('Error al guardar los datos. Por favor intenta de nuevo.');
+            });
+    };
 
     return (
         <div className="min-h-screen bg-[#f5f5f5] flex flex-col font-sans text-[#1a1a1a]">
@@ -296,10 +351,10 @@ export default function CheckoutPage() {
                                                 required
                                                 className="w-full max-w-md border border-gray-400 rounded px-3 py-2 outline-none focus:border-blue-500"
                                             />
-                                            <p className="text-xs text-gray-500">El e-mail de confirmación se enviará a esta dirección</p>
+                                            <p className="text-xs text-gray-500 hidden"></p>
                                         </div>
 
-                                        <div className="flex items-center gap-2 mb-8">
+                                        <div className="hidden">
                                             <input type="checkbox" id="login-save" className="w-4 h-4" />
                                             <label htmlFor="login-save" className="text-sm">Inicia sesión para guardar tus datos (opcional)</label>
                                         </div>
@@ -349,7 +404,7 @@ export default function CheckoutPage() {
                                                         className="flex-1 border border-gray-400 rounded px-3 py-2 outline-none focus:border-blue-500"
                                                     />
                                                 </div>
-                                                <p className="text-xs text-gray-500">Para verificar la reserva y para que el alojamiento contacte contigo si es necesario</p>
+                                                <p className="text-xs text-gray-500 hidden"></p>
                                             </div>
 
 
@@ -480,60 +535,58 @@ export default function CheckoutPage() {
                                         </div>
                                     </div>
 
-                                    {/* Final Button */}
+                                    {/* Final Button Area */}
                                     <div className="pt-8 flex flex-col items-end gap-3">
-                                        <button
-                                            onClick={() => setStep(3)}
-                                            className="bg-[#0071c2] text-white font-bold py-4 px-8 rounded flex items-center gap-2 hover:bg-[#003580] transition-colors shadow-lg shadow-blue-200"
-                                        >
-                                            Siguiente: últimos datos
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
+                                        {!reservationSaved ? (
+                                            // STEP 1: SAVE BUTTON
+                                            <button
+                                                onClick={handleSaveReservation}
+                                                disabled={isPaymentLoading}
+                                                className="bg-[#0071c2] text-white font-bold py-4 px-8 rounded flex items-center gap-2 hover:bg-[#003580] transition-colors shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            >
+                                                {isPaymentLoading ? (
+                                                    <>
+                                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                                        Guardando Datos...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Confirmar Datos y Pagar
+                                                        <ChevronRight className="w-5 h-5" />
+                                                    </>
+                                                )}
+                                            </button>
+                                        ) : (
+                                            // STEP 2: REDIRECT / MANUAL BUTTON
+                                            <div className="w-full max-w-md animate-fade-in-up">
+                                                <div className="space-y-6">
+                                                    <div className="bg-green-50 border border-green-200 rounded-lg p-5 text-green-800 text-center animate-pulse">
+                                                        <div className="flex justify-center mb-3">
+                                                            <CheckCircle2 className="w-10 h-10 text-green-500" />
+                                                        </div>
+                                                        <h4 className="font-bold text-lg mb-1">¡Datos Guardados!</h4>
+                                                        <p className="text-sm text-green-700">Redirigiendo a la pasarela de pago segura...</p>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=current`)}
+                                                        className="w-full bg-[#0071c2] text-white font-bold py-4 px-8 rounded-lg flex items-center justify-center gap-3 hover:bg-[#003580] transition-all shadow-lg"
+                                                    >
+                                                        <CreditCard className="w-6 h-6" />
+                                                        Ir a Pagar ${total.toFixed(2)} ahora
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </>
-                        ) : (
-                            /* Paso 3: Terminar Reserva */
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
-                                <div className="p-8 border-b border-gray-100">
-                                    <h2 className="text-2xl font-bold mb-2">Último paso: Pago y Confirmación</h2>
-                                    <p className="text-gray-600">Completa tu pago de forma segura a través de nuestra pasarela asociada.</p>
-                                </div>
-                                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-                                        <Lock className="w-10 h-10 text-blue-600" />
-                                    </div>
-                                    <h3 className="text-xl font-bold mb-4">Integración con TAB</h3>
-                                    <p className="text-gray-500 max-w-md mb-8">
-                                        En este paso se cargará el iframe oficial de Tab. Tus datos están cifrados y el pago es 100% seguro.
-                                    </p>
-
-                                    <div className="w-full max-w-2xl aspect-[16/10] bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden relative group">
-                                        {/* Real TAB Iframe simulation / implementation */}
-                                        <iframe
-                                            src={`https://tab.com/pago?order_id=ORD-${Math.floor(Math.random() * 100000)}&amount=${total.toFixed(2)}&currency=USD&customer_name=${encodeURIComponent(formData.nombre + ' ' + formData.apellido)}&customer_email=${encodeURIComponent(formData.email)}`}
-                                            width="100%"
-                                            height="100%"
-                                            className="border-none"
-                                            title="Pasarela de Pago TAB"
-                                        ></iframe>
-                                    </div>
-
-                                    <button
-                                        onClick={() => setStep(2)}
-                                        className="mt-8 text-[#0071c2] font-bold hover:underline flex items-center gap-2"
-                                    >
-                                        <ChevronDown className="w-4 h-4 rotate-90" />
-                                        Volver a tus datos
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                        ) : null}
                     </div>
                 </div>
-            </main>
+            </main >
 
             <Footer />
-        </div>
+        </div >
     );
 }
