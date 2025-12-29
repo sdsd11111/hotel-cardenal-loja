@@ -10,6 +10,7 @@ function PagosContent() {
     const searchParams = useSearchParams();
     const amount = searchParams.get('amount') || '0.00';
     const reservaId = searchParams.get('reserva') || '';
+    const email = searchParams.get('email') || '';
     const [status, setStatus] = useState('Iniciando...');
     const [isEmbedding, setIsEmbedding] = useState(true);
 
@@ -63,7 +64,8 @@ function PagosContent() {
                     Tab.checkout.open({
                         businessCode: "xnxyq",
                         amount: amount,
-                        currency: "USD"
+                        currency: "USD",
+                        email: email // Intento de pre-llenado si la API lo soporta
                     });
                 } catch (e) {
                     console.error("❌ Error opening Tab checkout:", e);

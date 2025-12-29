@@ -159,7 +159,7 @@ export default function CheckoutPage() {
 
                 // Redirigir a la nueva página de pagos dedicada
                 console.log('Redirigiendo a pasarela de pagos...');
-                router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=${data.id || 'new'}`);
+                router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=${data.id || 'new'}&email=${encodeURIComponent(formData.email)}`);
             })
             .catch(err => {
                 console.error('Error al guardar reserva:', err);
