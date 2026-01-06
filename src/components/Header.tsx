@@ -39,10 +39,9 @@ interface HeaderProps {
 
 // Habitaciones dropdown items
 const habitacionesItems = [
-  { label: 'Doble Twin', href: '/habitaciones/doble-twin' },
   { label: 'Matrimonial', href: '/habitaciones/matrimonial' },
   { label: 'Triple', href: '/habitaciones/triple' },
-  { label: 'Familiar Loft', href: '/habitaciones/familiar-loft' },
+  { label: 'Doble Twin', href: '/habitaciones/doble-twin' },
 ];
 
 // Experiencia dropdown items (no main page)
@@ -266,6 +265,20 @@ export const Header = ({
                         </Link>
                       )}
 
+                      {/* Sobre Nosotros */}
+                      <Link
+                        href="/sobre-hotel-cardenal"
+                        className={cn(
+                          "px-4 py-2 text-xs font-black hover:text-cardenal-gold transition-colors uppercase font-serif",
+                          themeClass ? "tracking-[0.2em]" : "tracking-widest",
+                          textColor,
+                          pathname === '/sobre-hotel-cardenal' && "text-cardenal-gold"
+                        )}
+                        style={{ textShadow }}
+                      >
+                        Sobre Nosotros
+                      </Link>
+
                       {/* Habitaciones with Dropdown */}
                       <div className="relative group">
                         <div className="flex items-center">
@@ -389,6 +402,18 @@ export const Header = ({
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             Inicio
+                          </Link>
+
+                          {/* Sobre Nosotros */}
+                          <Link
+                            href="/sobre-hotel-cardenal"
+                            className={cn(
+                              "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
+                              pathname === '/sobre-hotel-cardenal' && "text-cardenal-gold"
+                            )}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Sobre Nosotros
                           </Link>
 
                           {/* Habitaciones Accordion - Split Link and Toggle */}
@@ -571,6 +596,18 @@ export const Header = ({
                               onClick={() => setMobileMenuOpen(false)}
                             >
                               Inicio
+                            </Link>
+
+                            {/* Sobre Nosotros */}
+                            <Link
+                              href="/sobre-hotel-cardenal"
+                              className={cn(
+                                "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
+                                pathname === '/sobre-hotel-cardenal' && "text-cardenal-gold"
+                              )}
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Sobre Nosotros
                             </Link>
 
                             {/* Habitaciones Accordion - Split Link and Toggle */}

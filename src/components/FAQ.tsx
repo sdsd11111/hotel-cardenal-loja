@@ -23,7 +23,7 @@ const faqs = [
     {
         id: 4,
         pregunta: '¿Es un hotel adecuado para familias y niños?',
-        respuesta: 'Absolutamente. Somos el hotel familiar en Loja por excelencia. Contamos con habitaciones amplias como nuestro Familiar Loft y estamos junto al Parque La Tebaida, que ofrece 3.5 km de senderos ecológicos y áreas recreativas ideales para que los niños disfruten del aire puro.'
+        respuesta: 'Absolutamente. Somos el hotel familiar en Loja por excelencia. Contamos con habitaciones amplias y cómodas espacios, y estamos junto al Parque La Tebaida, que ofrece 3.5 km de senderos ecológicos y áreas recreativas ideales para que los niños disfruten del aire puro.'
     },
     {
         id: 5,

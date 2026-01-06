@@ -17,7 +17,6 @@ const categories = [
 
 // Descriptive Gallery Images
 const galleryImages = [
-    { id: 1, src: '/images/galeria/galeria-1.webp?v=3', alt: 'Familiar Loft: Espacio en Dos Niveles', category: 'habitaciones' },
     { id: 2, src: '/images/galeria/galeria-2.webp?v=3', alt: 'Habitación Matrimonial: Elegancia neoclásica', category: 'habitaciones' },
     { id: 3, src: '/images/galeria/galeria-3.webp?v=3', alt: 'Triple Confort: Ideal para Amigos', category: 'habitaciones' },
     { id: 4, src: '/images/galeria/galeria-4.webp?v=3', alt: 'Doble Twin: Descanso Funcional', category: 'habitaciones' },

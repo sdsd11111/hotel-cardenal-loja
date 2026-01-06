@@ -7,14 +7,7 @@ import { ArrowRight, X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 
 // SEO Optimized Gallery Images - 9 images in 3x3 grid
 const galeriaImagenes = [
-    // I. Habitaciones (4 Imágenes) - Row 1 & part of Row 2
-    {
-        id: 1,
-        categoria: 'HABITACIONES',
-        url: '/images/galeria/galeria-1.webp?v=2',
-        titulo: 'Familiar Loft',
-        alt: 'Familiar Loft - Espacio de dos niveles diseñado para la comodidad de toda la familia en Hotel El Cardenal Loja'
-    },
+    // I. Habitaciones (3 Imágenes) - Row 1
     {
         id: 2,
         categoria: 'HABITACIONES',

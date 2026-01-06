@@ -49,7 +49,6 @@ export default function Home2Page() {
                 <h2>Nuestras Habitaciones en Loja</h2>
                 <p>Ofrecemos opciones para cada tipo de viajero, todas equipadas con WiFi de alta velocidad, TV por cable y baño privado:</p>
                 <ul>
-                    <li><strong>Familiar Loft:</strong> Amplio espacio para hasta 5 personas, ideal para grupos familiares que buscan independencia y confort.</li>
                     <li><strong>Habitación Triple:</strong> Perfecta para viajes de amigos o familias pequeñas, con 3 camas individuales y luz natural.</li>
                     <li><strong>Doble Twin:</strong> Equipada con dos camas de plaza y media, ideal para viajes de negocios o turismo compartido.</li>
                     <li><strong>Matrimonial:</strong> El refugio perfecto para parejas, con cama de dos plazas y media y un ambiente romántico y tranquilo.</li>

@@ -11,32 +11,41 @@ function PagosContent() {
     const amount = searchParams.get('amount') || '0.00';
     const reservaId = searchParams.get('reserva') || '';
     const email = searchParams.get('email') || '';
-    const [status, setStatus] = useState('Iniciando...');
-    const [isEmbedding, setIsEmbedding] = useState(true);
+    const [status, setStatus] = useState('Cargando widget de pago...');
+    const [widgetReady, setWidgetReady] = useState(false);
 
     useEffect(() => {
         console.log("🛠️ PagosContent initialized");
 
-        // 1. Configuración global de Tab
+        // Configuración global de Tab
         (window as any).widgetSettings = {
             businessCode: "xnxyq",
             baseURL: "https://checkout.tab.travel"
         };
 
-        // 2. Carga del script oficial
+        // Cargar el script de Tab
         const loadScript = () => {
             if (document.querySelector('script[src="https://checkout.tab.travel/widget.js"]')) {
-                console.log("ℹ️ Tab script already exists");
+                console.log("ℹ️ Tab script already loaded");
+                setWidgetReady(true);
                 return;
             }
 
-            console.log("📥 Loading Tab script...");
             const script = document.createElement("script");
             script.type = "text/javascript";
             script.async = true;
             script.src = "https://checkout.tab.travel/widget.js";
 
-            script.onload = () => console.log("✅ Tab script loaded via onload");
+            script.onload = () => {
+                console.log("✅ Tab script loaded");
+                setWidgetReady(true);
+                setStatus('Widget listo - Usa el botón para pagar');
+            };
+
+            script.onerror = () => {
+                console.error("❌ Failed to load Tab script");
+                setStatus('Error al cargar el widget de pago');
+            };
 
             const firstScript = document.getElementsByTagName("script")[0];
             if (firstScript && firstScript.parentNode) {
@@ -45,116 +54,7 @@ function PagosContent() {
         };
 
         loadScript();
-
-        // 3. Watcher para forzar apertura y capturar el iframe
-        let attempts = 0;
-        const watcher = setInterval(() => {
-            attempts++;
-            const Tab = (window as any).Tab;
-
-            if (attempts % 10 === 0) {
-                console.log(`⏱️ Watcher attempt ${attempts}...`);
-            }
-
-            // Paso A: Intentar abrir el checkout si Tab está listo
-            if (attempts === 30 && Tab && Tab.checkout && Tab.checkout.open) {
-                console.log("🚀 Attempting window.Tab.checkout.open()...");
-                setStatus('Abriendo pasarela de pago...');
-                try {
-                    Tab.checkout.open({
-                        businessCode: "xnxyq",
-                        amount: amount,
-                        currency: "USD",
-                        email: email // Intento de pre-llenado si la API lo soporta
-                    });
-                } catch (e) {
-                    console.error("❌ Error opening Tab checkout:", e);
-                }
-            }
-
-            // Paso B: Intentar clic en el botón inyectado por el script como último recurso
-            if (attempts === 60) {
-                const tabBtn = document.querySelector('.tab-book-now-button') as HTMLElement;
-                if (tabBtn) {
-                    console.log("⚡ Fallback: Clicking injected Tab button");
-                    tabBtn.click();
-                }
-            }
-
-            // Paso C: Buscar el iframe de PAGO (no el launcher)
-            const iframes = Array.from(document.querySelectorAll('iframe'));
-            const paymentIframe = iframes.find(f =>
-                f.src.includes('tab.travel') &&
-                f.id !== 'tab-widget-launcher' &&
-                !f.src.includes('launcher') &&
-                !f.src.includes('button') // El checkout real no suele decir button en el src
-            );
-
-            if (paymentIframe) {
-                console.log("🎯 DETECTED PAYMENT IFRAME:", paymentIframe.src);
-                const container = document.getElementById('tab-direct-container');
-
-                if (container && paymentIframe.parentElement !== container) {
-                    console.log("🚚 Moving iframe to page container...");
-                    setStatus('Cargando formulario de tarjeta...');
-
-                    // Reset de estilos para integración total
-                    paymentIframe.style.position = 'relative';
-                    paymentIframe.style.top = '0';
-                    paymentIframe.style.left = '0';
-                    paymentIframe.style.width = '100%';
-                    paymentIframe.style.height = '850px';
-                    paymentIframe.style.border = 'none';
-                    paymentIframe.style.zIndex = '1';
-                    paymentIframe.style.display = 'block';
-                    paymentIframe.style.visibility = 'visible';
-                    paymentIframe.style.opacity = '1';
-
-                    container.appendChild(paymentIframe);
-
-                    setTimeout(() => {
-                        setIsEmbedding(false);
-                        console.log("✨ Integration complete!");
-                    }, 1000);
-
-                    clearInterval(watcher);
-                }
-            }
-
-            if (attempts > 300) {
-                console.log("⚠️ Watcher timed out (30s)");
-                setStatus('Error de conexión o Dominio no autorizado');
-                setIsEmbedding(false);
-                clearInterval(watcher);
-            }
-        }, 100);
-
-        // Estilo para forzar ocultación de elementos redundantes
-        const style = document.createElement('style');
-        style.innerHTML = `
-            #tab-widget-launcher, .tab-widget-launcher, iframe[src*="button"] { 
-                display: none !important; 
-            }
-            #tab-direct-container iframe {
-                display: block !important;
-                visibility: visible !important;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Mensaje de fallback si no aparece nada
-        const timeoutWarn = setTimeout(() => {
-            if (isEmbedding) {
-                setStatus('¿Sigue cargando? Revisa la configuración de dominios en Tab.');
-            }
-        }, 10000);
-
-        return () => {
-            clearInterval(watcher);
-            clearTimeout(timeoutWarn);
-            if (style.parentNode) style.parentNode.removeChild(style);
-        };
-    }, [amount]);
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -181,45 +81,78 @@ function PagosContent() {
                         </div>
                     </div>
 
-                    {/* Contenedor del Formulario Directo */}
-                    <div className="bg-white shadow-2xl border-x border-gray-200 relative min-h-[750px] overflow-hidden">
-                        {isEmbedding && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-20">
-                                <div className="relative">
-                                    <Loader2 className="w-16 h-16 text-[#0071c2] animate-spin mb-6" />
+                    {/* Contenedor del Widget de Tab */}
+                    <div className="bg-white shadow-2xl border-x border-gray-200 relative min-h-[500px] overflow-hidden flex flex-col items-center justify-center p-12 text-center">
+                        {!widgetReady ? (
+                            <div className="flex flex-col items-center">
+                                <div className="relative mb-8">
+                                    <div className="w-24 h-24 border-4 border-blue-50 border-t-[#0071c2] rounded-full animate-spin"></div>
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <CreditCard className="w-6 h-6 text-blue-400" />
+                                        <CreditCard className="w-8 h-8 text-blue-400" />
                                     </div>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-2 font-serif">{status}</h3>
-                                <p className="text-gray-400 text-sm font-medium italic">Tab Travel Secure Checkout</p>
+                                <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tight uppercase italic">{status}</h3>
+                                <div className="flex items-center gap-3 text-gray-400 bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
+                                    <ShieldCheck className="w-4 h-4 text-green-500" />
+                                    <span className="text-xs font-bold uppercase tracking-widest">Encriptación de 256 bits activa</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full max-w-lg">
+                                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6 border border-green-100 mx-auto">
+                                    <ShieldCheck className="w-10 h-10 text-green-600" />
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 mb-4 uppercase italic">Pagar con Tarjeta</h3>
+                                <p className="text-gray-600 font-medium mb-8">
+                                    Haz clic en el botón <span className="text-[#0071c2] font-bold">"Book Now"</span> de abajo para proceder al pago seguro.
+                                </p>
+
+                                {/* Información de la reserva */}
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-bold text-gray-600">Reserva:</span>
+                                        <span className="text-sm font-black text-gray-900">#{reservaId}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-bold text-gray-600">Email:</span>
+                                        <span className="text-sm font-bold text-gray-900">{email}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-bold text-gray-600">Total:</span>
+                                        <span className="text-xl font-black text-[#0071c2]">${amount} USD</span>
+                                    </div>
+                                </div>
+
+                                {/* Iframe del botón de Tab - Lo mostramos directamente */}
+                                <div className="flex justify-center items-center p-8 bg-gradient-to-br from-blue-50 to-white rounded-xl border-2 border-dashed border-blue-200">
+                                    <iframe
+                                        src="https://checkout.tab.travel/xnxyq/button"
+                                        style={{
+                                            border: 'none',
+                                            width: '200px',
+                                            height: '60px',
+                                            display: 'block'
+                                        }}
+                                        title="Tab Payment Button"
+                                    />
+                                </div>
+
+                                <p className="text-xs text-gray-400 mt-6">
+                                    <Lock className="w-3 h-3 inline mr-1 text-green-500" />
+                                    Pago procesado de forma segura por Tab Travel
+                                </p>
                             </div>
                         )}
-
-                        {/* Aquí inyectaremos el iframe de TAB */}
-                        <div id="tab-direct-container" className="w-full h-full min-h-[850px]"></div>
-
-                        {/* Botón oculto requerido por el script para inyectar su lógica */}
-                        <div className="invisible h-0 overflow-hidden">
-                            <button
-                                className="tab-book-now-button"
-                                data-tab-business-code="xnxyq"
-                                data-tab-amount={amount}
-                                data-tab-currency="USD"
-                            >
-                                Trigger
-                            </button>
-                        </div>
                     </div>
 
                     {/* Footer con Sellos de Confianza */}
                     <div className="bg-gray-50 rounded-b-2xl shadow-sm border border-gray-200 p-8 flex flex-col md:flex-row justify-between items-center gap-6">
                         <button
                             onClick={() => window.history.back()}
-                            className="text-gray-400 hover:text-[#0071c2] flex items-center gap-2 text-sm font-bold transition-all hover:-translate-x-1"
+                            className="text-gray-400 hover:text-[#0071c2] flex items-center gap-2 text-sm font-bold transition-all hover:-translate-x-1 uppercase tracking-widest"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            VOLVER ATRÁS
+                            Volver al Checkout
                         </button>
 
                         <div className="flex items-center gap-6 grayscale opacity-50">

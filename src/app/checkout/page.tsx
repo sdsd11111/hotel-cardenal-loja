@@ -22,7 +22,9 @@ export default function CheckoutPage() {
     const [mounted, setMounted] = useState(false);
     const [step, setStep] = useState(2); // 2: Tus datos, 3: Terminar reserva
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
-    const [reservationSaved, setReservationSaved] = useState(false); // New state for 2-step flow
+    const [reservationSaved, setReservationSaved] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'selection' | 'card' | 'transfer'>('selection');
+    const [savedReservaId, setSavedReservaId] = useState<string>('');
 
 
     const [formData, setFormData] = useState({
@@ -155,11 +157,10 @@ export default function CheckoutPage() {
         }).then(res => res.json())
             .then(data => {
                 console.log('Reserva guardada:', data);
+                setSavedReservaId(data.id || 'new');
                 setReservationSaved(true);
-
-                // Redirigir a la nueva página de pagos dedicada
-                console.log('Redirigiendo a pasarela de pagos...');
-                router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=${data.id || 'new'}&email=${encodeURIComponent(formData.email)}`);
+                setStep(3); // Update step to "Terminar reserva"
+                setIsPaymentLoading(false);
             })
             .catch(err => {
                 console.error('Error al guardar reserva:', err);
@@ -306,15 +307,13 @@ export default function CheckoutPage() {
 
                     {/* Contenido Principal Derecho */}
                     <div className="lg:col-span-8 space-y-6">
-                        {step === 2 ? (
+                        {/* STEP 2: GUEST DETAILS FORM */}
+                        {step === 2 && (
                             <>
                                 {/* Guest Details Form */}
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
                                     <div className="p-6">
                                         <h2 className="text-2xl font-bold mb-6">Datos del huésped</h2>
-
-
-
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                             <div className="space-y-2">
@@ -351,12 +350,6 @@ export default function CheckoutPage() {
                                                 required
                                                 className="w-full max-w-md border border-gray-400 rounded px-3 py-2 outline-none focus:border-blue-500"
                                             />
-                                            <p className="text-xs text-gray-500 hidden"></p>
-                                        </div>
-
-                                        <div className="hidden">
-                                            <input type="checkbox" id="login-save" className="w-4 h-4" />
-                                            <label htmlFor="login-save" className="text-sm">Inicia sesión para guardar tus datos (opcional)</label>
                                         </div>
 
                                         <div className="space-y-6 border-t border-gray-100 pt-6">
@@ -404,10 +397,7 @@ export default function CheckoutPage() {
                                                         className="flex-1 border border-gray-400 rounded px-3 py-2 outline-none focus:border-blue-500"
                                                     />
                                                 </div>
-                                                <p className="text-xs text-gray-500 hidden"></p>
                                             </div>
-
-
 
                                             <div className="space-y-4 pt-4">
                                                 <p className="text-sm font-bold">¿Para quién es esta reserva? (opcional)</p>
@@ -422,48 +412,13 @@ export default function CheckoutPage() {
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div className="space-y-4">
-                                                <p className="text-sm font-bold">¿Viajas por trabajo? (opcional)</p>
-                                                <div className="flex gap-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <input type="radio" name="trabajo" id="trabajo-si" />
-                                                        <label htmlFor="trabajo-si" className="text-sm font-medium">Sí</label>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <input type="radio" name="trabajo" id="trabajo-no" defaultChecked />
-                                                        <label htmlFor="trabajo-no" className="text-sm font-medium">No</label>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-
-
-                                {/* Add to reservation Section (Image 2) */}
+                                {/* Room details summary */}
                                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
                                     <h3 className="text-xl font-bold">Habitación {habitacion.nombre}</h3>
-                                    <div className="flex items-start gap-3 text-sm text-green-700">
-                                        <Coffee className="w-5 h-5 shrink-0" />
-                                        <div>
-                                            <p className="font-bold">Comidas:</p>
-                                            <ul className="list-disc list-inside text-xs">
-                                                {Object.entries(comidas || {}).map(([meal, selected]) => {
-                                                    if (!selected) return null;
-                                                    const isIncluded = meal === 'desayuno' ? habitacion.incluyeDesayuno :
-                                                        meal === 'almuerzo' ? habitacion.incluyeAlmuerzo :
-                                                            habitacion.incluyeCena;
-                                                    return (
-                                                        <li key={meal} className="capitalize">
-                                                            {meal} {isIncluded ? '(Incluido)' : '(Extra +$1.00/noche)'}
-                                                        </li>
-                                                    );
-                                                })}
-                                            </ul>
-                                        </div>
-                                    </div>
 
                                     <div className="flex items-start gap-3 text-sm text-gray-700">
                                         <Users className="w-5 h-5 shrink-0" />
@@ -471,39 +426,8 @@ export default function CheckoutPage() {
                                     </div>
 
                                     <div className="border-t border-gray-100 pt-6 space-y-4">
-                                        <h4 className="font-bold">Opciones para añadir a tu reserva</h4>
-                                        <div className="space-y-4">
-                                            <div className="flex items-start gap-3 p-3 border border-gray-200 rounded hover:bg-gray-50">
-                                                <input type="checkbox" className="mt-1" />
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between items-start">
-                                                        <p className="text-sm font-bold">Quiero solicitar el servicio de traslado desde el aeropuerto</p>
-                                                        <Car className="w-5 h-5 text-gray-400" />
-                                                    </div>
-                                                    <p className="text-xs text-gray-500 mt-1">Le diremos al alojamiento que te interesa este servicio para que puedan enviarte más información además de los precios.</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-3 p-3 border border-gray-200 rounded hover:bg-gray-50">
-                                                <input type="checkbox" className="mt-1" />
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between items-start">
-                                                        <p className="text-sm font-bold">Quiero alquilar un coche</p>
-                                                        <Car className="w-5 h-5 text-gray-400" />
-                                                    </div>
-                                                    <p className="text-xs text-gray-500 mt-1">¡Aprovecha al máximo el viaje! Consulta las opciones de alquiler de coches en la confirmación de la reserva.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Special Requests */}
-                                    <div className="border-t border-gray-100 pt-6 space-y-4">
                                         <h4 className="font-bold">Peticiones especiales</h4>
-                                        <p className="text-xs text-gray-600 leading-relaxed">
-                                            Las peticiones especiales no se pueden garantizar, pero el alojamiento hará todo lo posible por satisfacerlas. ¡También puedes enviarnos tu petición especial cuando hayas realizado la reserva!
-                                        </p>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-bold">Escribe tus peticiones en inglés o en español. <span className="text-gray-400 font-normal">(opcional)</span></label>
                                             <textarea
                                                 name="peticiones"
                                                 value={formData.peticiones}
@@ -514,74 +438,128 @@ export default function CheckoutPage() {
                                         </div>
                                     </div>
 
-                                    {/* Arrival Time */}
-                                    <div className="border-t border-gray-100 pt-6 space-y-4">
-                                        <h4 className="font-bold">Tu hora de llegada</h4>
-                                        <div className="flex items-start gap-3 text-sm text-green-700">
-                                            <CheckCircle2 className="w-5 h-5 shrink-0" />
-                                            <p>Tu habitación estará lista para el check-in entre las 14:00 y las 22:00</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold block">Añade tu hora de llegada aproximada <span className="text-gray-400 font-normal">(opcional)</span></label>
-                                            <div className="relative max-w-xs">
-                                                <select className="w-full appearance-none border border-gray-400 rounded px-3 py-2 pr-10 outline-none focus:border-blue-500 bg-white">
-                                                    <option>Indica una hora</option>
-                                                    <option>14:00 - 15:00</option>
-                                                    <option>15:00 - 16:00</option>
-                                                    <option>16:00 - 17:00</option>
-                                                </select>
-                                                <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-500 pointer-events-none" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Final Button Area */}
-                                    <div className="pt-8 flex flex-col items-end gap-3">
-                                        {!reservationSaved ? (
-                                            // STEP 1: SAVE BUTTON
-                                            <button
-                                                onClick={handleSaveReservation}
-                                                disabled={isPaymentLoading}
-                                                className="bg-[#0071c2] text-white font-bold py-4 px-8 rounded flex items-center gap-2 hover:bg-[#003580] transition-colors shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                            >
-                                                {isPaymentLoading ? (
-                                                    <>
-                                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                                        Guardando Datos...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Confirmar Datos y Pagar
-                                                        <ChevronRight className="w-5 h-5" />
-                                                    </>
-                                                )}
-                                            </button>
-                                        ) : (
-                                            // STEP 2: REDIRECT / MANUAL BUTTON
-                                            <div className="w-full max-w-md animate-fade-in-up">
-                                                <div className="space-y-6">
-                                                    <div className="bg-green-50 border border-green-200 rounded-lg p-5 text-green-800 text-center animate-pulse">
-                                                        <div className="flex justify-center mb-3">
-                                                            <CheckCircle2 className="w-10 h-10 text-green-500" />
-                                                        </div>
-                                                        <h4 className="font-bold text-lg mb-1">¡Datos Guardados!</h4>
-                                                        <p className="text-sm text-green-700">Redirigiendo a la pasarela de pago segura...</p>
-                                                    </div>
-
-                                                    <button
-                                                        onClick={() => router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=current`)}
-                                                        className="w-full bg-[#0071c2] text-white font-bold py-4 px-8 rounded-lg flex items-center justify-center gap-3 hover:bg-[#003580] transition-all shadow-lg"
-                                                    >
-                                                        <CreditCard className="w-6 h-6" />
-                                                        Ir a Pagar ${total.toFixed(2)} ahora
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="pt-8 flex justify-end">
+                                        <button
+                                            onClick={handleSaveReservation}
+                                            disabled={isPaymentLoading}
+                                            className="bg-[#0071c2] text-white font-bold py-4 px-10 rounded flex items-center gap-2 hover:bg-[#003580] transition-colors shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {isPaymentLoading ? (
+                                                <>
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                    Guardando datos...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Confirmar datos y pagar
+                                                    <ChevronRight className="w-5 h-5" />
+                                                </>
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
                             </>
-                        ) : null}
+                        )}
+
+                        {/* STEP 3: PAYMENT METHOD SELECTION */}
+                        {step === 3 && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                                    {paymentMethod === 'selection' ? (
+                                        <div className="space-y-8">
+                                            <div className="text-center space-y-2">
+                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-50 rounded-full mb-4">
+                                                    <CheckCircle2 className="w-10 h-10 text-green-500" />
+                                                </div>
+                                                <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tight">¡Datos Confirmados!</h2>
+                                                <p className="text-gray-500 font-medium">Elige tu método de pago para finalizar tu reserva.</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <button
+                                                    onClick={() => router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=${savedReservaId}&email=${encodeURIComponent(formData.email)}`)}
+                                                    className="group flex flex-col items-center justify-center p-8 border-2 border-[#0071c2] bg-[#f0f7ff] rounded-2xl hover:bg-[#e1f0ff] transition-all transform hover:-translate-y-1 shadow-md hover:shadow-xl"
+                                                >
+                                                    <CreditCard className="w-12 h-12 text-[#0071c2] mb-4 group-hover:scale-110 transition-transform" />
+                                                    <span className="font-black text-[#0071c2] text-xl uppercase italic">Pagar con Tarjeta</span>
+                                                    <span className="text-xs text-blue-400 font-bold uppercase tracking-widest mt-2">Seguro y rápido</span>
+                                                </button>
+
+                                                <button
+                                                    onClick={() => setPaymentMethod('transfer')}
+                                                    className="group flex flex-col items-center justify-center p-8 border-2 border-gray-200 bg-white rounded-2xl hover:border-cardenal-gold hover:bg-amber-50 transition-all transform hover:-translate-y-1 shadow-md hover:shadow-xl"
+                                                >
+                                                    <Globe className="w-12 h-12 text-cardenal-gold mb-4 group-hover:scale-110 transition-transform" />
+                                                    <span className="font-black text-gray-800 text-xl uppercase italic">Transferencia</span>
+                                                    <span className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-2">Depósito Bancario</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        // TRANSFER DETAILS
+                                        <div className="space-y-6">
+                                            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                                                <h3 className="text-xl font-black uppercase italic text-gray-900">Instrucciones de Pago</h3>
+                                                <button
+                                                    onClick={() => setPaymentMethod('selection')}
+                                                    className="text-sm font-bold text-[#0071c2] hover:underline uppercase"
+                                                >
+                                                    Cambiar método
+                                                </button>
+                                            </div>
+
+                                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 space-y-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Banco</p>
+                                                        <p className="font-bold text-gray-900">BANCO PICHINCHA</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Tipo de Cuenta</p>
+                                                        <p className="font-bold text-gray-900 uppercase">Cuenta Corriente</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Número</p>
+                                                        <p className="font-bold text-[#0071c2] text-lg">2100224466</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Beneficiario</p>
+                                                        <p className="font-bold text-gray-900">OJEDA ALVARADO RAMON AGUSTIN</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Identificación</p>
+                                                        <p className="font-bold text-gray-900">1100344225</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Concepto / Referencia</p>
+                                                        <p className="font-bold text-cardenal-gold">Reserva #{savedReservaId}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-amber-50 border-l-4 border-cardenal-gold p-4 text-sm text-amber-900">
+                                                <div className="flex gap-3">
+                                                    <Info className="w-5 h-5 shrink-0" />
+                                                    <p>IMPORTANTE: Una vez realizada la transferencia, envía tu comprobante para confirmar definitivamente tu habitación.</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                                <a
+                                                    href={`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva #${savedReservaId} de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex-1 bg-green-600 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-100 hover:scale-[1.02]"
+                                                >
+                                                    <Phone className="w-5 h-5" />
+                                                    ENVIAR COMPROBANTE POR WHATSAPP
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main >

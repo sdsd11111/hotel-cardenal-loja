@@ -64,7 +64,6 @@ const contactInfo = [
 
 // Tipos de habitaciones disponibles
 const tiposHabitacion = [
-    'Familiar Loft',
     'Triple',
     'Doble Twin',
     'Matrimonial'
@@ -125,7 +124,7 @@ function ContactoContent() {
             if (habitacion) {
                 const decodedHabitacion = decodeURIComponent(habitacion);
                 // Try to match one of our room types
-                const roomTypes = ['Familiar Loft', 'Triple', 'Doble Twin', 'Matrimonial'];
+                const roomTypes = ['Triple', 'Doble Twin', 'Matrimonial'];
                 for (const roomType of roomTypes) {
                     if (decodedHabitacion.includes(roomType)) {
                         extractedRoomType = roomType;

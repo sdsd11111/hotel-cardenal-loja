@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { pool } from '@/lib/mysql';
+import { query } from '@/lib/mysql';
 
 // NOTA: Este webhook es llamado automáticamente por los servidores de Tab
 // cuando un pago se completa exitosamente.
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
             if (reservaId) {
                 console.log(`✅ Pago confirmado para Reserva #${reservaId}. Actualizando base de datos...`);
 
-                await pool.query(
+                await query(
                     'UPDATE reservas SET estado = ? WHERE id = ?',
                     ['CONFIRMADA', reservaId]
                 );

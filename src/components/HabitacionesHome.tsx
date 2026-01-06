@@ -9,22 +9,6 @@ import { cn } from '@/lib/utils';
 // New Habitaciones data based on user request
 const habitaciones = [
     {
-        id: 1,
-        nombre: 'Familiar Loft',
-        tagline: 'El refugio ideal para la familia en Loja.',
-        descripcion: 'Distribución en dos niveles para máxima privacidad con un diseño acogedor y seguro.',
-        detalles: [
-            'Distribución en dos niveles para máxima privacidad.',
-            'Capacidad amplia con diseño acogedor y seguro.',
-            'Vistas privilegiadas al entorno natural del sector Los Rosales.',
-            'El espacio favorito para quienes buscan un hotel familiar en Loja.'
-        ],
-        keywords: 'hotel familiar en Loja',
-        imagenPrincipal: '/images/habitaciones/familiar/familiar-loft-main.webp?v=3',
-        imagenMiniatura: '/images/habitaciones/familiar/familiar-loft-thumb.webp?v=3',
-        icon: <Users className="w-5 h-5" />
-    },
-    {
         id: 2,
         nombre: 'Triple',
         tagline: 'Versatilidad y comodidad compartida.',

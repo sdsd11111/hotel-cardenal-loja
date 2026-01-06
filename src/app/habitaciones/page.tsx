@@ -3,7 +3,7 @@ import HabitacionesPageClient from './HabitacionesClient';
 
 export const metadata: Metadata = {
     title: 'Habitaciones | Hotel El Cardenal Loja - Confort y Descanso',
-    description: 'Explore nuestras 6 exclusivas habitaciones en Loja: Loft Familiar, Triple, Doble Twin y Matrimonial. El mejor hospedaje familiar junto al río Malacatos.',
+    description: 'Explore nuestras 6 exclusivas habitaciones en Loja: Triple, Doble Twin y Matrimonial. El mejor hospedaje familiar junto al río Malacatos.',
     keywords: ['hotel familiar en Loja', 'habitaciones Loja', 'hospedaje Loja', 'Hotel El Cardenal', 'confort', 'descanso', 'sector Los Rosales']
 };
 
@@ -34,12 +34,6 @@ export default function HabitacionesPage() {
 
                 <h2>Opciones de Alojamiento</h2>
 
-                <h3>Familiar Loft (Para hasta 5 personas)</h3>
-                <p>
-                    Nuestra habitación más espaciosa, ideal para familias grandes que buscan independencia.
-                    Cuenta con ambientes separados y todas las comodidades de un hogar.
-                    Precio estimado: $90.00 USD por noche.
-                </p>
 
                 <h3>Habitación Triple (3 Camas)</h3>
                 <p>
