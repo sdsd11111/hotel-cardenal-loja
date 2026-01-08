@@ -52,7 +52,7 @@ export default function RestaurantePage() {
 
                 <h2>Ambiente Neoclásico e Íntimo</h2>
                 <p>
-                    Nuestro restaurante cuenta con capacidad para 12 comensales, lo que garantiza un servicio
+                    Nuestro restaurante cuenta con capacidad para 50 comensales, lo que garantiza un servicio
                     personalizado y un ambiente libre de ruidos. Decorado con muebles Zuleta y detalles de época,
                     es el lugar ideal para planificar sus actividades en Loja.
                 </p>
@@ -186,7 +186,7 @@ export default function RestaurantePage() {
                                     <Users size={32} />
                                 </div>
                                 <h4 className="font-bold text-xl text-gray-900 mb-3">Diseño Íntimo</h4>
-                                <p className="text-gray-600">Con capacidad para 12 personas, garantizamos una atención personalizada y un ambiente libre de ruidos.</p>
+                                <p className="text-gray-600">Con capacidad para 50 personas, garantizamos una atención personalizada y un ambiente libre de ruidos.</p>
                             </div>
                             <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-100 hover:-translate-y-1 transition-transform">
                                 <div className="w-16 h-16 mx-auto bg-cardenal-gold/10 rounded-full flex items-center justify-center text-cardenal-gold mb-6">

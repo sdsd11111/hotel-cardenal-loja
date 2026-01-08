@@ -40,7 +40,7 @@ export default function EventosPage() {
 
                 <h2>Espacios para Eventos Boutique</h2>
                 <p>
-                    Contamos con un salón exclusivo acondicionado para grupos pequeños (hasta 15 personas),
+                    Contamos con un salón exclusivo acondicionado para grupos de hasta 50 personas,
                     ideal para mantener la privacidad y el enfoque. Equipado con muebles Zuleta de alta gama.
                 </p>
 
@@ -112,7 +112,7 @@ export default function EventosPage() {
                                     </div>
                                     <h3 className="font-bold text-lg text-cardenal-brown">Capacidad Íntima</h3>
                                 </div>
-                                <p className="text-gray-600">Espacio optimizado para grupos de hasta 12 a 15 personas, ideal para mantener la exclusividad.</p>
+                                <p className="text-gray-600">Espacio optimizado para grupos de hasta 50 personas, ideal para mantener la exclusividad.</p>
                             </div>
 
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -293,7 +293,7 @@ export default function EventosPage() {
                         },
                         "occupancy": {
                             "@type": "QuantitativeValue",
-                            "value": 15
+                            "value": 50
                         },
                         "amenityFeature": [
                             { "@type": "LocationFeatureSpecification", "name": "WiFi de Alta Velocidad", "value": true },

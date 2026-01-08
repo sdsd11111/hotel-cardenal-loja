@@ -42,7 +42,7 @@ export default function SobreNosotrosClient() {
                 <section className="py-20 bg-cardenal-cream relative overflow-hidden">
                     <div className="container mx-auto px-4">
                         <div className="flex flex-col lg:flex-row items-center gap-12">
-                            <div className="lg:w-1/2 space-y-8">
+                            <div className="lg:w-3/5 space-y-8">
                                 <div className="inline-flex items-center gap-2 text-cardenal-gold mb-2">
                                     <Sparkles className="w-5 h-5" />
                                     <span className="text-xs font-black uppercase tracking-[0.2em]">Raíces y Devoción</span>
@@ -63,8 +63,8 @@ export default function SobreNosotrosClient() {
                                     </p>
                                 </div>
                             </div>
-                            <div className="lg:w-1/2 relative">
-                                <div className="relative aspect-[4/5] md:aspect-square overflow-hidden shadow-2xl border-[15px] border-white ring-1 ring-gray-100">
+                            <div className="lg:w-2/5 relative">
+                                <div className="relative aspect-[4/5] md:aspect-square max-w-[450px] mx-auto overflow-hidden shadow-2xl border-[15px] border-white ring-1 ring-gray-100">
                                     <Image
                                         src="/images/sobre-mi/foto.webp"
                                         alt="Ramón Agustín Ojeda Alvarado - El Cardenal"

@@ -13,7 +13,7 @@ import { headerData, Habitacion } from '@/types';
 import {
     Bed, Coffee, Briefcase, Wifi, Users, Tv, Car, Bath, Wind,
     ConciergeBell, Award, Eye, Droplets, Sofa, Sparkles,
-    ArrowRight, Plus, Minus, X, Check, Loader2, Clock, Calendar
+    ArrowRight, Plus, Minus, X, Check, Loader2, Clock, Calendar, Info
 } from 'lucide-react';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
 
@@ -52,11 +52,13 @@ interface CartItem {
 }
 
 // Helper function to calculate dynamic price based on guest count
-const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninos: number): number => {
-    const totalGuests = adultos + ninos;
+const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninosEdades: number[], threshold: number): number => {
+    // Los niños mayores o iguales al threshold se cuentan como adultos
+    const ninosCobradosComoAdultos = ninosEdades.filter(age => age >= threshold).length;
+    const totalGuestsCobrados = adultos + ninosCobradosComoAdultos;
 
-    // If no priceOptions or totalGuests is 0, return base price
-    if (!habitacion.priceOptions || habitacion.priceOptions.length === 0 || totalGuests <= 0) {
+    // If no priceOptions or totalGuestsCobrados is 0, return base price
+    if (!habitacion.priceOptions || habitacion.priceOptions.length === 0 || totalGuestsCobrados <= 0) {
         return habitacion.precioNumerico;
     }
 
@@ -64,14 +66,19 @@ const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninos: number)
     const sortedOptions = [...habitacion.priceOptions].sort((a, b) => a.personas - b.personas);
 
     // Find the option that best matches the guest count
-    // We want the option with personas >= totalGuests, or the highest if none match
-    let bestOption = sortedOptions.find(opt => opt.personas >= totalGuests);
+    let bestOption = sortedOptions.find(opt => opt.personas >= totalGuestsCobrados);
     if (!bestOption) {
         // Use the highest tier if guest count exceeds all options
         bestOption = sortedOptions[sortedOptions.length - 1];
     }
 
-    return bestOption.precioBase + bestOption.impuestos;
+    let basicPrice = bestOption.precioBase + bestOption.impuestos;
+
+    // Si hay más niños de los que "caben" en la opción de precio (gratis o no), 
+    // podríamos cobrar el nino extra, pero el usuario dijo que los pequeños no pagan.
+    // Así que solo usamos el tier.
+
+    return basicPrice;
 };
 
 
@@ -109,6 +116,8 @@ function HabitacionesContent() {
 
     const [filtroAdultos, setFiltroAdultos] = useState(0);
     const [filtroNinos, setFiltroNinos] = useState(0);
+    const [ninosEdades, setNinosEdades] = useState<number[]>([]);
+    const [childAgeThreshold, setChildAgeThreshold] = useState(8);
     const [fechaEntrada, setFechaEntrada] = useState('');
     const [fechaSalida, setFechaSalida] = useState('');
 
@@ -117,15 +126,40 @@ function HabitacionesContent() {
         entrada: '',
         salida: '',
         adultos: 0,
-        ninos: 0
+        ninos: 0,
+        ninosEdades: [] as number[]
     });
 
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await fetch('/api/admin/settings');
+                if (response.ok) {
+                    const data = await response.json();
+                    const threshold = data.find((s: any) => s.setting_key === 'child_age_threshold');
+                    if (threshold) setChildAgeThreshold(parseInt(threshold.setting_value));
+                }
+            } catch (err) {
+                console.error('Error fetching settings:', err);
+            }
+        };
+        fetchSettings();
+    }, []);
+
     const handleAplicarFiltros = () => {
+        // Validar que todos los niños tengan edad
+        if (ninosEdades.length > 0 && ninosEdades.some(age => age === undefined || age === null || isNaN(age))) {
+            setValidationMessage('Por favor, coloca la edad de todos los niños.');
+            setTimeout(() => setValidationMessage(''), 5000);
+            return;
+        }
+
         setAppliedFilters({
             entrada: fechaEntrada,
             salida: fechaSalida,
             adultos: filtroAdultos,
-            ninos: filtroNinos
+            ninos: filtroNinos,
+            ninosEdades: ninosEdades
         });
         fetchHabitaciones(fechaEntrada, fechaSalida);
     };
@@ -238,7 +272,9 @@ function HabitacionesContent() {
         if (ninos) {
             const val = parseInt(ninos);
             setFiltroNinos(val);
-            setAppliedFilters(prev => ({ ...prev, ninos: val }));
+            // Intentar recuperar edades si vienen en la URL (opcional, por ahora inicializamos a 5 años si no están)
+            setNinosEdades(Array(val).fill(5));
+            setAppliedFilters(prev => ({ ...prev, ninos: val, ninosEdades: Array(val).fill(5) }));
         }
 
         // Initial fetch with URL params (or default empty)
@@ -288,7 +324,33 @@ function HabitacionesContent() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [showCart, setShowCart] = useState(false);
 
-    const habitacionesFiltradas = habitaciones.sort((a, b) => {
+    const habitacionesFiltradas = habitaciones.filter(hab => {
+        const total = appliedFilters.adultos + appliedFilters.ninos;
+        const adultos = appliedFilters.adultos;
+        const ninos = appliedFilters.ninos;
+
+        // Si no hay filtros aplicados (0 personas en total), mostrar todo
+        if (total === 0) return true;
+
+        const nombre = hab.nombre.toLowerCase();
+
+        // Reglas específicas por tipo de habitación
+        if (nombre.includes('triple') || nombre.includes('303')) {
+            // TRIPLE (303): Máximo de Personas = 4, Máximo adultos 4, Máximo niños 2
+            // O si excede los límites (más gente de la que podemos abarcar), mostrar 303 para reserva múltiple
+            const excedeLimites = total > 4 || adultos > 4 || ninos > 2;
+            return (total <= 4 && adultos <= 4 && ninos <= 2) || excedeLimites;
+        } else if (nombre.includes('2 camas') || nombre.includes('twin') || nombre.includes('302') || nombre.includes('doble')) {
+            // DOBLE (302): Máximo de Personas = 3, Máximo adultos 3, Máximo niños 1
+            return total <= 3 && adultos <= 3 && ninos <= 1;
+        } else if (nombre.includes('matrimonial') || nombre.includes('301')) {
+            // MATRIMONIAL (301): Máximo de Personas 2, Máximo adultos 2, Máximo niños 0
+            return total <= 2 && adultos <= 2 && ninos === 0;
+        }
+
+        // Para otras habitaciones (si las hay), aplicar criterio base de capacidad de la DB si está disponible
+        return true;
+    }).sort((a, b) => {
         // Ordenar: Matrimonial (301) primero, luego Doble Twin (302), luego Triple (303)
         const getRoomTypeOrder = (hab: Habitacion) => {
             const nombre = hab.nombre.toLowerCase();
@@ -303,6 +365,7 @@ function HabitacionesContent() {
     const resetFiltros = () => {
         setFiltroAdultos(0);
         setFiltroNinos(0);
+        setNinosEdades([]);
     };
 
     const addToCart = (habitacion: Habitacion) => {
@@ -357,7 +420,7 @@ function HabitacionesContent() {
             if (item.comidas.cena && !item.habitacion.incluyeCena) mealsPrice += 1.0;
 
             // Calculate dynamic base price
-            const basePrice = getDynamicPrice(item.habitacion, filtroAdultos, filtroNinos);
+            const basePrice = getDynamicPrice(item.habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold);
 
             return total + ((basePrice + mealsPrice) * item.cantidad * noches);
         }, 0);
@@ -393,8 +456,9 @@ function HabitacionesContent() {
             motivo: 'Reserva de Habitación',
             entrada: fechaEntrada,
             salida: fechaSalida,
-            adultos: filtroAdultos > 0 ? filtroAdultos.toString() : '2',
-            ninos: filtroNinos.toString(),
+            adultos: appliedFilters.adultos > 0 ? appliedFilters.adultos.toString() : '2',
+            ninos: appliedFilters.ninos.toString(),
+            ninosEdades: appliedFilters.ninosEdades.join(','),
             habitacion: details,
             desayuno: hasDesayuno ? '1' : '0',
             almuerzo: hasAlmuerzo ? '1' : '0',
@@ -416,8 +480,9 @@ function HabitacionesContent() {
                         nombre_cliente: 'Cliente Web (WhatsApp)',
                         meta: {
                             comidas: item.comidas,
-                            adultos: filtroAdultos,
-                            ninos: filtroNinos,
+                            adultos: appliedFilters.adultos,
+                            ninos: appliedFilters.ninos,
+                            ninosEdades: appliedFilters.ninosEdades,
                             total_items: cart.length
                         }
                     })
@@ -453,7 +518,7 @@ function HabitacionesContent() {
                 {/* Hero Section */}
                 <div className="relative h-[60vh] min-h-[400px] bg-cardenal-green flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/habitaciones/hero-habitaciones.webp"
+                        src="/images/habitaciones/triple-main.webp"
                         alt="Habitaciones Hotel El Cardenal"
                         fill
                         sizes="100vw"
@@ -554,7 +619,11 @@ function HabitacionesContent() {
                                 </label>
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => setFiltroNinos(Math.max(0, filtroNinos - 1))}
+                                        onClick={() => {
+                                            const newVal = Math.max(0, filtroNinos - 1);
+                                            setFiltroNinos(newVal);
+                                            setNinosEdades(prev => prev.slice(0, newVal));
+                                        }}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
@@ -562,7 +631,11 @@ function HabitacionesContent() {
                                     </button>
                                     <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroNinos}</span>
                                     <button
-                                        onClick={() => setFiltroNinos(filtroNinos + 1)}
+                                        onClick={() => {
+                                            const newVal = filtroNinos + 1;
+                                            setFiltroNinos(newVal);
+                                            setNinosEdades(prev => [...prev, 5]); // Edad por defecto 5
+                                        }}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
@@ -582,6 +655,49 @@ function HabitacionesContent() {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Edades de los niños */}
+                        {filtroNinos > 0 && (
+                            <div className="mt-4 p-4 bg-amber-50/50 rounded-xl border border-amber-100 animate-fadeIn flex flex-col md:flex-row md:items-center gap-6">
+                                <div className="shrink-0">
+                                    <p className="text-xs font-bold text-amber-700 uppercase flex items-center gap-2 mb-1">
+                                        <Users className="w-4 h-4" /> Edades Requeridas
+                                    </p>
+                                    <p className="text-[10px] text-amber-600/70 italic">Indispensable para el cálculo de su tarifa</p>
+                                </div>
+                                <div className="flex flex-wrap gap-4">
+                                    {ninosEdades.map((age, idx) => (
+                                        <div key={idx} className="flex flex-col gap-1 group">
+                                            <label className="text-[10px] font-bold text-gray-400 group-hover:text-amber-500 transition-colors">Niño {idx + 1}</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="17"
+                                                    value={isNaN(age) ? '' : age}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        const newAges = [...ninosEdades];
+                                                        newAges[idx] = val === '' ? NaN : parseInt(val);
+                                                        setNinosEdades(newAges);
+                                                    }}
+                                                    className="w-16 p-2 border-2 border-amber-100 rounded-lg bg-white text-sm font-bold focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all"
+                                                />
+                                                <span className="absolute -right-2 -top-2 bg-amber-500 text-white text-[8px] font-bold px-1 rounded-full border border-white">
+                                                    {age >= childAgeThreshold ? 'AD' : 'Ni'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="hidden md:ml-auto md:flex items-start gap-2 max-w-[200px]">
+                                    <Info className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                                    <p className="text-[10px] text-gray-500 leading-tight">
+                                        Los niños de <span className="font-bold text-amber-600">{childAgeThreshold} años</span> o más se cobran como adultos.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -697,7 +813,7 @@ function HabitacionesContent() {
 
                                                         {/* Price overlay - Dynamic pricing based on guest count */}
                                                         <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-3 font-serif font-bold italic text-3xl shadow-2xl">
-                                                            ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninos).toFixed(2)} <span className="text-[10px] font-normal not-italic">/ noche</span>
+                                                            ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold).toFixed(2)} <span className="text-[10px] font-normal not-italic">/ noche</span>
                                                         </div>
                                                     </div>
 
@@ -748,7 +864,7 @@ function HabitacionesContent() {
                                                             <div className="absolute top-0 right-0 w-16 h-16 bg-cardenal-gold/5 -rotate-45 translate-x-8 -translate-y-8 group-hover/meals:scale-150 transition-transform duration-700"></div>
                                                             <p className="text-base font-extrabold text-cardenal-green mb-4 flex items-center gap-2 font-serif italic">
                                                                 <Sparkles className="w-5 h-5 text-cardenal-gold animate-pulse" />
-                                                                Agrega si quieres tu residencia con:
+                                                                Agrega tu estancia con:
                                                             </p>
                                                             <div className="grid grid-cols-1 xs:grid-cols-3 gap-2">
                                                                 {([
@@ -870,7 +986,7 @@ function HabitacionesContent() {
                 {availabilityRoom && (
                     <RoomAvailabilityModal
                         habitacion={availabilityRoom}
-                        initialOccupancy={appliedFilters.adultos + appliedFilters.ninos}
+                        initialOccupancy={appliedFilters.adultos + appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length}
                         fechaEntrada={appliedFilters.entrada}
                         fechaSalida={appliedFilters.salida}
                         onClose={() => setAvailabilityRoom(null)}

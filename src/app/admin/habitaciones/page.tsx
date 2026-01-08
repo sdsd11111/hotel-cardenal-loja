@@ -7,7 +7,8 @@ import AdminHabitacionesList from '@/components/AdminHabitacionesList';
 import HabitacionForm from '@/components/HabitacionForm';
 import RoomConfigForm from '@/components/RoomConfigForm';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, LogOut, LayoutDashboard, Home, Settings2, X } from 'lucide-react';
+import GeneralSettingsForm from '@/components/GeneralSettingsForm';
+import { Plus, ChevronLeft, LogOut, LayoutDashboard, Home, Settings2, X, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function AdminHabitacionesPage() {
@@ -19,7 +20,7 @@ export default function AdminHabitacionesPage() {
     const [error, setError] = useState<string | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [selectedHabitacion, setSelectedHabitacion] = useState<any | null>(null);
-    const [activeTab, setActiveTab] = useState<'inventory' | 'configs'>('inventory');
+    const [activeTab, setActiveTab] = useState<'inventory' | 'configs' | 'general'>('inventory');
 
     const fetchHabitaciones = async (retryCount = 0) => {
         try {
@@ -128,6 +129,15 @@ export default function AdminHabitacionesPage() {
                             >
                                 Configuración de Modales
                             </button>
+                            <button
+                                onClick={() => setActiveTab('general')}
+                                className={cn(
+                                    "px-4 py-1.5 text-sm font-bold rounded-md transition-all",
+                                    activeTab === 'general' ? "bg-white text-cardenal-green shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                )}
+                            >
+                                General
+                            </button>
                         </div>
                         {activeTab === 'inventory' && (
                             <Button onClick={() => { setSelectedHabitacion(null); setShowForm(true); }} className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white">
@@ -185,7 +195,7 @@ export default function AdminHabitacionesPage() {
                             onToggleStatus={handleToggleStatus}
                         />
                     </div>
-                ) : (
+                ) : activeTab === 'configs' ? (
                     <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm animate-fadeIn">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-cardenal-gold/10 rounded-lg">
@@ -204,6 +214,20 @@ export default function AdminHabitacionesPage() {
                         ) : (
                             <RoomConfigForm configs={roomConfigs} onUpdate={fetchConfigs} />
                         )}
+                    </div>
+                ) : (
+                    <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm animate-fadeIn">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-cardenal-gold/10 rounded-lg">
+                                <Globe className="w-5 h-5 text-cardenal-gold" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-cardenal-green">Configuración General del Hotel</h2>
+                                <p className="text-sm text-gray-500">Ajuste políticas globales como edades de niños, impuestos base, etc.</p>
+                            </div>
+                        </div>
+
+                        <GeneralSettingsForm onUpdate={() => { }} />
                     </div>
                 )}
             </main>
