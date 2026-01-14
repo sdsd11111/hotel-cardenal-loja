@@ -645,13 +645,27 @@ function HabitacionesContent() {
                             </div>
 
                             {/* Botón Aplicar */}
-                            <div className="col-span-1 xs:col-span-2 md:col-span-2">
+                            <div className="col-span-1 xs:col-span-2 md:col-span-2 flex gap-2">
                                 <button
                                     onClick={handleAplicarFiltros}
-                                    className="w-full bg-cardenal-gold hover:bg-cardenal-green text-white font-bold py-2 md:py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 group tracking-widest text-xs md:text-sm"
+                                    className="flex-1 bg-cardenal-gold hover:bg-cardenal-green text-white font-bold py-2 md:py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 group tracking-widest text-xs md:text-sm"
                                 >
                                     <Sparkles className="w-4 h-4 group-hover:animate-pulse" />
-                                    APLICAR CAMBIOS
+                                    APLICAR
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const params = new URLSearchParams({
+                                            amount: "1.00",
+                                            reserva: `PRUEBA-${Date.now().toString().slice(-6)}`,
+                                            description: "Prueba de Integración PayPhone ($1.00)"
+                                        });
+                                        router.push(`/checkout/pagos?${params.toString()}`);
+                                    }}
+                                    className="px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 md:py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 tracking-widest text-[10px] md:text-xs"
+                                    title="Probar flujo de pago con $1"
+                                >
+                                    $1 TEST
                                 </button>
                             </div>
                         </div>
