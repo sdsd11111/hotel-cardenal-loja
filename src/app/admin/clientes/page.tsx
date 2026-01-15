@@ -619,12 +619,12 @@ export default function AdminClientesPage() {
                     <button
                         onClick={() => setView('reporte')}
                         className={cn(
-                            "px-6 py-3 font-bold text-sm transition-all relative outline-none",
-                            view === 'reporte' ? "text-cardenal-green" : "text-gray-400 hover:text-gray-600"
+                            "pb-4 px-2 text-sm font-bold transition-all relative",
+                            view === 'reporte' ? "text-cardenal-gold" : "text-gray-400 hover:text-gray-600"
                         )}
                     >
-                        Reporte de Reservas (TAB)
-                        {view === 'reporte' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cardenal-gold" />}
+                        Reporte de Reservas (PayPhone)
+                        {view === 'reporte' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cardenal-gold animate-slideIn"></div>}
                     </button>
                 </div>
 
@@ -719,13 +719,19 @@ export default function AdminClientesPage() {
                                                             </div>
 
                                                             <div className="space-y-0.5">
-                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Detalles del Evento</p>
+                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Detalles Estancia</p>
                                                                 <div className="flex items-center gap-1.5 text-xs text-gray-700 font-bold">
                                                                     <Calendar className="w-3 h-3 text-orange-500" /> {cliente.fecha_entrada || '---'}
                                                                 </div>
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-700 font-bold">
-                                                                    <Clock className="w-3 h-3 text-orange-500" /> {cliente.hora_evento || '---'}
+                                                                <div className="flex items-center gap-1.5 text-xs text-blue-600 font-bold">
+                                                                    <MapPin className="w-3 h-3" /> {cliente.pais || 'No especificado'}
                                                                 </div>
+                                                            </div>
+                                                            <div className="space-y-0.5 max-w-[200px]">
+                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Peticiones / Comentarios</p>
+                                                                <p className="text-[10px] text-gray-600 italic truncate" title={cliente.comentarios}>
+                                                                    {cliente.comentarios || 'Sin peticiones'}
+                                                                </p>
                                                             </div>
 
                                                             <div className="space-y-0.5">
@@ -841,7 +847,16 @@ export default function AdminClientesPage() {
                                                     </td>
                                                     <td className="px-4 py-4 text-sm font-medium">{new Date(reserva.fecha_entrada).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                                                     <td className="px-4 py-4 text-sm text-gray-600">{new Date(reserva.fecha_salida).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                                    <td className="px-4 py-4 text-sm font-bold text-gray-700">{reserva.habitacion_id}</td>
+                                                    <td className="px-4 py-4 text-sm font-bold text-gray-700">
+                                                        {(() => {
+                                                            try {
+                                                                const meta = JSON.parse(reserva.meta);
+                                                                return meta.habitacion_nombre || reserva.habitacion_id;
+                                                            } catch (e) {
+                                                                return reserva.habitacion_id;
+                                                            }
+                                                        })()}
+                                                    </td>
                                                     <td className="px-4 py-4">
                                                         <select
                                                             value={reserva.estado}
@@ -869,13 +884,6 @@ export default function AdminClientesPage() {
                                 </table>
                             </div>
 
-                            <div className="mt-8 p-6 bg-blue-50/50 rounded-lg border border-blue-100 flex items-center gap-4">
-                                <Clock className="w-8 h-8 text-blue-400" />
-                                <div>
-                                    <h4 className="text-sm font-bold text-blue-800 uppercase tracking-tighter">Sincronización de Pasarela TAB</h4>
-                                    <p className="text-xs text-blue-600">Este reporte se actualiza automáticamente con cada pago confirmado vía Webhook. Los cambios manuales de estado se guardan al instante.</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 )}

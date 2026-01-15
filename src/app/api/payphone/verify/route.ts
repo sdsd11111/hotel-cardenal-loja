@@ -40,41 +40,58 @@ export async function POST(request: NextRequest) {
         const isApproved = data.transactionStatus === "Approved" || data.statusCode === 3;
 
         if (isApproved) {
-            // Fulfillment: Guardar en la base de datos
+            // Fulfillment: Guardar o Actualizar en la base de datos
             try {
-                // Si vienen datos de reserva desde el frontend (del localStorage o params), los usamos.
-                // Si no, usamos valores por defecto para la "Prueba de $1"
                 const amount = data.amount / 100;
+                const reservaParam = reservationData?.numero_reserva?.toString() || '';
 
-                await query(
-                    `INSERT INTO reservas (
-                        habitacion_id, fecha_entrada, fecha_salida, nombre_cliente, email_cliente,
-                        whatsapp, adultos, ninos, precio, comision, numero_reserva, estado, meta
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        reservationData?.habitacion_id || 'HAB-TEST',
-                        reservationData?.fecha_entrada || new Date().toISOString().split('T')[0],
-                        reservationData?.fecha_salida || new Date().toISOString().split('T')[0],
-                        reservationData?.nombre_cliente || 'PRUEBA PAYPHONE',
-                        reservationData?.email_cliente || 'prueba@payphone.com',
-                        reservationData?.whatsapp || '0999999999',
-                        reservationData?.adultos || 1,
-                        reservationData?.ninos || 0,
-                        amount,
-                        0,
-                        clientTransactionId,
-                        'OK',
-                        JSON.stringify({
-                            payphone_id: id,
-                            verified_at: new Date().toISOString(),
-                            test: clientTransactionId.includes('PRUEBA')
-                        })
-                    ]
-                );
-                console.log("Reserva guardada exitosamente en DB tras pago OK");
+                // Si el parámetro 'reserva' es un ID numérico (de la tabla reservas), actualizamos.
+                // Si contiene 'PRUEBA' o no es numérico, insertamos una nueva.
+                const isNumericId = /^\d+$/.test(reservaParam);
+
+                if (isNumericId) {
+                    // 1. ACTUALIZAR reserva existente (flujo real de checkout)
+                    // Obtenemos los meta actuales para no perder información si es necesario, 
+                    // o simplemente construimos el nuevo meta con lo que viene del checkout real.
+                    const newMeta = JSON.stringify({
+                        payphone_id: id,
+                        verified_at: new Date().toISOString(),
+                        peticiones: reservationData?.peticiones || '',
+                        pais: reservationData?.pais || '',
+                        reserva_para: reservationData?.reserva_para || 'mi',
+                        habitacion_nombre: reservationData?.habitacion_nombre || ''
+                    });
+
+                    const updated: any = await query(
+                        `UPDATE reservas 
+                         SET estado = 'OK', 
+                             numero_reserva = ?, 
+                             precio = ?,
+                             meta = ?
+                         WHERE id = ?`,
+                        [
+                            clientTransactionId,
+                            amount,
+                            newMeta,
+                            parseInt(reservaParam)
+                        ]
+                    );
+
+                    if (updated.affectedRows > 0) {
+                        console.log(`Reserva ID ${reservaParam} actualizada exitosamente a OK`);
+                        // Sincronizar con Lista de Clientes
+                        await syncWithClientes(reservationData, clientTransactionId);
+                    } else {
+                        console.log(`No se encontró la reserva ID ${reservaParam} para actualizar, insertando como nueva.`);
+                        await insertNewReserva(amount, reservaParam, id, clientTransactionId, reservationData);
+                    }
+                } else {
+                    // 2. INSERTAR nueva reserva (flujo de prueba o botón directo)
+                    await insertNewReserva(amount, reservaParam, id, clientTransactionId, reservationData);
+                }
+
             } catch (dbError) {
-                console.error("Error saving reservation to DB after successful payment:", dbError);
-                // No bloqueamos la respuesta al cliente, ya que el pago fue exitoso
+                console.error("Error updating/saving reservation to DB after successful payment:", dbError);
             }
 
             return NextResponse.json(data);
@@ -91,5 +108,93 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error("PayPhone verification error:", error);
         return NextResponse.json({ message: error.message }, { status: 500 });
+    }
+}
+
+async function insertNewReserva(amount: number, reservaParam: string, id: any, clientTransactionId: any, reservationData: any) {
+    // Si viene vacío o no existe, usamos hoy. Pero si viene del checkout REAL, debería estar.
+    const fechaEntrada = (reservationData?.fecha_entrada && reservationData.fecha_entrada !== '')
+        ? reservationData.fecha_entrada
+        : new Date().toISOString().split('T')[0];
+
+    const fechaSalida = (reservationData?.fecha_salida && reservationData.fecha_salida !== '')
+        ? reservationData.fecha_salida
+        : new Date().toISOString().split('T')[0];
+
+    await query(
+        `INSERT INTO reservas (
+            habitacion_id, fecha_entrada, fecha_salida, nombre_cliente, email_cliente,
+            whatsapp, adultos, ninos, precio, comision, numero_reserva, estado, meta
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            reservationData?.habitacion_id || 1,
+            fechaEntrada,
+            fechaSalida,
+            reservationData?.nombre_cliente || 'PRUEBA PAYPHONE',
+            reservationData?.email_cliente || 'prueba@payphone.com',
+            reservationData?.whatsapp || '0999999999',
+            reservationData?.adultos || 1,
+            reservationData?.ninos || 0,
+            amount,
+            0,
+            clientTransactionId,
+            'OK',
+            JSON.stringify({
+                payphone_id: id,
+                verified_at: new Date().toISOString(),
+                test: reservaParam.includes('PRUEBA'),
+                peticiones: reservationData?.peticiones || '',
+                pais: reservationData?.pais || '',
+                reserva_para: reservationData?.reserva_para || 'mi',
+                habitacion_nombre: reservationData?.habitacion_nombre || ''
+            })
+        ]
+    );
+    console.log("Nueva reserva insertada exitosamente en DB (Flujo PRUEBA)");
+
+    // Sincronizar con Lista de Clientes también para pruebas
+    await syncWithClientes({ ...reservationData, fecha_entrada: fechaEntrada, fecha_salida: fechaSalida }, clientTransactionId);
+}
+
+async function syncWithClientes(data: any, reservationNumber: string) {
+    try {
+        // Separar nombre y apellidos si es posible
+        const fullNombre = data?.nombre_cliente || 'Cliente Web';
+        const parts = fullNombre.split(' ');
+        const nombre = parts[0];
+        const apellidos = parts.slice(1).join(' ') || '';
+
+        await query(
+            `INSERT INTO clientes (
+                nombre, apellidos, email, telefono, fecha_entrada, fecha_salida,
+                adultos, ninos, habitacion_preferida, motivo, pais, comentarios,
+                activo, created_at, como_nos_conocio
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE 
+                ultima_estadia = VALUES(fecha_entrada),
+                total_estadias = total_estadias + 1,
+                comentarios = VALUES(comentarios),
+                pais = VALUES(pais)`,
+            [
+                nombre,
+                apellidos,
+                data?.email_cliente || null,
+                data?.whatsapp || null,
+                data?.fecha_entrada || null,
+                data?.fecha_salida || null,
+                data?.adultos || 1,
+                data?.ninos || 0,
+                data?.habitacion_nombre || data?.habitacion_id || null,
+                data?.reserva_para === 'otro' ? `Reserva para Tercero #${reservationNumber}` : `Reserva Online #${reservationNumber}`,
+                data?.pais || null,
+                data?.peticiones || null,
+                1,
+                new Date(),
+                'Web PayPhone'
+            ]
+        );
+        console.log("Cliente sincronizado en 'Lista de Clientes'");
+    } catch (err) {
+        console.error("Error syncing with clientes table:", err);
     }
 }

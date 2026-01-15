@@ -21,6 +21,15 @@ function PagosContent() {
     const clientTransactionId = searchParams.get('clientTransactionId');
     const email = searchParams.get('email') || '';
     const nombre = searchParams.get('nombre') || '';
+    const entrada = searchParams.get('entrada') || '';
+    const salida = searchParams.get('salida') || '';
+    const habitacion_id = searchParams.get('habitacion_id') || '';
+    const adultos = searchParams.get('adultos') || '';
+    const whatsapp = searchParams.get('whatsapp') || '';
+    const habitacion_nombre = searchParams.get('habitacion_nombre') || '';
+    const reserva_para = searchParams.get('reserva_para') || '';
+    const pais = searchParams.get('pais') || '';
+    const peticiones = searchParams.get('peticiones') || '';
 
     useEffect(() => {
         if (id && clientTransactionId) {
@@ -37,7 +46,16 @@ function PagosContent() {
                         numero_reserva: reservaId,
                         precio: parseFloat(amount),
                         email_cliente: email,
-                        nombre_cliente: nombre || (reservaId.includes('PRUEBA') ? 'PRUEBA PAYPHONE' : 'Reserva Web')
+                        nombre_cliente: nombre || (reservaId.includes('PRUEBA') ? 'PRUEBA PAYPHONE' : 'Huesped Cardenal (Datos incompletos)'),
+                        fecha_entrada: entrada,
+                        fecha_salida: salida,
+                        habitacion_id: habitacion_id ? parseInt(habitacion_id) : undefined,
+                        habitacion_nombre: habitacion_nombre,
+                        adultos: adultos ? parseInt(adultos) : undefined,
+                        whatsapp: whatsapp,
+                        reserva_para: reserva_para,
+                        pais: pais,
+                        peticiones: peticiones
                     }
                 })
             })

@@ -32,9 +32,11 @@ export default function CheckoutPage() {
         apellido: '',
         email: '',
         pais: 'Ecuador',
+        paisOtro: '',
         codigoPais: '+593',
         telefono: '',
-        peticiones: ''
+        peticiones: '',
+        reservaPara: 'mi' // 'mi' o 'otro'
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -131,7 +133,8 @@ export default function CheckoutPage() {
             nombre_cliente: `${formData.nombre} ${formData.apellido}`,
             email_cliente: formData.email,
             whatsapp: `${formData.codigoPais}${formData.telefono}`,
-            pais: formData.pais,
+            pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
+            reserva_para: formData.reservaPara,
             metodo_pago: 'tab',
             adultos: option.personas,
             ninos: 0,
@@ -140,7 +143,9 @@ export default function CheckoutPage() {
             estado: 'PENDIENTE',
             meta: JSON.stringify({
                 peticiones: formData.peticiones,
-                pais: formData.pais,
+                pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
+                reserva_para: formData.reservaPara,
+                habitacion_nombre: habitacion.nombre,
                 metodo_pago: 'tab'
             })
         };
@@ -355,19 +360,34 @@ export default function CheckoutPage() {
                                         <div className="space-y-6 border-t border-gray-100 pt-6">
                                             <div className="space-y-2">
                                                 <label className="text-sm font-bold block">País/región <span className="text-red-500">*</span></label>
-                                                <div className="relative max-w-md">
-                                                    <select
-                                                        name="pais"
-                                                        value={formData.pais}
-                                                        onChange={handleInputChange}
-                                                        className="w-full appearance-none border border-gray-400 rounded px-3 py-2 pr-10 outline-none focus:border-blue-500 bg-white"
-                                                    >
-                                                        <option>Ecuador</option>
-                                                        <option>Perú</option>
-                                                        <option>Colombia</option>
-                                                        <option>Estados Unidos</option>
-                                                    </select>
-                                                    <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-500 pointer-events-none" />
+                                                <div className="relative max-w-md space-y-3">
+                                                    <div className="relative">
+                                                        <select
+                                                            name="pais"
+                                                            value={formData.pais}
+                                                            onChange={handleInputChange}
+                                                            className="w-full appearance-none border border-gray-400 rounded px-3 py-2 pr-10 outline-none focus:border-blue-500 bg-white"
+                                                        >
+                                                            <option>Ecuador</option>
+                                                            <option>Perú</option>
+                                                            <option>Colombia</option>
+                                                            <option>Estados Unidos</option>
+                                                            <option>Otro</option>
+                                                        </select>
+                                                        <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-500 pointer-events-none" />
+                                                    </div>
+
+                                                    {formData.pais === 'Otro' && (
+                                                        <input
+                                                            type="text"
+                                                            name="paisOtro"
+                                                            placeholder="Escribe tu país o región"
+                                                            value={formData.paisOtro}
+                                                            onChange={handleInputChange}
+                                                            className="w-full border border-gray-400 rounded px-3 py-2 outline-none focus:border-blue-500 animate-fadeIn"
+                                                            required
+                                                        />
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -403,11 +423,25 @@ export default function CheckoutPage() {
                                                 <p className="text-sm font-bold">¿Para quién es esta reserva? (opcional)</p>
                                                 <div className="space-y-2">
                                                     <div className="flex items-center gap-2">
-                                                        <input type="radio" name="reserva-para" id="para-mi" defaultChecked />
+                                                        <input
+                                                            type="radio"
+                                                            name="reservaPara"
+                                                            id="para-mi"
+                                                            value="mi"
+                                                            checked={formData.reservaPara === 'mi'}
+                                                            onChange={handleInputChange}
+                                                        />
                                                         <label htmlFor="para-mi" className="text-sm font-medium">La reserva es para mí</label>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <input type="radio" name="reserva-para" id="para-otro" />
+                                                        <input
+                                                            type="radio"
+                                                            name="reservaPara"
+                                                            id="para-otro"
+                                                            value="otro"
+                                                            checked={formData.reservaPara === 'otro'}
+                                                            onChange={handleInputChange}
+                                                        />
                                                         <label htmlFor="para-otro" className="text-sm font-medium">La reserva es para otra persona</label>
                                                     </div>
                                                 </div>
@@ -477,7 +511,24 @@ export default function CheckoutPage() {
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <button
-                                                    onClick={() => router.push(`/checkout/pagos?amount=${total.toFixed(2)}&reserva=${savedReservaId}&email=${encodeURIComponent(formData.email)}`)}
+                                                    onClick={() => {
+                                                        const params = new URLSearchParams({
+                                                            amount: total.toFixed(2),
+                                                            reserva: savedReservaId,
+                                                            email: formData.email,
+                                                            nombre: `${formData.nombre} ${formData.apellido}`,
+                                                            entrada: fechaEntrada,
+                                                            salida: fechaSalida,
+                                                            habitacion_id: habitacion.id.toString(),
+                                                            habitacion_nombre: habitacion.nombre,
+                                                            adultos: option.personas.toString(),
+                                                            whatsapp: `${formData.codigoPais}${formData.telefono}`,
+                                                            reserva_para: formData.reservaPara,
+                                                            pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
+                                                            peticiones: formData.peticiones
+                                                        });
+                                                        router.push(`/checkout/pagos?${params.toString()}`);
+                                                    }}
                                                     className="group flex flex-col items-center justify-center p-8 border-2 border-[#0071c2] bg-[#f0f7ff] rounded-2xl hover:bg-[#e1f0ff] transition-all transform hover:-translate-y-1 shadow-md hover:shadow-xl"
                                                 >
                                                     <CreditCard className="w-12 h-12 text-[#0071c2] mb-4 group-hover:scale-110 transition-transform" />

@@ -655,15 +655,25 @@ function HabitacionesContent() {
                                 </button>
                                 <button
                                     onClick={() => {
+                                        // Priorizar habitación 303 (ID 6) si existe, sino la primera disponible
+                                        const room303 = habitaciones.find(h => h.nombre === '303');
+                                        const targetRoomId = room303 ? room303.id : (habitaciones.length > 0 ? habitaciones[0].id : 6);
+
                                         const params = new URLSearchParams({
                                             amount: "1.00",
                                             reserva: `PRUEBA-${Date.now().toString().slice(-6)}`,
-                                            description: "Prueba de Integración PayPhone ($1.00)"
+                                            description: `Prueba PayPhone ($1.00) - Hab ${room303 ? '303' : targetRoomId}`,
+                                            entrada: fechaEntrada || "2026-01-29",
+                                            salida: fechaSalida || "2026-01-30",
+                                            habitacion_id: targetRoomId.toString(),
+                                            adultos: (filtroAdultos > 0 ? filtroAdultos : 1).toString(),
+                                            nombre: "CRISTHOPHER REYES",
+                                            whatsapp: "0987654321"
                                         });
                                         router.push(`/checkout/pagos?${params.toString()}`);
                                     }}
                                     className="px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 md:py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 tracking-widest text-[10px] md:text-xs"
-                                    title="Probar flujo de pago con $1"
+                                    title="Probar flujo de pago con $1 (Room 303)"
                                 >
                                     $1 TEST
                                 </button>
