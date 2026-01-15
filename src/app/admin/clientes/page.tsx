@@ -88,6 +88,7 @@ interface Reserva {
     comision: number;
     numero_reserva: string;
     estado: string;
+    meta: string;
     created_at: string;
 }
 
