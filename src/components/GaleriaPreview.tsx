@@ -11,21 +11,21 @@ const galeriaImagenes = [
     {
         id: 2,
         categoria: 'HABITACIONES',
-        url: '/images/galeria/galeria-2.webp?v=2',
+        url: '/images/galeria/galeria-2.webp',
         titulo: 'Matrimonial',
         alt: 'Habitación Matrimonial - El rincón más íntimo y elegante para un descanso en pareja en Hotel El Cardenal'
     },
     {
         id: 3,
         categoria: 'HABITACIONES',
-        url: '/images/galeria/galeria-3.webp?v=2',
+        url: '/images/galeria/galeria-3.webp',
         titulo: 'Habitación Triple',
         alt: 'Habitación Triple - Versatilidad y confort para grupos que buscan un refugio tranquilo en Loja'
     },
     {
         id: 4,
         categoria: 'HABITACIONES',
-        url: '/images/galeria/galeria-4.webp?v=2',
+        url: '/images/galeria/galeria-4.webp',
         titulo: 'Doble Twin',
         alt: 'Doble Twin - Funcionalidad neoclásica ideal para viajeros de negocios y turismo en Loja'
     },
@@ -33,14 +33,14 @@ const galeriaImagenes = [
     {
         id: 5,
         categoria: 'ESPACIOS',
-        url: '/images/galeria/galeria-5.webp?v=2',
+        url: '/images/galeria/galeria-5.webp',
         titulo: 'Arquitectura Neoclásica',
         alt: 'Arquitectura Neoclásica - Detalles en piedra volcánica y madera que narran la historia de nuestra casa en Loja'
     },
     {
         id: 6,
         categoria: 'ESPACIOS',
-        url: '/images/galeria/galeria-6.webp?v=2',
+        url: '/images/galeria/galeria-6.webp',
         titulo: 'Salón de la Romería',
         alt: 'Salón de la Romería - Un espacio de arte y cultura con muebles Zuleta y esencia lojana'
     },
@@ -48,14 +48,14 @@ const galeriaImagenes = [
     {
         id: 7,
         categoria: 'RESTAURANTE',
-        url: '/images/galeria/galeria-7.webp?v=2',
+        url: '/images/galeria/galeria-7.webp',
         titulo: 'Desayuno Casero',
         alt: 'Desayuno Casero - El aroma del café lojano y sabores auténticos para empezar su día en Hotel El Cardenal'
     },
     {
         id: 8,
         categoria: 'RESTAURANTE',
-        url: '/images/galeria/galeria-8.webp?v=2',
+        url: '/images/galeria/galeria-8.webp',
         titulo: 'Nuestro Comedor',
         alt: 'Nuestro Comedor - Calidez familiar y atención personalizada en cada detalle gastronómico'
     },
@@ -63,7 +63,7 @@ const galeriaImagenes = [
     {
         id: 9,
         categoria: 'EVENTOS',
-        url: '/images/galeria/galeria-9.webp?v=2',
+        url: '/images/galeria/galeria-9.webp',
         titulo: 'Eventos Íntimos',
         alt: 'Eventos Íntimos - El escenario perfecto para celebraciones y reuniones corporativas exclusivas en Loja'
     }
@@ -148,8 +148,9 @@ export const GaleriaPreview = () => {
                                         alt={imagen.alt}
                                         fill
                                         loading="lazy"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                         className="object-cover transition-transform duration-1000 group-hover:scale-125"
-                                        unoptimized
+                                        quality={75}
                                     />
                                     {/* Gradient Overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -232,7 +233,7 @@ export const GaleriaPreview = () => {
                                 height={1080}
                                 className="max-w-full max-h-[80vh] object-contain shadow-2xl"
                                 priority
-                                unoptimized
+                                quality={90}
                             />
                         </div>
 

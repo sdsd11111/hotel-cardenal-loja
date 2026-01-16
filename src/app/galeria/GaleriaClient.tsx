@@ -18,12 +18,13 @@ export default function GaleriaClient() {
                 {/* Hero Visual - Full Screen */}
                 <div className="relative w-full h-screen">
                     <Image
-                        src="/images/galeria/hero-galeria.webp?v=2"
+                        src="/images/galeria/hero-galeria.webp"
                         alt="Galería Hotel El Cardenal Loja"
                         fill
+                        sizes="100vw"
                         className="object-cover"
                         priority
-                        unoptimized
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="absolute inset-0 flex items-center justify-center">

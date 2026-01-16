@@ -36,7 +36,8 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ src, alt, classNam
                     alt={alt}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    quality={75}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                     <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 drop-shadow-md" />
@@ -65,7 +66,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ src, alt, classNam
                                 alt={alt}
                                 fill
                                 className="object-contain"
-                                unoptimized
+                                quality={85}
                             />
                         </div>
                     </div>

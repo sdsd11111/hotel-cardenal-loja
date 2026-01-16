@@ -162,11 +162,12 @@ export default function RestaurantePage() {
                         {/* Visual Image */}
                         <div className="relative h-full min-h-[400px] rounded-xl overflow-hidden shadow-xl bg-gray-100 group">
                             <Image
-                                src="/images/restaurante/rest.webp?v=2"
+                                src="/images/restaurante/rest.webp"
                                 alt="El Desayuno: Nuestra Especialidad en Hotel El Cardenal"
                                 fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
                                 className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                unoptimized
+                                quality={75}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                             <div className="absolute bottom-6 left-6 text-white z-10">

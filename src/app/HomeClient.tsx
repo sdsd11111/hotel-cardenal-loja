@@ -118,12 +118,13 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                 }`}
                         >
                             <Image
-                                src={`${slide.image}?v=2`}
+                                src={slide.image}
                                 alt={HERO_CONTENT.title}
                                 fill
                                 className="object-cover"
                                 priority={index === 0}
-                                unoptimized
+                                quality={75}
+                                sizes="100vw"
                             />
                             <div className={cn("absolute inset-0 transition-all duration-1000", themeClass ? "hero-theme-2-gradient opacity-90" : "bg-black/50 md:bg-black/40")}></div>
                             <div className={cn("absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent", themeClass ? "opacity-30" : "opacity-100")}></div>

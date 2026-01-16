@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MapPin, Zap, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Zap, ShieldCheck, ChevronDown, ChevronUp, Play } from 'lucide-react';
 import Image from 'next/image';
 
 const proposalContent = [
@@ -34,6 +34,7 @@ const proposalContent = [
 export const NuestraPropuesta = () => {
     const [activeTab, setActiveTab] = useState('historia');
     const [isExpanded, setIsExpanded] = useState(false);
+    const [videoLoaded, setVideoLoaded] = useState(false);
 
     // Reset expansion when changing tabs
     const handleTabChange = (id: string) => {
@@ -106,18 +107,45 @@ export const NuestraPropuesta = () => {
                         </div>
                     </div>
 
-                    {/* Right Column: Visual Component */}
+                    {/* Right Column: Visual Component with Lazy Loading */}
                     <div className="lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:h-full lg:mb-0 mb-12 self-center">
                         <div className="relative aspect-video w-full overflow-hidden shadow-2xl rounded-2xl ring-4 ring-white/50 bg-black">
-                            <iframe
-                                width="100%"
-                                height="100%"
-                                src="https://www.youtube.com/embed/-XnNorw5qmc?autoplay=0&controls=1&rel=0"
-                                title="Experiencia Hotel El Cardenal"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                className="absolute inset-0 w-full h-full object-cover"
-                            ></iframe>
+                            {!videoLoaded ? (
+                                // YouTube Facade/Placeholder
+                                <button
+                                    onClick={() => setVideoLoaded(true)}
+                                    className="absolute inset-0 w-full h-full group cursor-pointer"
+                                    aria-label="Cargar video de YouTube"
+                                >
+                                    {/* Thumbnail from YouTube */}
+                                    <Image
+                                        src="https://img.youtube.com/vi/-XnNorw5qmc/maxresdefault.jpg"
+                                        alt="Video Hotel El Cardenal"
+                                        fill
+                                        className="object-cover"
+                                        loading="lazy"
+                                    />
+                                    {/* Dark overlay */}
+                                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors"></div>
+                                    {/* Play button */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                                            <Play className="w-10 h-10 text-white ml-1" fill="white" />
+                                        </div>
+                                    </div>
+                                </button>
+                            ) : (
+                                // Actual YouTube iframe (loaded on click)
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    src="https://www.youtube.com/embed/-XnNorw5qmc?autoplay=1&controls=1&rel=0"
+                                    title="Experiencia Hotel El Cardenal"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                ></iframe>
+                            )}
                         </div>
                     </div>
                 </div>

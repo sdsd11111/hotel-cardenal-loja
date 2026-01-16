@@ -18,11 +18,11 @@ export const metadata: Metadata = {
 };
 
 const galleryImages = [
-    '/images/habitaciones/triple/triple-main.webp?v=2',
-    '/images/habitaciones/triple/triple-thumb.webp?v=2',
-    '/images/habitaciones/triple/doble-twin-main.webp?v=2',
-    '/images/habitaciones/triple/familiar-loft-main.webp?v=2',
-    '/images/habitaciones/triple/matrimonial-main.webp?v=2'
+    '/images/habitaciones/triple/triple-main.webp',
+    '/images/habitaciones/triple/triple-thumb.webp',
+    '/images/habitaciones/triple/doble-twin-main.webp',
+    '/images/habitaciones/triple/familiar-loft-main.webp',
+    '/images/habitaciones/triple/matrimonial-main.webp'
 ];
 
 export default function TriplePage() {
@@ -76,12 +76,13 @@ export default function TriplePage() {
                 {/* Hero Section */}
                 <div className="relative h-screen flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/habitaciones/triple/triple-main.webp?v=2"
+                        src="/images/habitaciones/triple/triple-main.webp"
                         alt="Habitación Triple - Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
                         priority
-                        unoptimized
+                        sizes="100vw"
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
@@ -228,11 +229,12 @@ export default function TriplePage() {
                                 </div>
                                 <div className="relative h-[350px] rounded-lg overflow-hidden shadow-xl group">
                                     <Image
-                                        src="/images/habitaciones/triple/triple-main.webp?v=2"
+                                        src="/images/habitaciones/triple/triple-main.webp"
                                         alt="Habitación Triple Loja"
                                         fill
                                         className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                        unoptimized
+                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        quality={75}
                                     />
                                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
                                 </div>

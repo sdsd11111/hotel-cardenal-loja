@@ -19,8 +19,8 @@ const habitaciones = [
             'Acceso directo a áreas comunes y senderos ecológicos.',
             'Ideal para grupos de amigos o viajes de trabajo en equipo.'
         ],
-        imagenPrincipal: '/images/habitaciones/triple/triple-main.webp?v=3',
-        imagenMiniatura: '/images/habitaciones/triple/triple-thumb.webp?v=3',
+        imagenPrincipal: '/images/habitaciones/triple/triple-main.webp',
+        imagenMiniatura: '/images/habitaciones/triple/triple-thumb.webp',
         icon: <BedDouble className="w-5 h-5" />
     },
     {
@@ -34,8 +34,8 @@ const habitaciones = [
             'Ambiente libre de ruidos, perfecto para un sueño reparador.',
             'La opción preferida por viajeros de negocios y turistas.'
         ],
-        imagenPrincipal: '/images/habitaciones/doble/doble-twin-main.webp?v=3',
-        imagenMiniatura: '/images/habitaciones/doble/doble-twin-thumb.webp?v=3',
+        imagenPrincipal: '/images/habitaciones/doble/doble-twin-main.webp',
+        imagenMiniatura: '/images/habitaciones/doble/doble-twin-thumb.webp',
         icon: <Maximize className="w-5 h-5" />
     },
     {
@@ -49,8 +49,8 @@ const habitaciones = [
             'Ambiente cálido y privado para una estancia romántica.',
             'El rincón de paz ideal tras recorrer la ciudad de Loja.'
         ],
-        imagenPrincipal: '/images/habitaciones/matrimonial/matrimonial-main.webp?v=3',
-        imagenMiniatura: '/images/habitaciones/matrimonial/matrimonial-thumb.webp?v=3',
+        imagenPrincipal: '/images/habitaciones/matrimonial/matrimonial-main.webp',
+        imagenMiniatura: '/images/habitaciones/matrimonial/matrimonial-thumb.webp',
         icon: <Wind className="w-5 h-5" />
     }
 ];
@@ -99,9 +99,9 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
                                                 src={h.imagenMiniatura}
                                                 alt={h.nombre}
                                                 fill
-                                                sizes="(max-width: 768px) 50vw, 20vw"
+                                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                                                 className={`object-cover transition-transform duration-1000 ${activeId === h.id ? 'scale-110' : 'group-hover:scale-110'}`}
-                                                unoptimized
+                                                quality={75}
                                             />
                                             {activeId === h.id && (
                                                 <div className="absolute inset-0 bg-cardenal-green/10 ring-2 ring-inset ring-cardenal-gold"></div>
@@ -127,10 +127,10 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
                                         src={activeHabitacion.imagenPrincipal}
                                         alt={activeHabitacion.nombre}
                                         fill
-                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
                                         className="object-cover animate-fadeIn"
                                         priority
-                                        unoptimized
+                                        quality={80}
                                     />
                                     <div className={cn("absolute top-6 left-6 p-3 shadow-lg flex items-center gap-2", isTheme2 ? "bg-cardenal-gold text-white" : "bg-cardenal-green text-white")}>
                                         {activeHabitacion.icon}

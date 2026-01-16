@@ -84,12 +84,13 @@ export default function TurismoPage() {
                 {/* Fullscreen Hero Section */}
                 <div className="relative h-screen w-full flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/turismo/hero.webp?v=2"
+                        src="/images/turismo/hero.webp"
                         alt="Turismo en Loja - Hotel El Cardenal"
                         fill
                         className="object-cover"
                         priority
-                        unoptimized
+                        sizes="100vw"
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
@@ -131,7 +132,7 @@ export default function TurismoPage() {
                             {/* 1. Parque Lineal La Tebaida */}
                             <div className="flex flex-col md:flex-row gap-8 items-center bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 <ImageLightbox
-                                    src="/images/turismo/parque-lineal.webp?v=2"
+                                    src="/images/turismo/parque-lineal.webp"
                                     alt="Parque Lineal La Tebaida - Cerca de Hotel El Cardenal"
                                     className="w-full md:w-1/2"
                                     aspectRatio="h-64 md:h-80"
@@ -153,7 +154,7 @@ export default function TurismoPage() {
                             {/* 2. Parque Recreacional Jipiro */}
                             <div className="flex flex-col md:flex-row-reverse gap-8 items-center bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 <ImageLightbox
-                                    src="/images/turismo/parque-jipiro.webp?v=2"
+                                    src="/images/turismo/parque-jipiro.webp"
                                     alt="Parque Recreacional Jipiro - Cerca de Hotel El Cardenal"
                                     className="w-full md:w-1/2"
                                     aspectRatio="h-64 md:h-80"
@@ -175,7 +176,7 @@ export default function TurismoPage() {
                             {/* 3. Parque Colinar Pucará */}
                             <div className="flex flex-col md:flex-row gap-8 items-center bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 <ImageLightbox
-                                    src="/images/turismo/Pucara.webp?v=2"
+                                    src="/images/turismo/Pucara.webp"
                                     alt="Parque Colinar Pucará Vista Panorámica - Cerca de Hotel El Cardenal"
                                     className="w-full md:w-1/2"
                                     aspectRatio="h-64 md:h-80"
@@ -213,7 +214,7 @@ export default function TurismoPage() {
                         <div className="grid md:grid-cols-3 gap-6">
                             <div className="bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden hover:-translate-y-1 transition-transform">
                                 <ImageLightbox
-                                    src="/images/turismo/puerta-de-la-city.webp?v=2"
+                                    src="/images/turismo/puerta-de-la-city.webp"
                                     alt="Puerta de la Ciudad Loja - Cerca de Hotel El Cardenal"
                                     aspectRatio="h-48"
                                 />
@@ -226,7 +227,7 @@ export default function TurismoPage() {
 
                             <div className="bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden hover:-translate-y-1 transition-transform">
                                 <ImageLightbox
-                                    src="/images/turismo/plaza.webp?v=2"
+                                    src="/images/turismo/plaza.webp"
                                     alt="Plaza de la Independencia Loja"
                                     aspectRatio="h-48"
                                 />
@@ -239,7 +240,7 @@ export default function TurismoPage() {
 
                             <div className="bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden hover:-translate-y-1 transition-transform">
                                 <ImageLightbox
-                                    src="/images/turismo/calle-lourdes.webp?v=2"
+                                    src="/images/turismo/calle-lourdes.webp"
                                     alt="Calle Lourdes Loja"
                                     aspectRatio="h-48"
                                 />
@@ -287,7 +288,7 @@ export default function TurismoPage() {
                                 </ul>
                             </div>
                             <ImageLightbox
-                                src="/images/turismo/gastronomia.png?v=2"
+                                src="/images/turismo/gastronomia.png"
                                 alt="Gastronomía Tradicional de Loja - Cerca de Hotel El Cardenal"
                                 className="rounded-xl shadow-lg border-4 border-white"
                                 aspectRatio="h-80"

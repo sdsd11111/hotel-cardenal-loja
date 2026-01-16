@@ -69,12 +69,13 @@ export default function EventosPage() {
                 {/* Fullscreen Hero Section */}
                 <div className="relative h-screen w-full flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/eventos/hero.webp?v=2"
+                        src="/images/eventos/hero.webp"
                         alt="Salón de Eventos y Reuniones Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
                         priority
-                        unoptimized
+                        sizes="100vw"
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto">
@@ -142,11 +143,12 @@ export default function EventosPage() {
                         <div className="grid lg:grid-cols-2">
                             <div className="relative min-h-[400px] lg:min-h-full">
                                 <Image
-                                    src="/images/eventos/servicios-para-eventos.webp?v=2"
+                                    src="/images/eventos/servicios-para-eventos.webp"
                                     alt="Reunión Corporativa Hotel Cardenal"
                                     fill
                                     className="object-cover"
-                                    unoptimized
+                                    sizes="(max-width: 1024px) 100vw, 50vw"
+                                    quality={75}
                                 />
                                 <div className="absolute inset-0 bg-black/20"></div>
                             </div>

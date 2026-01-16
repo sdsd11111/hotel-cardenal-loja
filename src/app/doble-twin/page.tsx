@@ -18,11 +18,11 @@ export const metadata: Metadata = {
 };
 
 const galleryImages = [
-    '/images/habitaciones/doble/doble-twin-main.webp?v=2',
-    '/images/habitaciones/doble/doble-twin-thumb.webp?v=2',
-    '/images/habitaciones/doble/familiar-loft-main.webp?v=2',
-    '/images/habitaciones/doble/matrimonial-main.webp?v=2',
-    '/images/habitaciones/doble/triple-main.webp?v=2'
+    '/images/habitaciones/doble/doble-twin-main.webp',
+    '/images/habitaciones/doble/doble-twin-thumb.webp',
+    '/images/habitaciones/doble/familiar-loft-main.webp',
+    '/images/habitaciones/doble/matrimonial-main.webp',
+    '/images/habitaciones/doble/triple-main.webp'
 ];
 
 export default function DobleTwinPage() {
@@ -76,12 +76,13 @@ export default function DobleTwinPage() {
                 {/* Hero Section */}
                 <div className="relative h-screen flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/habitaciones/doble/doble-twin-thumb.webp?v=2"
+                        src="/images/habitaciones/doble/doble-twin-thumb.webp"
                         alt="Habitación Doble Twin - Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
                         priority
-                        unoptimized
+                        sizes="100vw"
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
@@ -269,6 +270,8 @@ export default function DobleTwinPage() {
                                         alt="Entorno tranquilo Hotel Cardenal"
                                         fill
                                         className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        quality={75}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-cardenal-green/80 to-transparent flex items-end p-6">
                                         <p className="text-white font-serif italic text-lg">"Un oasis de paz cerca de todo"</p>

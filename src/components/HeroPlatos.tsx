@@ -249,7 +249,7 @@ export default function HeroPlatos() {
                 fill
                 className={`object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-90'}`}
                 priority={currentIndex === 0}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                sizes="(max-width: 768px) 100vw, 100vw"
                 onError={() => {
                   handleImageError(currentPlato.id);
                   setIsImageLoading(false);
@@ -257,7 +257,7 @@ export default function HeroPlatos() {
                 onLoad={() => {
                   setIsImageLoading(false);
                 }}
-                unoptimized
+                quality={75}
               />
             </div>
           ) : (

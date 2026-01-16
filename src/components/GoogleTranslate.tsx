@@ -148,22 +148,29 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false }: Go
       }
     };
 
-    // Load Google Translate script only if not already loaded
-    const existingScript = document.querySelector('script[src*="translate.google.com"]');
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      script.async = true;
-      document.body.appendChild(script);
-    } else if (window.google && window.google.translate) {
-      // Script already loaded, initialize now
-      window.googleTranslateElementInit();
-    }
-
-    return () => {
-      // Don't cleanup on unmount to prevent reinitialization issues
-      // The script and styles should persist
+    // Load Google Translate script only after a short delay and if not already loaded
+    const loadScript = () => {
+      const existingScript = document.querySelector('script[src*="translate.google.com"]');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+        script.async = true;
+        document.body.appendChild(script);
+      } else if (window.google && window.google.translate) {
+        window.googleTranslateElementInit();
+      }
     };
+
+    // Use interaction or timeout to load the heavy third-party script
+    const timeoutId = setTimeout(() => {
+      if (document.readyState === 'complete') {
+        loadScript();
+      } else {
+        window.addEventListener('load', loadScript, { once: true });
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
   }, [inHeader]);
 
   const changeLanguage = (lang: typeof languages[0]) => {

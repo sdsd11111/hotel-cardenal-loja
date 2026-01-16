@@ -57,9 +57,10 @@ export default function SimpleGallerySlider({ images, aspectRatio = 'aspect-[4/3
                         src={images[currentIndex]}
                         alt={`Galería slide ${currentIndex + 1}`}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 50vw"
                         className="object-cover transition-all duration-500 group-hover:scale-105"
                         priority={currentIndex === 0}
-                        unoptimized
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
                         <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity w-12 h-12 drop-shadow-md" />
@@ -122,7 +123,7 @@ export default function SimpleGallerySlider({ images, aspectRatio = 'aspect-[4/3
                                 fill
                                 className="object-contain"
                                 priority
-                                unoptimized
+                                quality={85}
                             />
                         </div>
 

@@ -67,12 +67,13 @@ export default function BlogClient({ initialArticles, initialCategory = 'Todas' 
             <section className="relative h-screen w-full flex items-center justify-center overflow-hidden p-0 m-0">
                 {/* Background Image */}
                 <Image
-                    src="/images/contacto/blog-hero.webp?v=2"
+                    src="/images/contacto/blog-hero.webp"
                     alt="Blog y Novedades de Loja - Hotel El Cardenal"
                     fill
                     className="object-cover"
                     priority
-                    unoptimized
+                    sizes="100vw"
+                    quality={75}
                 />
 
                 {/* Overlay */}

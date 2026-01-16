@@ -552,6 +552,7 @@ function HabitacionesContent() {
                         sizes="100vw"
                         className="object-cover opacity-50"
                         priority
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-cardenal-green/60"></div>
                     <div className="relative z-10 text-center text-white px-4">
@@ -809,12 +810,12 @@ function HabitacionesContent() {
                                                 >
                                                     <div className="w-full relative aspect-[16/9] shrink-0 overflow-hidden border-b border-cardenal-gold/10">
                                                         <Image
-                                                            src={habitacion.imagen ? (habitacion.imagen.startsWith('/api') ? `${habitacion.imagen}${habitacion.imagen.includes('?') ? '&' : '?'}v=${Date.now()}` : habitacion.imagen) : '/placeholder.jpg'}
+                                                            src={habitacion.imagen || '/placeholder.jpg'}
                                                             alt={habitacion.nombre}
                                                             fill
                                                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
                                                             className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                                                            unoptimized
+                                                            quality={75}
                                                         />
                                                         <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700"></div>
 

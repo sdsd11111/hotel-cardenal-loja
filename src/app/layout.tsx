@@ -4,50 +4,59 @@ import "./globals.css";
 import { FontAwesomeProvider } from "./providers";
 import GoogleTranslateWrapper from "@/components/GoogleTranslateWrapper";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: 'swap' });
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
   weight: ["400", "500", "600", "700", "800", "900"],
+  display: 'swap',
 });
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-cormorant",
+  display: 'swap',
 });
 const lato = Lato({
   subsets: ["latin"],
   weight: ["100", "300", "400", "700", "900"],
   variable: "--font-lato",
+  display: 'swap',
 });
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
+  display: 'swap',
 });
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
+  display: 'swap',
 });
 
 const cinzel = Cinzel({
   variable: "--font-cinzel",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
+  display: 'swap',
 });
 
 const allura = Allura({
   variable: "--font-allura",
   subsets: ["latin"],
   weight: ["400"],
+  display: 'swap',
 });
 
 const libre = Libre_Baskerville({
   variable: "--font-libre",
   subsets: ["latin"],
   weight: ["400", "700"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://hotelelcardenalloja.com'),
   title: "Hotel Familiar en Loja | Desayuno Incluido | Hotel El Cardenal",
   description: "Disfrute de un hotel familiar en Loja con desayuno incluido, parking gratis y cerca de la naturaleza. Reserve en Hotel El Cardenal, su hogar íntimo en Loja.",
   keywords: ["Hotel Familiar en Loja", "Desayuno Incluido", "Cerca de la Naturaleza", "Alojamiento en Loja", "Hotel El Cardenal", "Loja", "Ecuador", "Hospedaje", "Turismo Loja"],
@@ -82,6 +91,9 @@ export const metadata: Metadata = {
   verification: {
     google: 'b8aT21-LZNETjhU4bA6PX_7tV-OQ941E5SpXG_7NFpw',
   },
+  other: {
+    'dns-prefetch': ['https://fonts.gstatic.com', 'https://translate.googleapis.com'],
+  },
 };
 
 export default function RootLayout({
@@ -91,6 +103,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://translate.googleapis.com" />
+        <link rel="dns-prefetch" href="https://img.youtube.com" />
+      </head>
       <body className={`${cormorantGaramond.variable} ${lato.variable} ${playfairDisplay.variable} ${outfit.variable} ${inter.variable} ${cinzel.variable} ${allura.variable} ${libre.variable} ${montserrat.variable} antialiased bg-cardenal-cream text-text-main flex flex-col min-h-screen font-sans`}>
         <FontAwesomeProvider>
           <div className="flex flex-col flex-1">

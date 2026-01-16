@@ -17,25 +17,25 @@ const categories = [
 
 // Descriptive Gallery Images
 const galleryImages = [
-    { id: 2, src: '/images/galeria/galeria-2.webp?v=3', alt: 'Habitación Matrimonial', category: 'habitaciones' },
-    { id: 3, src: '/images/galeria/galeria-3.webp?v=3', alt: 'Triple Confort: Ideal para Amigos', category: 'habitaciones' },
-    { id: 4, src: '/images/galeria/galeria-4.webp?v=3', alt: 'Doble Twin: Descanso Funcional', category: 'habitaciones' },
-    { id: 5, src: '/images/galeria/galeria-5.webp?v=3', alt: 'Fachada Histórica del Hotel El Cardenal', category: 'turismo' },
-    { id: 6, src: '/images/galeria/galeria-6.webp?v=3', alt: 'Entrada del Hotel Cardenal', category: 'turismo' },
-    { id: 7, src: '/images/galeria/galeria-7.webp?v=3', alt: 'Desayuno Tradicional: Sabores de Loja', category: 'restaurante' },
-    { id: 8, src: '/images/galeria/galeria-8.webp?v=3', alt: 'Salon de Eventos de Hotel Cardenal', category: 'restaurante' },
-    { id: 9, src: '/images/galeria/galeria-9.webp?v=3', alt: 'Mesa de eventos, con plateria', category: 'restaurante' },
-    { id: 10, src: '/images/galeria/galeria-10.webp?v=3', alt: 'Evento Corporativo', category: 'turismo' },
-    { id: 11, src: '/images/galeria/galeria-11.webp?v=3', alt: 'Cercanía al Parque Lineal La Tebaida', category: 'turismo' },
-    { id: 12, src: '/images/galeria/galeria-12.webp?v=3', alt: 'La Paz junto al Río Malacatos', category: 'turismo' },
-    { id: 13, src: '/images/galeria/galeria-13.webp?v=3', alt: 'Junto con nuestros huespedes en "Hotel Cardenal"', category: 'habitaciones' },
-    { id: 14, src: '/images/galeria/galeria-14.webp?v=3', alt: 'Puerta de la Ciudad', category: 'turismo' },
-    { id: 15, src: '/images/galeria/galeria-15.webp?v=3', alt: 'Hall Principal: Bienvenida Cálida', category: 'turismo' },
-    { id: 16, src: '/images/galeria/galeria-16.webp?v=3', alt: 'Plateria de eventos', category: 'eventos' },
-    { id: 17, src: '/images/galeria/galeria-17.webp?v=3', alt: 'Fruta Fresca de Nuestra Tierra', category: 'restaurante' },
-    { id: 18, src: '/images/galeria/galeria-18.webp?v=3', alt: 'Junto a nuestros huespedes', category: 'habitaciones' },
-    { id: 19, src: '/images/galeria/galeria-19.webp?v=3', alt: 'El Mejor Inicio del Día en Loja', category: 'restaurante' },
-    { id: 20, src: '/images/galeria/galeria-20.webp?v=3', alt: 'Tradición Familiar en Cada Detalle', category: 'turismo' },
+    { id: 2, src: '/images/galeria/galeria-2.webp', alt: 'Habitación Matrimonial', category: 'habitaciones' },
+    { id: 3, src: '/images/galeria/galeria-3.webp', alt: 'Triple Confort: Ideal para Amigos', category: 'habitaciones' },
+    { id: 4, src: '/images/galeria/galeria-4.webp', alt: 'Doble Twin: Descanso Funcional', category: 'habitaciones' },
+    { id: 5, src: '/images/galeria/galeria-5.webp', alt: 'Fachada Histórica del Hotel El Cardenal', category: 'turismo' },
+    { id: 6, src: '/images/galeria/galeria-6.webp', alt: 'Entrada del Hotel Cardenal', category: 'turismo' },
+    { id: 7, src: '/images/galeria/galeria-7.webp', alt: 'Desayuno Tradicional: Sabores de Loja', category: 'restaurante' },
+    { id: 8, src: '/images/galeria/galeria-8.webp', alt: 'Salon de Eventos de Hotel Cardenal', category: 'restaurante' },
+    { id: 9, src: '/images/galeria/galeria-9.webp', alt: 'Mesa de eventos, con plateria', category: 'restaurante' },
+    { id: 10, src: '/images/galeria/galeria-10.webp', alt: 'Evento Corporativo', category: 'turismo' },
+    { id: 11, src: '/images/galeria/galeria-11.webp', alt: 'Cercanía al Parque Lineal La Tebaida', category: 'turismo' },
+    { id: 12, src: '/images/galeria/galeria-12.webp', alt: 'La Paz junto al Río Malacatos', category: 'turismo' },
+    { id: 13, src: '/images/galeria/galeria-13.webp', alt: 'Junto con nuestros huespedes en "Hotel Cardenal"', category: 'habitaciones' },
+    { id: 14, src: '/images/galeria/galeria-14.webp', alt: 'Puerta de la Ciudad', category: 'turismo' },
+    { id: 15, src: '/images/galeria/galeria-15.webp', alt: 'Hall Principal: Bienvenida Cálida', category: 'turismo' },
+    { id: 16, src: '/images/galeria/galeria-16.webp', alt: 'Plateria de eventos', category: 'eventos' },
+    { id: 17, src: '/images/galeria/galeria-17.webp', alt: 'Fruta Fresca de Nuestra Tierra', category: 'restaurante' },
+    { id: 18, src: '/images/galeria/galeria-18.webp', alt: 'Junto a nuestros huespedes', category: 'habitaciones' },
+    { id: 19, src: '/images/galeria/galeria-19.webp', alt: 'El Mejor Inicio del Día en Loja', category: 'restaurante' },
+    { id: 20, src: '/images/galeria/galeria-20.webp', alt: 'Tradición Familiar en Cada Detalle', category: 'turismo' },
 ].map(img => ({ ...img, width: 800, height: 600 }));
 
 export const GalleryGrid = () => {
@@ -102,7 +102,8 @@ export const GalleryGrid = () => {
                                     height={image.height}
                                     className="w-full h-auto object-cover transform group-hover:scale-110 transition-transform duration-500"
                                     loading="lazy"
-                                    unoptimized
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    quality={75}
                                 />
                             </div>
                         </div>
@@ -159,7 +160,7 @@ export const GalleryGrid = () => {
                                 height={selectedImage.height}
                                 className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-sm"
                                 priority
-                                unoptimized
+                                quality={85}
                             />
                         </div>
                         <div className="mt-4 text-center">

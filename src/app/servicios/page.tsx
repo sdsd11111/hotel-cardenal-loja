@@ -77,12 +77,13 @@ export default function ServiciosPage() {
                 {/* Fullscreen Hero Section */}
                 <div className="relative h-screen w-full flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/servicios/hero.webp?v=2"
+                        src="/images/servicios/hero.webp"
                         alt="Servicios Integrales Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
                         priority
-                        unoptimized
+                        sizes="100vw"
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-black/40"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto">
@@ -141,7 +142,7 @@ export default function ServiciosPage() {
                                 </Link>
                             </div>
                             <ImageLightbox
-                                src="/images/servicios/gastronomia.webp?v=2"
+                                src="/images/servicios/gastronomia.webp"
                                 alt="Desayuno Lojano Hotel Cardenal"
                                 className="order-1 md:order-2 rounded-lg shadow-lg"
                                 aspectRatio="h-64"
@@ -151,7 +152,7 @@ export default function ServiciosPage() {
                         {/* H3: Seguridad */}
                         <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
                             <ImageLightbox
-                                src="/images/servicios/seguridad.webp?v=2"
+                                src="/images/servicios/seguridad.webp"
                                 alt="Seguridad y Parking Hotel Cardenal"
                                 className="relative rounded-lg shadow-lg"
                                 aspectRatio="h-64"
@@ -218,7 +219,7 @@ export default function ServiciosPage() {
                                 </Link>
                             </div>
                             <ImageLightbox
-                                src="/images/servicios/conectividad.webp?v=2"
+                                src="/images/servicios/conectividad.webp"
                                 alt="Reuniones de Negocios Hotel Cardenal"
                                 className="order-1 md:order-2 rounded-lg shadow-lg"
                                 aspectRatio="h-64"
@@ -296,7 +297,7 @@ export default function ServiciosPage() {
                             {[1, 2, 3, 4].map((i) => (
                                 <ImageLightbox
                                     key={i}
-                                    src={`/images/servicios/galeria-${i}.webp?v=2`}
+                                    src={`/images/servicios/galeria-${i}.webp`}
                                     alt={`Instalaciones Hotel El Cardenal Loja ${i}`}
                                     className="rounded-xl shadow-md"
                                     aspectRatio="aspect-video"

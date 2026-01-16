@@ -292,12 +292,13 @@ function ContactoContent() {
                 {/* Hero Section */}
                 <section className="relative h-screen flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/contacto/hero-contacto.webp?v=2"
+                        src="/images/contacto/hero-contacto.webp"
                         alt="Contacto Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
                         priority
-                        unoptimized
+                        sizes="100vw"
+                        quality={75}
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"></div>
 
