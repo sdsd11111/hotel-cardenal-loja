@@ -323,56 +323,6 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
 
 
 
-                    <div className="p-4 bg-cardenal-gold/5 border border-cardenal-gold/20 rounded-lg space-y-4">
-                        <h4 className="text-sm font-bold text-cardenal-green uppercase tracking-wider flex items-center gap-2">
-                            <Calendar className="w-4 h-4" /> Disponibilidad y Ocupación
-                        </h4>
-
-                        <div className="flex items-center justify-between p-2 bg-white rounded border">
-                            <label htmlFor="disponible-room" className="text-sm font-medium flex items-center gap-2 cursor-pointer">
-                                {disponible ? 'Disponible para nuevos huéspedes' : 'Habitación ocupada / No disponible'}
-                            </label>
-                            <Switch
-                                id="disponible-room"
-                                checked={disponible}
-                                onCheckedChange={(checked: boolean) => setValue('disponible', checked)}
-                                thumbClassName="bg-black"
-                            />
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div className="p-3 bg-white rounded border border-gray-100 flex flex-col space-y-2">
-                                        <label className="block text-[10px] font-bold text-cardenal-green uppercase tracking-wider mb-1 px-1">Entrada</label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            <div className="relative">
-                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
-                                                <Input type="date" {...register('fecha_entrada_date')} className="h-11 pl-10 bg-gray-50/50 border-gray-200 focus:border-cardenal-gold transition-all" />
-                                            </div>
-                                            <div className="relative">
-                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
-                                                <Input type="time" {...register('fecha_entrada_time')} className="h-11 pl-10 bg-gray-50/50 border-gray-200 focus:border-cardenal-gold transition-all" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="p-3 bg-white rounded border border-gray-100 flex flex-col space-y-2">
-                                        <label className="block text-[10px] font-bold text-cardenal-green uppercase tracking-wider mb-1 px-1">Salida</label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            <div className="relative">
-                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
-                                                <Input type="date" {...register('fecha_salida_date')} className="h-11 pl-10 bg-gray-50/50 border-gray-200 focus:border-cardenal-gold transition-all" />
-                                            </div>
-                                            <div className="relative">
-                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
-                                                <Input type="time" {...register('fecha_salida_time')} className="h-11 pl-10 bg-gray-50/50 border-gray-200 focus:border-cardenal-gold transition-all" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div className="flex items-center space-x-2">
                         <Switch

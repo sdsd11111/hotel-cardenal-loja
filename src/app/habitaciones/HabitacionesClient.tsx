@@ -193,7 +193,7 @@ function HabitacionesContent() {
             const data = await response.json();
 
             // Transform DB data to interface format
-            const mappedData: Habitacion[] = data.map((room: any) => {
+            let mappedData: Habitacion[] = data.map((room: any) => {
                 let priceOptions = [];
                 if (room.price_options_json) {
                     try {
@@ -229,6 +229,34 @@ function HabitacionesContent() {
                     fecha_salida: room.fecha_salida
                 };
             });
+
+            // LOGICA DE FILTRO POR PERSONAS (SOLICITUD ESPECIFICA)
+            // 1 persona -> Solo Matrimonial
+            // 2 personas -> Matrimonial y Doble
+            // 3 personas -> Doble y Triple
+            // 4+ personas -> Solo Triple
+
+            const totalHuespedes = filtroAdultos + filtroNinos;
+
+            if (totalHuespedes > 0) {
+                mappedData = mappedData.filter(room => {
+                    const name = room.nombre.toLowerCase();
+
+                    if (totalHuespedes === 1) {
+                        return name.includes('matrimonial');
+                    }
+                    if (totalHuespedes === 2) {
+                        return name.includes('matrimonial') || name.includes('doble') || name.includes('twin');
+                    }
+                    if (totalHuespedes === 3) {
+                        return name.includes('doble') || name.includes('twin') || name.includes('triple');
+                    }
+                    if (totalHuespedes >= 4) {
+                        return name.includes('triple');
+                    }
+                    return true;
+                });
+            }
 
             setHabitaciones(mappedData);
 
@@ -653,70 +681,35 @@ function HabitacionesContent() {
                                     <Sparkles className="w-4 h-4 group-hover:animate-pulse" />
                                     APLICAR
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        // Priorizar habitación 303 (ID 6) si existe, sino la primera disponible
-                                        const room303 = habitaciones.find(h => h.nombre === '303');
-                                        const targetRoomId = room303 ? room303.id : (habitaciones.length > 0 ? habitaciones[0].id : 6);
-
-                                        const params = new URLSearchParams({
-                                            amount: "1.00",
-                                            reserva: `PRUEBA-${Date.now().toString().slice(-6)}`,
-                                            description: `Prueba PayPhone ($1.00) - Hab ${room303 ? '303' : targetRoomId}`,
-                                            entrada: fechaEntrada || "2026-01-29",
-                                            salida: fechaSalida || "2026-01-30",
-                                            habitacion_id: targetRoomId.toString(),
-                                            adultos: (filtroAdultos > 0 ? filtroAdultos : 1).toString(),
-                                            nombre: "CRISTHOPHER REYES",
-                                            whatsapp: "0987654321"
-                                        });
-                                        router.push(`/checkout/pagos?${params.toString()}`);
-                                    }}
-                                    className="px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 md:py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 tracking-widest text-[10px] md:text-xs"
-                                    title="Probar flujo de pago con $1 (Room 303)"
-                                >
-                                    $1 TEST
-                                </button>
                             </div>
                         </div>
 
-                        {/* Edades de los niños */}
+                        {/* Guest Ages Input (Expandable) */}
                         {filtroNinos > 0 && (
-                            <div className="mt-4 p-4 bg-amber-50/50 rounded-xl border border-amber-100 animate-fadeIn flex flex-col md:flex-row md:items-center gap-6">
-                                <div className="shrink-0">
-                                    <p className="text-xs font-bold text-amber-700 uppercase flex items-center gap-2 mb-1">
-                                        <Users className="w-4 h-4" /> Edades Requeridas
-                                    </p>
-                                    <p className="text-[10px] text-amber-600/70 italic">Indispensable para el cálculo de su tarifa</p>
-                                </div>
-                                <div className="flex flex-wrap gap-4">
-                                    {ninosEdades.map((age, idx) => (
-                                        <div key={idx} className="flex flex-col gap-1 group">
-                                            <label className="text-[10px] font-bold text-gray-400 group-hover:text-amber-500 transition-colors">Niño {idx + 1}</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="17"
-                                                    value={isNaN(age) ? '' : age}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        const newAges = [...ninosEdades];
-                                                        newAges[idx] = val === '' ? NaN : parseInt(val);
-                                                        setNinosEdades(newAges);
-                                                    }}
-                                                    className="w-16 p-2 border-2 border-amber-100 rounded-lg bg-white text-sm font-bold focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all"
-                                                />
-                                                <span className="absolute -right-2 -top-2 bg-amber-500 text-white text-[8px] font-bold px-1 rounded-full border border-white">
-                                                    {age >= childAgeThreshold ? 'AD' : 'Ni'}
-                                                </span>
-                                            </div>
+                            <div className="mt-4 pt-4 border-t border-gray-100 animate-slideDown">
+                                <p className="text-[10px] md:text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Edades de los niños:</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {ninosEdades.map((edad, idx) => (
+                                        <div key={idx} className="flex flex-col">
+                                            <select
+                                                value={edad}
+                                                onChange={(e) => {
+                                                    const newEdades = [...ninosEdades];
+                                                    newEdades[idx] = parseInt(e.target.value);
+                                                    setNinosEdades(newEdades);
+                                                }}
+                                                className="border border-gray-300 rounded px-2 py-1 text-sm focus:border-amber-500 outline-none"
+                                            >
+                                                {[...Array(18)].map((_, i) => (
+                                                    <option key={i} value={i}>{i} años</option>
+                                                ))}
+                                            </select>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="hidden md:ml-auto md:flex items-start gap-2 max-w-[200px]">
-                                    <Info className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                                    <p className="text-[10px] text-gray-500 leading-tight">
+                                <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-400 italic">
+                                    <Info className="w-3 h-3" />
+                                    <p>
                                         Los niños de <span className="font-bold text-amber-600">{childAgeThreshold} años</span> o más se cobran como adultos.
                                     </p>
                                 </div>
@@ -729,11 +722,15 @@ function HabitacionesContent() {
                 <div className="container mx-auto px-4 py-8">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 shadow-sm border border-cardenal-gold/10">
                         <p className="text-cardenal-green font-medium text-lg md:text-xl">
-                            Mostrando <span className="font-bold text-amber-500 text-2xl px-2">{habitacionesFiltradas.length}</span> habitaciones exclusivas
-                            {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) && (
-                                <span className="text-cardenal-gold ml-2">
-                                    (Búsqueda para: {appliedFilters.adultos} adultos, {appliedFilters.ninos} niños)
-                                </span>
+                            {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) ? (
+                                <>
+                                    <span className="font-serif italic text-cardenal-gold mr-2 text-2xl">Recomendación Exclusiva:</span>
+                                    Hemos seleccionado cuidadosamente estas <span className="font-bold text-gray-800">{habitacionesFiltradas.length}</span> opciones ideales para su grupo de {appliedFilters.adultos} adultos y {appliedFilters.ninos} niños.
+                                </>
+                            ) : (
+                                <>
+                                    Mostrando <span className="font-bold text-amber-500 text-2xl px-2">{habitacionesFiltradas.length}</span> habitaciones exclusivas
+                                </>
                             )}
                         </p>
                         {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) && (
@@ -790,18 +787,12 @@ function HabitacionesContent() {
                                 const groupRooms = habitacionesFiltradas.filter(h => {
                                     const n = h.nombre.toLowerCase();
 
-                                    // Explicit Priority Logic based on User Screenshot Numbers (301, 302, 303)
+                                    // Order by room type: Matrimonial, Doble, Triple
                                     let p = 4;
 
-                                    if (n.includes('301')) p = 1;
-                                    else if (n.includes('302')) p = 2;
-                                    else if (n.includes('303')) p = 3;
-                                    else {
-                                        // Fallback to name-based if number missing
-                                        if (n.includes('triple')) p = 3;
-                                        else if (n.includes('2 camas') || n.includes('twin')) p = 2;
-                                        else if (n.includes('doble') || n.includes('matrimonial')) p = 1;
-                                    }
+                                    if (n.includes('matrimonial')) p = 1;
+                                    else if (n.includes('doble')) p = 2;
+                                    else if (n.includes('triple')) p = 3;
 
                                     return p === priority;
                                 });
@@ -1052,6 +1043,35 @@ export default function HabitacionesPageClient() {
                         <p className="text-xl text-cardenal-green font-serif italic">Preparando su estancia...</p>
                     </div>
                 </main>
+                {/* Test Payment Button (Hidden/Dev) */}
+                {/* <div className="py-8 bg-cardenal-cream/30 flex justify-center opacity-70 hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={() => {
+                            const params = new URLSearchParams({
+                                amount: '1.00',
+                                description: 'PRUEBA PayPhone $1.00 TEST',
+                                reserva: `PRUEBA-${Date.now()}`,
+                                email: 'test@example.com',
+                                nombre: 'Usuario Prueba',
+                                entrada: new Date().toISOString().split('T')[0],
+                                salida: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                                habitacion_id: '0',
+                                habitacion_nombre: 'HABITACIÓN DE PRUEBA',
+                                adultos: '1',
+                                whatsapp: '+593999999999',
+                                reserva_para: 'mi',
+                                pais: 'Ecuador',
+                                peticiones: 'Esta es una prueba de pago de $1.00'
+                            });
+                            // Using window.location to force full reload if needed, or router.push
+                            window.location.href = `/checkout/pagos?${params.toString()}`;
+                        }}
+                        className="text-[10px] uppercase font-bold tracking-widest text-gray-400 hover:text-cardenal-gold border border-gray-300 hover:border-cardenal-gold px-4 py-2 rounded-full transition-all"
+                    >
+                        ⚡ Test PayPhone $1.00
+                    </button>
+                </div> */}
+
                 <Footer />
             </div>
         }>

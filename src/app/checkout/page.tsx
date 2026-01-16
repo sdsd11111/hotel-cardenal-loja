@@ -25,6 +25,7 @@ export default function CheckoutPage() {
     const [reservationSaved, setReservationSaved] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'selection' | 'card' | 'transfer'>('selection');
     const [savedReservaId, setSavedReservaId] = useState<string>('');
+    const [isCreatingTransferReservation, setIsCreatingTransferReservation] = useState(false);
 
 
     const [formData, setFormData] = useState({
@@ -596,15 +597,65 @@ export default function CheckoutPage() {
                                             </div>
 
                                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                                <a
-                                                    href={`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva #${savedReservaId} de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex-1 bg-green-600 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-100 hover:scale-[1.02]"
+                                                <button
+                                                    onClick={async () => {
+                                                        if (isCreatingTransferReservation) return;
+
+                                                        setIsCreatingTransferReservation(true);
+                                                        try {
+                                                            const res = await fetch('/api/payphone/verify', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    id: "TRANSFERENCIA",
+                                                                    clientTransactionId: savedReservaId,
+                                                                    reservationData: {
+                                                                        habitacion_id: habitacion.id,
+                                                                        habitacion_nombre: habitacion.nombre,
+                                                                        fecha_entrada: fechaEntrada,
+                                                                        fecha_salida: fechaSalida,
+                                                                        nombre_cliente: `${formData.nombre} ${formData.apellido}`,
+                                                                        email_cliente: formData.email,
+                                                                        whatsapp: `${formData.codigoPais}${formData.telefono}`,
+                                                                        adultos: option.personas,
+                                                                        ninos: 0,
+                                                                        precio: total,
+                                                                        pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
+                                                                        estado: 'PENDIENTE',
+                                                                        peticiones: `[TRANSFERENCIA] ${formData.peticiones}`,
+                                                                        reserva_para: formData.reservaPara
+                                                                    }
+                                                                })
+                                                            });
+
+                                                            if (res.ok) {
+                                                                // Open WhatsApp after successful reservation creation
+                                                                window.open(`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva #${savedReservaId} de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
+                                                            } else {
+                                                                alert('Error al crear la reserva. Por favor intenta de nuevo.');
+                                                            }
+                                                        } catch (error) {
+                                                            console.error('Error creating transfer reservation:', error);
+                                                            alert('Error de conexión. Por favor intenta de nuevo.');
+                                                        } finally {
+                                                            setIsCreatingTransferReservation(false);
+                                                        }
+                                                    }}
+                                                    disabled={isCreatingTransferReservation}
+                                                    className="flex-1 bg-green-600 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-100 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <Phone className="w-5 h-5" />
-                                                    ENVIAR COMPROBANTE POR WHATSAPP
-                                                </a>
+                                                    {isCreatingTransferReservation ? (
+                                                        <>
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                            CREANDO RESERVA...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Phone className="w-5 h-5" />
+                                                            ENVIAR COMPROBANTE POR WHATSAPP
+                                                        </>
+                                                    )}
+                                                </button>
                                             </div>
                                         </div>
                                     )}

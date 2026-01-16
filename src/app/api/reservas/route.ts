@@ -107,38 +107,48 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { id, estado } = body;
 
-        console.log('--- API RESERVAS PUT ---');
-        console.log('ID:', id);
-        console.log('Estado recibido:', estado);
+        console.log('--- [API RESERVAS PUT] ---');
+        console.log('RECIBIDO -> ID:', id, '| Estado:', estado);
 
         if (!id || !estado) {
+            console.error('Error: Faltan campos (id, estado)');
             return NextResponse.json({ error: 'Faltan campos (id, estado)' }, { status: 400 });
         }
 
-        const uppercaseEstado = estado.toUpperCase();
-        console.log('Estado a guardar:', uppercaseEstado);
+        const uppercaseEstado = String(estado).toUpperCase().trim();
+        const numericId = parseInt(String(id));
 
-        // Simplificamos omitiendo updated_at manual ya que MySQL lo maneja
+        if (isNaN(numericId)) {
+            console.error('Error: ID no es un número válido:', id);
+            return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+        }
+
+        console.log(`Ejecutando UPDATE reservas SET estado = '${uppercaseEstado}' WHERE id = ${numericId}`);
+
         const result: any = await query(
             `UPDATE reservas SET estado = ? WHERE id = ?`,
-            [uppercaseEstado, id]
+            [uppercaseEstado, numericId]
         );
 
-        const warnings: any = await query('SHOW WARNINGS');
-        console.log('Warnings DB:', warnings);
-        console.log('Resultado DB:', result);
+        console.log('Resultado DB:', {
+            affectedRows: result.affectedRows,
+            changedRows: result.changedRows
+        });
+
+        if (result.affectedRows === 0) {
+            console.warn(`Aviso: No se encontró ninguna reserva con ID ${numericId}`);
+        }
 
         return NextResponse.json({
             success: true,
-            message: 'Estado actualizado',
+            message: result.affectedRows > 0 ? 'Estado actualizado' : 'No se encontró la reserva',
             affectedRows: result.affectedRows,
-            changedRows: result.changedRows,
             nuevoEstado: uppercaseEstado
         }, {
             headers: { 'Cache-Control': 'no-store' }
         });
     } catch (error: any) {
-        console.error('Error updating reserva:', error);
+        console.error('CRITICAL ERROR updating reserva:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

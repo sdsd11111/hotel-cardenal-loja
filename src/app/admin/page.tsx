@@ -63,6 +63,14 @@ export default function AdminDashboard() {
       href: '/admin/clientes',
       color: 'bg-blue-600 text-white',
       hover: 'hover:bg-blue-700'
+    },
+    {
+      title: 'Recepción',
+      description: 'Control de ocupación y reservas manuales por habitación.',
+      icon: Calendar,
+      href: '/admin/recepcion',
+      color: 'bg-cardenal-gold text-white',
+      hover: 'hover:bg-cardenal-gold/90'
     }
   ];
 

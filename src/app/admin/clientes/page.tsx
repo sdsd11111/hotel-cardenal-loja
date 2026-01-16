@@ -596,13 +596,6 @@ export default function AdminClientesPage() {
                         </div>
                         <Calendar className="w-12 h-12 text-blue-50" />
                     </div>
-                    <div className="bg-white p-6 rounded-xl border-l-[6px] border-orange-400 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Clientes VIP</p>
-                            <h2 className="text-4xl font-bold text-orange-400 mt-1">{clientes.filter(c => c.es_vip).length}</h2>
-                        </div>
-                        <Crown className="w-12 h-12 text-orange-50" />
-                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -828,6 +821,7 @@ export default function AdminClientesPage() {
                                             <th className="px-4 py-3 text-xs font-bold text-gray-600 text-center">Estado</th>
                                             <th className="px-4 py-3 text-xs font-bold text-gray-600 text-right">Precio</th>
                                             <th className="px-4 py-3 text-xs font-bold text-gray-600 text-right">Nro Reserva</th>
+                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
@@ -840,46 +834,62 @@ export default function AdminClientesPage() {
                                                 <td colSpan={7} className="px-4 py-10 text-center text-gray-400 text-sm italic">No hay datos en el rango seleccionado.</td>
                                             </tr>
                                         ) : (
-                                            reservas.map(reserva => (
-                                                <tr key={reserva.id} className="hover:bg-gray-50/50 transition-colors">
-                                                    <td className="px-4 py-4">
-                                                        <div className="text-sm font-bold text-[#0071c2] uppercase">{reserva.nombre_cliente}</div>
-                                                        <div className="text-[10px] text-gray-400">{reserva.adultos} adultos, {reserva.ninos} niños</div>
-                                                    </td>
-                                                    <td className="px-4 py-4 text-sm font-medium">{new Date(reserva.fecha_entrada).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                                    <td className="px-4 py-4 text-sm text-gray-600">{new Date(reserva.fecha_salida).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                                    <td className="px-4 py-4 text-sm font-bold text-gray-700">
-                                                        {(() => {
-                                                            try {
-                                                                const meta = JSON.parse(reserva.meta);
-                                                                return meta.habitacion_nombre || reserva.habitacion_id;
-                                                            } catch (e) {
-                                                                return reserva.habitacion_id;
-                                                            }
-                                                        })()}
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <select
-                                                            value={reserva.estado}
-                                                            onChange={(e) => handleUpdateReservaStatus(reserva.id, e.target.value)}
-                                                            className={cn(
-                                                                "text-xs font-bold border rounded px-2 py-1 outline-none",
-                                                                reserva.estado === 'OK' ? "text-green-600 border-green-200 bg-green-50" :
-                                                                    reserva.estado === 'CANCELADA' ? "text-red-600 border-red-200 bg-red-50" :
-                                                                        reserva.estado === 'PENDIENTE' ? "text-orange-600 border-orange-200 bg-orange-50 font-bold" :
-                                                                            "text-gray-600 border-gray-200"
-                                                            )}
-                                                        >
-                                                            <option value="PENDIENTE">PENDIENTE</option>
-                                                            <option value="OK">OK</option>
-                                                            <option value="CANCELADA">CANCELADA</option>
-                                                            <option value="NO PRESENTADO">NO PRESENTADO</option>
-                                                        </select>
-                                                    </td>
-                                                    <td className="px-4 py-4 text-sm text-right font-bold text-gray-800">US${Number(reserva.precio).toFixed(2)}</td>
-                                                    <td className="px-4 py-4 text-sm text-right text-[#0071c2] font-medium">{reserva.numero_reserva || '---'}</td>
-                                                </tr>
-                                            ))
+                                            reservas
+                                                .filter(r => r.estado !== 'CANCELADA')
+                                                .map(reserva => (
+                                                    <tr key={reserva.id} className="hover:bg-gray-50/50 transition-colors">
+                                                        <td className="px-4 py-4">
+                                                            <div className="text-sm font-bold text-[#0071c2] uppercase">{reserva.nombre_cliente}</div>
+                                                            <div className="text-[10px] text-gray-400">{reserva.adultos} adultos, {reserva.ninos} niños</div>
+                                                        </td>
+                                                        <td className="px-4 py-4 text-sm font-medium">{new Date(reserva.fecha_entrada).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                        <td className="px-4 py-4 text-sm text-gray-600">{new Date(reserva.fecha_salida).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                        <td className="px-4 py-4 text-sm font-bold text-gray-700">
+                                                            {(() => {
+                                                                try {
+                                                                    const meta = JSON.parse(reserva.meta);
+                                                                    return meta.habitacion_nombre || reserva.habitacion_id;
+                                                                } catch (e) {
+                                                                    return reserva.habitacion_id;
+                                                                }
+                                                            })()}
+                                                        </td>
+                                                        <td className="px-4 py-4">
+                                                            <select
+                                                                value={reserva.estado}
+                                                                onChange={(e) => handleUpdateReservaStatus(reserva.id, e.target.value)}
+                                                                className={cn(
+                                                                    "text-xs font-bold border rounded px-2 py-1 outline-none",
+                                                                    reserva.estado === 'OK' ? "text-green-600 border-green-200 bg-green-50" :
+                                                                        reserva.estado === 'CANCELADA' ? "text-red-600 border-red-200 bg-red-50" :
+                                                                            reserva.estado === 'PENDIENTE' ? "text-orange-600 border-orange-200 bg-orange-50 font-bold" :
+                                                                                "text-gray-600 border-gray-200"
+                                                                )}
+                                                            >
+                                                                <option value="PENDIENTE">PENDIENTE</option>
+                                                                <option value="OK">OK</option>
+                                                                <option value="CANCELADA">CANCELADA</option>
+                                                                <option value="NO PRESENTADO">NO PRESENTADO</option>
+                                                            </select>
+                                                        </td>
+                                                        <td className="px-4 py-4 text-sm text-right font-bold text-gray-800">US${Number(reserva.precio).toFixed(2)}</td>
+                                                        <td className="px-4 py-4 text-sm text-right text-[#0071c2] font-medium">{reserva.numero_reserva || '---'}</td>
+                                                        <td className="px-4 py-4 text-center">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    if (confirm('¿Confirmas cancelar esta reserva? Se quitará de la lista.')) {
+                                                                        handleUpdateReservaStatus(reserva.id, 'CANCELADA');
+                                                                    }
+                                                                }}
+                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full h-8 w-8 p-0"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))
                                         )}
                                     </tbody>
                                 </table>
