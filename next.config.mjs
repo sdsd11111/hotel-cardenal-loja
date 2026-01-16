@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    localPatterns: [
+      {
+        pathname: '/api/images/**',
+      },
+      {
+        pathname: '/images/**',
+      },
+      {
+        pathname: '/*',
+      },
+    ],
     remotePatterns: [
       {
         protocol: 'https',
