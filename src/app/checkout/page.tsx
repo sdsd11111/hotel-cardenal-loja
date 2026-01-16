@@ -628,11 +628,13 @@ export default function CheckoutPage() {
                                                                 })
                                                             });
 
+                                                            const data = await res.json();
+
                                                             if (res.ok) {
                                                                 // Open WhatsApp after successful reservation creation
-                                                                window.open(`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva #${savedReservaId} de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
+                                                                window.open(`https://wa.me/593994199622?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva #${savedReservaId} de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
                                                             } else {
-                                                                alert('Error al crear la reserva. Por favor intenta de nuevo.');
+                                                                alert('No se pudo crear la reserva: ' + (data.message || 'Inténtalo de nuevo.'));
                                                             }
                                                         } catch (error) {
                                                             console.error('Error creating transfer reservation:', error);

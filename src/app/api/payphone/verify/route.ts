@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import axios from 'axios';
 import { query } from '@/lib/mysql';
 import nodemailer from 'nodemailer';
@@ -23,13 +24,24 @@ export async function POST(request: Request) {
 
         console.log('--- PAYPHONE VERIFY ---');
         console.log('PayPhone Transaction ID:', id);
-        console.log('Client Transaction ID:', clientTransactionId);
-        console.log('Update Existing ID:', updateExisting);
-        console.log('Reservation Data:', reservationData);
 
         // === CASO 1: ACTUALIZACIÓN (REAGENDAR) ===
         if (updateExisting) {
+            // Proteger ruta también si es manual (pero suele venir de admin)
+            // Si viene de cliente (e.g. "reagendar mi reserva"), dejemosla abierta pero con validación de ID.
+            // Por ahora asumimos seguridad por obfuscation del ID.
             console.log('=== MODO ACTUALIZACIÓN/REAGENDAR ===');
+            // VALIDAR DISPONIBILIDAD ANTES DE MOVER
+            const isAvailable = await checkAvailability(
+                reservationData?.habitacion_id,
+                reservationData?.fecha_entrada,
+                reservationData?.fecha_salida,
+                updateExisting // Exclude self
+            );
+            if (!isAvailable) {
+                return NextResponse.json({ success: false, message: 'La habitación ya no está disponible para esas fechas.' }, { status: 409 });
+            }
+
             const newMeta = JSON.stringify({
                 payphone_id: id,
                 updated_at: new Date().toISOString(),
@@ -55,8 +67,8 @@ export async function POST(request: Request) {
                  WHERE id = ?`,
                 [
                     reservationData?.habitacion_id || 1,
-                    reservationData?.fecha_entrada || new Date().toISOString().split('T')[0],
-                    reservationData?.fecha_salida || new Date().toISOString().split('T')[0],
+                    reservationData?.fecha_entrada || new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    reservationData?.fecha_salida || new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().split('T')[0],
                     reservationData?.nombre_cliente || 'Cliente',
                     reservationData?.email_cliente || '',
                     reservationData?.whatsapp || '',
@@ -76,6 +88,16 @@ export async function POST(request: Request) {
         // === CASO 2: TRANSFERENCIA (CREAR PENDIENTE) ===
         if (id === 'TRANSFERENCIA') {
             console.log('=== MODO TRANSFERENCIA BANCARIA ===');
+            // VALIDAR DISPONIBILIDAD
+            const isAvailable = await checkAvailability(
+                reservationData?.habitacion_id,
+                reservationData?.fecha_entrada,
+                reservationData?.fecha_salida
+            );
+            if (!isAvailable) {
+                return NextResponse.json({ success: false, message: 'CRÍTICO: Habitación ocupada. Alguien ganó la reserva.' }, { status: 409 });
+            }
+
             try {
                 await insertNewReserva(
                     reservationData?.precio || 0,
@@ -84,13 +106,8 @@ export async function POST(request: Request) {
                     clientTransactionId,
                     reservationData
                 );
-                // syncWithClientes ya es llamado dentro de insertNewReserva, no duplicar.
-
-                // Enviar correos de "Reserva Pendiente de Confirmación" (opcional, pero buena práctica)
-                // Usamos la misma función pero el template debería indicar que falta pago. 
-                // Por ahora enviamos el confirmación estándar o podríamos evitarlo hasta que el admin confirme.
                 // Decisión: Enviamos correo para que el cliente tenga su respaldo de "Solicitud Recibida".
-                await sendBookingEmails(reservationData, clientTransactionId);
+                await sendBookingEmails(reservationData, clientTransactionId, 'PENDING_TRANSFER');
 
                 return NextResponse.json({ success: true, message: 'Reserva pendiente creada' });
             } catch (innerError: any) {
@@ -105,6 +122,24 @@ export async function POST(request: Request) {
         // === CASO 3: SIMULACIÓN MANUAL (RECEPCIÓN) ===
         if (id === 'SIMULACION') {
             console.log('=== MODO SIMULACIÓN (RECEPCIÓN) ===');
+            // PROTEGER CON ADMIN SESSION
+            const cookieStore = await cookies();
+            const session = cookieStore.get('admin-session');
+            if (!session) {
+                console.warn("Intento no autorizado de Simulación desde", request.headers.get('x-forwarded-for'));
+                return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
+            }
+
+            // Validar disponibilidad
+            const isAvailable = await checkAvailability(
+                reservationData?.habitacion_id,
+                reservationData?.fecha_entrada,
+                reservationData?.fecha_salida
+            );
+            if (!isAvailable) {
+                return NextResponse.json({ success: false, message: 'Error: Habitación ocupada en esas fechas.' }, { status: 409 });
+            }
+
             await insertNewReserva(
                 reservationData?.precio || 0,
                 clientTransactionId,
@@ -154,31 +189,63 @@ export async function POST(request: Request) {
                 const amount = data.amount / 100;
                 const reservaParam = reservationData?.numero_reserva?.toString() || '';
 
+                // --- SECURITY CHECKS START ---
+                let finalEstado = 'OK';
+
+                // 1. Availability Check (Prevent Double Booking)
+                // Usamos excludeId si estamos actualizando una reserva existente
+                const excludeId = (/^\d+$/.test(reservaParam)) ? parseInt(reservaParam) : undefined;
+
+                const isAvailable = await checkAvailability(
+                    reservationData?.habitacion_id,
+                    reservationData?.fecha_entrada,
+                    reservationData?.fecha_salida,
+                    excludeId
+                );
+
+                if (!isAvailable) {
+                    console.error(`CRITICAL: PayPhone OK but Room ${reservationData?.habitacion_id} BUSY. ID: ${id}`);
+                    finalEstado = 'CONFLICTO_FECHAS'; // Admin must resolve
+                }
+
+                // 2. Price Check (Prevent Tampering)
+                const isValidPrice = await verifyRoomPrice(
+                    reservationData?.habitacion_id,
+                    amount
+                );
+
+                if (!isValidPrice && finalEstado === 'OK') {
+                    // Solo marcamos conflicto de precio s no hay otro conflicto peor
+                    console.error(`CRITICAL: PayPhone OK but Price Amount ${amount} < DB Price. ID: ${id}`);
+                    finalEstado = 'CONFLICTO_PRECIO';
+                }
+                // --- SECURITY CHECKS END ---
+
                 // Si el parámetro 'reserva' es un ID numérico (de la tabla reservas), actualizamos.
                 // Si contiene 'PRUEBA' o no es numérico, insertamos una nueva.
                 const isNumericId = /^\d+$/.test(reservaParam);
 
                 if (isNumericId) {
                     // 1. ACTUALIZAR reserva existente (flujo real de checkout)
-                    // Obtenemos los meta actuales para no perder información si es necesario, 
-                    // o simplemente construimos el nuevo meta con lo que viene del checkout real.
                     const newMeta = JSON.stringify({
                         payphone_id: id,
                         verified_at: new Date().toISOString(),
                         peticiones: reservationData?.peticiones || '',
                         pais: reservationData?.pais || '',
                         reserva_para: reservationData?.reserva_para || 'mi',
-                        habitacion_nombre: reservationData?.habitacion_nombre || ''
+                        habitacion_nombre: reservationData?.habitacion_nombre || '',
+                        security_warning: finalEstado !== 'OK' ? finalEstado : undefined
                     });
 
                     const updated: any = await query(
                         `UPDATE reservas 
-                         SET estado = 'OK', 
+                         SET estado = ?, 
                              numero_reserva = ?, 
                              precio = ?,
                              meta = ?
                          WHERE id = ?`,
                         [
+                            finalEstado, // OK or CONFLICTO
                             clientTransactionId,
                             amount,
                             newMeta,
@@ -225,14 +292,15 @@ export async function POST(request: Request) {
 }
 
 async function insertNewReserva(amount: number, reservaParam: string, id: any, clientTransactionId: any, reservationData: any) {
-    // Si viene vacío o no existe, usamos hoy. Pero si viene del checkout REAL, debería estar.
+    // Si viene vacío o no existe, usamos hoy (Hora Ecuador).
+    const nowEcuador = new Date(Date.now() - 5 * 60 * 60 * 1000);
     const fechaEntrada = (reservationData?.fecha_entrada && reservationData.fecha_entrada !== '')
         ? reservationData.fecha_entrada
-        : new Date().toISOString().split('T')[0];
+        : nowEcuador.toISOString().split('T')[0];
 
     const fechaSalida = (reservationData?.fecha_salida && reservationData.fecha_salida !== '')
         ? reservationData.fecha_salida
-        : new Date().toISOString().split('T')[0];
+        : nowEcuador.toISOString().split('T')[0];
 
     await query(
         `INSERT INTO reservas (
@@ -312,13 +380,93 @@ async function syncWithClientes(data: any, reservationNumber: string) {
     }
 }
 
-async function sendBookingEmails(data: any, reservationNumber: string) {
+async function sendBookingEmails(data: any, reservationNumber: string, status: 'CONFIRMED' | 'PENDING_TRANSFER' = 'CONFIRMED') {
     const ownerEmail = "cristhopheryeah113@gmail.com";
     const guestEmail = data?.email_cliente;
     const guestName = data?.nombre_cliente || 'Huésped';
     const habitacion = data?.habitacion_nombre || data?.habitacion_id || 'No especificada';
     const checkIn = data?.fecha_entrada || 'No especificada';
     const checkOut = data?.fecha_salida || 'No especificada';
+    const total = data?.precio || '0.00';
+
+    // Templates
+    const subjectGuest = status === 'CONFIRMED'
+        ? '🏨 Confirmación de Reserva - Hotel El Cardenal'
+        : '⏳ Solicitud de Reserva Recibida (Pendiente de Pago) - Hotel El Cardenal';
+
+    const subjectOwner = status === 'CONFIRMED'
+        ? `🔔 Nueva Reserva CONFIRMADA: ${guestName} - Hab. ${habitacion}`
+        : `⏳ Nueva Solicitud TRANSFERENCIA: ${guestName} - Hab. ${habitacion}`;
+
+    const bodyGuest = status === 'CONFIRMED'
+        ? `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+                <h2 style="color: #2d5a3d; text-align: center;">¡Gracias por su reserva!</h2>
+                <p>Estimado/a <strong>${guestName}</strong>,</p>
+                <p>Su reserva ha sido <strong>CONFIRMADA</strong> exitosamente. Detalles:</p>
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
+                    <p><strong>Nro. Reserva:</strong> ${reservationNumber}</p>
+                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Check-in:</strong> ${checkIn}</p>
+                    <p><strong>Check-out:</strong> ${checkOut}</p>
+                    <p><strong>Total Pagado:</strong> $${total}</p>
+                </div>
+                <p>Le esperamos pronto en el Hotel El Cardenal.</p>
+                <hr style="border: none; border-top: 1px solid #eee;">
+                <p style="font-size: 12px; color: #666; text-align: center;">Loja, Ecuador | www.hotelelcardenalloja.com</p>
+            </div>
+        `
+        : `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+                <h2 style="color: #e67e22; text-align: center;">Solicitud Recibida</h2>
+                <p>Estimado/a <strong>${guestName}</strong>,</p>
+                <p>Hemos registrado su solicitud de reserva. Su estado actual es: <strong>PENDIENTE DE PAGO</strong>.</p>
+                <div style="background: #fff8f0; padding: 15px; border-radius: 8px; border-left: 4px solid #e67e22;">
+                    <p><strong>Nro. Reserva:</strong> ${reservationNumber}</p>
+                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Total a Transferir:</strong> $${total}</p>
+                </div>
+                <p><strong>Próximo Paso:</strong> Por favor envíe el comprobante de transferencia por WhatsApp para confirmar su reserva definitivamente.</p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="https://wa.me/593994199622" style="background: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Enviar Comprobante Ahora</a>
+                </div>
+                <hr style="border: none; border-top: 1px solid #eee;">
+                <p style="font-size: 12px; color: #666; text-align: center;">Loja, Ecuador | www.hotelelcardenalloja.com</p>
+            </div>
+        `;
+
+    const bodyOwner = status === 'CONFIRMED'
+        ? `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+                <h2 style="color: #0071c2;">¡Nueva Reserva Pagada! 💰</h2>
+                <p>Hola <strong>Hotel Cardenal</strong>,</p>
+                <p>Se ha registrado y PAGADO una nueva reserva web (PayPhone):</p>
+                <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0071c2;">
+                    <p><strong>Huésped:</strong> ${guestName}</p>
+                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Fechas:</strong> ${checkIn} al ${checkOut}</p>
+                    <p><strong>ID Transacción:</strong> ${reservationNumber}</p>
+                    <p><strong>Monto:</strong> $${total}</p>
+                </div>
+                <p><a href="https://hotelelcardenalloja.com/admin/clientes" style="color: #0071c2; font-weight: bold;">Ver en el Panel Administrativo</a></p>
+            </div>
+        `
+        : `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+                <h2 style="color: #e67e22;">⏳ Nueva Solicitud (Transferencia)</h2>
+                <p>Hola <strong>Hotel Cardenal</strong>,</p>
+                <p>Un cliente ha solicitado reserva vía TRANSFERENCIA. El estado es <strong>PENDIENTE</strong>.</p>
+                <p>Debes esperar a recibir el comprobante por WhatsApp para confirmarla manualmente en el panel.</p>
+                <div style="background: #fff8f0; padding: 15px; border-radius: 8px; border-left: 4px solid #e67e22;">
+                    <p><strong>Huésped:</strong> ${guestName}</p>
+                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Fechas:</strong> ${checkIn} al ${checkOut}</p>
+                    <p><strong>ID Reserva:</strong> ${reservationNumber}</p>
+                    <p><strong>Monto Esperado:</strong> $${total}</p>
+                </div>
+                <p><a href="https://hotelelcardenalloja.com/admin/recepcion" style="color: #e67e22; font-weight: bold;">Gestionar en Recepción</a></p>
+            </div>
+        `;
 
     try {
         // 1. Correo al Huésped
@@ -326,51 +474,78 @@ async function sendBookingEmails(data: any, reservationNumber: string) {
             await transporter.sendMail({
                 from: process.env.EMAIL_FROM,
                 to: guestEmail,
-                subject: '🏨 Confirmación de Reserva - Hotel El Cardenal',
-                html: `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-                        <h2 style="color: #2d5a3d; text-align: center;">¡Gracias por su reserva!</h2>
-                        <p>Estimado/a <strong>${guestName}</strong>,</p>
-                        <p>Su reserva ha sido confirmada exitosamente. Aquí están los detalles:</p>
-                        <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
-                            <p><strong>Nro. Reserva:</strong> ${reservationNumber}</p>
-                            <p><strong>Habitación:</strong> ${habitacion}</p>
-                            <p><strong>Check-in:</strong> ${checkIn}</p>
-                            <p><strong>Check-out:</strong> ${checkOut}</p>
-                        </div>
-                        <p>Le esperamos pronto en el Hotel El Cardenal.</p>
-                        <hr style="border: none; border-top: 1px solid #eee;">
-                        <p style="font-size: 12px; color: #666; text-align: center;">Loja, Ecuador | www.hotelelcardenalloja.com</p>
-                    </div>
-                `
+                subject: subjectGuest,
+                html: bodyGuest
             });
-            console.log("Email de confirmación enviado al huésped:", guestEmail);
+            console.log("Email enviado al huésped:", guestEmail);
         }
 
         // 2. Correo al Dueño
         await transporter.sendMail({
             from: process.env.EMAIL_FROM,
             to: ownerEmail,
-            subject: `🔔 Nueva Reserva: ${guestName} - Hab. ${habitacion}`,
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-                    <h2 style="color: #0071c2;">Notificación de Nueva Reserva</h2>
-                    <p>Hola <strong>Hotel Cardenal</strong>,</p>
-                    <p>Se ha registrado una nueva reserva pagada a través de la web:</p>
-                    <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0071c2;">
-                        <p><strong>Huésped:</strong> ${guestName}</p>
-                        <p><strong>Habitación:</strong> ${habitacion}</p>
-                        <p><strong>Check-in:</strong> ${checkIn}</p>
-                        <p><strong>Check-out:</strong> ${checkOut}</p>
-                        <p><strong>Nro. Transacción:</strong> ${reservationNumber}</p>
-                    </div>
-                    <p><a href="https://hotelelcardenalloja.com/admin/clientes" style="color: #0071c2; font-weight: bold;">Ver en el Panel Administrativo</a></p>
-                </div>
-            `
+            subject: subjectOwner,
+            html: bodyOwner
         });
-        console.log("Email de notificación enviado al dueño:", ownerEmail);
+        console.log("Email notificación enviado al dueño:", ownerEmail);
 
     } catch (error) {
         console.error("Error al enviar correos de reserva:", error);
+    }
+}
+
+async function checkAvailability(habitacionId: any, fechaEntrada: any, fechaSalida: any, excludeReservaId?: number) {
+    if (!habitacionId || !fechaEntrada || !fechaSalida) return false;
+
+    // Lógica: Buscar reservas con estado OK o CONFIRMADA que solapen.
+    // Overlap: (start1 < end2) AND (end1 > start2)
+
+    let sql = `SELECT id FROM reservas 
+               WHERE habitacion_id = ? 
+               AND estado IN ('OK', 'CONFIRMADA')
+               AND (fecha_entrada < ? AND fecha_salida > ?)`;
+
+    const params = [habitacionId, fechaSalida, fechaEntrada]; // Note params order for overlap check
+
+    if (excludeReservaId) {
+        sql += ` AND id != ?`;
+        params.push(excludeReservaId);
+    }
+
+    const rows: any = await query(sql, params);
+    return rows.length === 0;
+}
+
+async function verifyRoomPrice(habitacionId: any, paidAmount: number) {
+    if (!habitacionId) return false;
+
+    try {
+        const rows: any = await query(`SELECT precio_numerico FROM habitaciones WHERE id = ?`, [habitacionId]);
+        if (!rows.length) return false; // Room invalid
+
+        const dbPrice = parseFloat(rows[0].precio_numerico);
+
+        // Allow a small margin of error (e.g. 1% or $1)
+        // Ojo: paidAmount puede ser mayor (upgrades, etc) pero no radicalmente menor.
+        // Asumimos que si paga al menos el 90% del precio base está ok (por si hubo descuentos aplicados en front que no validamos aqui)
+        // O validamos exacto.
+        // Dado que el sistema tiene calculos de niños/adultos adicionales que NO estamos replicando aqui
+        // (el precio final puede ser MAYOR que el precio base por huspedes extra),
+        // solo podemos validar con seguridad que NO sea un precio ridículamente bajo (ej. $0.01).
+
+        // Mejor aproximación sin replicar toda la lógica de negocio:
+        // El precio pagado debe ser al menos el PRECIO BASE de la habitación.
+
+        if (paidAmount < dbPrice) {
+            console.warn(`Price Warning: Room ${habitacionId} Base Price ${dbPrice}, Paid: ${paidAmount}`);
+            return false;
+        }
+
+        return true;
+    } catch (err) {
+        console.error("Error verifying price:", err);
+        return true; // Fail safe open? Or closed. Closed is safer but might block valid payments on DB error. 
+        // Let's return true if DB error to avoid blocking money, but logged.
+        return true;
     }
 }

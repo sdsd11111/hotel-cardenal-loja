@@ -31,10 +31,46 @@ function PagosContent() {
     const pais = searchParams.get('pais') || '';
     const peticiones = searchParams.get('peticiones') || '';
 
+    // Efecto para verificar pago (cuando regresa de PayPhone)
     useEffect(() => {
         if (id && clientTransactionId) {
             setStatus('loading');
             setMessage('Verificando pago...');
+
+            // Intentar recuperar datos de localStorage si los params están vacíos
+            let finalReservationData: any = {
+                numero_reserva: reservaId,
+                precio: parseFloat(amount),
+                email_cliente: email,
+                nombre_cliente: nombre,
+                fecha_entrada: entrada,
+                fecha_salida: salida,
+                habitacion_id: habitacion_id ? parseInt(habitacion_id) : undefined,
+                habitacion_nombre: habitacion_nombre,
+                adultos: adultos ? parseInt(adultos) : undefined,
+                whatsapp: whatsapp,
+                reserva_para: reserva_para,
+                pais: pais,
+                peticiones: peticiones
+            };
+
+            // Intentar recuperar de localStorage si faltan datos (caso Redirect)
+            if (!nombre || !email || !entrada) {
+                try {
+                    const storedData = localStorage.getItem('fullPendingPayment');
+                    if (storedData) {
+                        const parsed = JSON.parse(storedData);
+                        console.log("Recuperando datos perdidos desde localStorage (fullPendingPayment):", parsed);
+                        // Mezclar, dando prioridad a lo guardado si lo actual es vacío
+                        finalReservationData = { ...finalReservationData, ...parsed };
+
+                        // Asegurar que si el ID viene en la URL, se respete (el de la url de retorno payphone)
+                        // Pero el resto de datos de negocio vienen del storage
+                    }
+                } catch (e) {
+                    console.error("Error leyendo localStorage fullPendingPayment", e);
+                }
+            }
 
             fetch('/api/payphone/verify', {
                 method: 'POST',
@@ -42,27 +78,16 @@ function PagosContent() {
                 body: JSON.stringify({
                     id,
                     clientTransactionId,
-                    reservationData: {
-                        numero_reserva: reservaId,
-                        precio: parseFloat(amount),
-                        email_cliente: email,
-                        nombre_cliente: nombre || (reservaId.includes('PRUEBA') ? 'PRUEBA PAYPHONE' : 'Huesped Cardenal (Datos incompletos)'),
-                        fecha_entrada: entrada,
-                        fecha_salida: salida,
-                        habitacion_id: habitacion_id ? parseInt(habitacion_id) : undefined,
-                        habitacion_nombre: habitacion_nombre,
-                        adultos: adultos ? parseInt(adultos) : undefined,
-                        whatsapp: whatsapp,
-                        reserva_para: reserva_para,
-                        pais: pais,
-                        peticiones: peticiones
-                    }
+                    reservationData: finalReservationData
                 })
             })
                 .then(res => res.json())
                 .then(data => {
                     if (data.transactionStatus === "Approved" || data.statusCode === 3) {
                         setStatus('success');
+                        // Limpiar storage tras éxito
+                        localStorage.removeItem('fullPendingPayment');
+                        localStorage.removeItem('pendingCheckout');
                     } else {
                         setStatus('error');
                         setMessage(data.message || 'El pago no pudo ser verificado.');
@@ -75,6 +100,31 @@ function PagosContent() {
                 });
         }
     }, [id, clientTransactionId]);
+
+    // Efecto para GUARDAR datos antes de pagar (apenas monta con params)
+    useEffect(() => {
+        // Si tenemos datos ricos en la URL (antes de ir a PayPhone), guardarlos
+        // Verificamos si tenemos 'reservaId' y 'nombre' como indicativo de que estamos en la fase pre-pago
+        if (reservaId && nombre && email && !id) {
+            const dataToStore = {
+                numero_reserva: reservaId,
+                precio: parseFloat(amount),
+                email_cliente: email,
+                nombre_cliente: nombre,
+                fecha_entrada: entrada,
+                fecha_salida: salida,
+                habitacion_id: habitacion_id ? parseInt(habitacion_id) : undefined,
+                habitacion_nombre: habitacion_nombre,
+                adultos: adultos ? parseInt(adultos) : undefined,
+                whatsapp: whatsapp,
+                reserva_para: reserva_para,
+                pais: pais,
+                peticiones: peticiones
+            };
+            console.log("Guardando contexto de pago en localStorage (fullPendingPayment):", dataToStore);
+            localStorage.setItem('fullPendingPayment', JSON.stringify(dataToStore));
+        }
+    }, [reservaId, nombre, email, id, amount, entrada, salida, habitacion_id, habitacion_nombre, adultos, whatsapp, reserva_para, pais, peticiones]);
 
     return (
         <div className="min-h-screen bg-[#f3f4f6] flex flex-col font-sans">

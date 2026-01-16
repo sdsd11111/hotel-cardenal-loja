@@ -41,7 +41,7 @@ interface HeaderProps {
 const habitacionesItems = [
   { label: 'Matrimonial', href: '/habitaciones/matrimonial' },
   { label: 'Triple', href: '/habitaciones/triple' },
-  { label: 'Doble Twin', href: '/habitaciones/doble-twin' },
+  { label: 'Doble Twin', href: '/doble-twin' },
 ];
 
 // Experiencia dropdown items (no main page)

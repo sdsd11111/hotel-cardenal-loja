@@ -39,20 +39,20 @@ export default function HabitacionesPage() {
                 <p>
                     Espaciosa y luminosa, perfecta para grupos de amigos o familias pequeñas.
                     Ambiente neoclásico con vistas relajantes.
-                    Precio estimado: $75.00 USD por noche.
+                    <em>Tarifas flexibles según ocupación.</em>
                 </p>
 
                 <h3>Habitación Doble Twin (2 Camas)</h3>
                 <p>
                     Ideal para viajes de negocios o turismo compartido. Equipada con dos camas de plaza y media
                     y acabados elegantes en madera y piedra.
-                    Precio estimado: $55.00 USD por noche.
+                    <em>Tarifas flexibles según ocupación.</em>
                 </p>
 
                 <h3>Habitación Matrimonial (1 Cama)</h3>
                 <p>
                     El refugio perfecto para parejas. Ambiente romántico, tranquilo y acogedor para una estancia inolvidable.
-                    Precio estimado: $45.00 USD por noche.
+                    <em>Tarifas flexibles según ocupación.</em>
                 </p>
 
                 <h2>Beneficios Incluidos en su Estancia</h2>

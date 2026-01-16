@@ -239,10 +239,14 @@ export default function RecepcionPage() {
                     })
                 });
 
+                const data = await res.json();
+
                 if (res.ok) {
                     alert('Reserva actualizada correctamente (reagendada).');
                     setShowBookingModal(false);
                     fetchReservas();
+                } else {
+                    alert('Error al actualizar: ' + (data.message || 'Error desconocido'));
                 }
             } else {
                 // Modo Nueva Reserva
@@ -270,14 +274,16 @@ export default function RecepcionPage() {
                     })
                 });
 
+                const data = await res.json();
+
                 if (res.ok) {
                     alert('Reserva guardada correctamente.');
                     setShowBookingModal(false);
                     fetchReservas();
+                } else {
+                    alert('Error al guardar: ' + (data.message || 'Error desconocido'));
                 }
             }
-            setShowBookingModal(false);
-            fetchReservas();
         } catch (error) {
             console.error('Error saving manual reservation:', error);
             alert('Error de conexión.');

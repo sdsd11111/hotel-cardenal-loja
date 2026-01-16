@@ -79,6 +79,9 @@ export const metadata: Metadata = {
     description: "El hotel preferido en el centro de Loja.",
     images: ['/logo.jpg'],
   },
+  verification: {
+    google: 'b8aT21-LZNETjhU4bA6PX_7tV-OQ941E5SpXG_7NFpw',
+  },
 };
 
 export default function RootLayout({

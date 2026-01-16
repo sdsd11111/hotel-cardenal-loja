@@ -7,7 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const routes = [
         '',
         '/habitaciones',
-        '/habitaciones/doble-twin',
+        '/doble-twin',
         '/habitaciones/matrimonial',
         '/habitaciones/triple',
         '/habitaciones/familiar-loft',

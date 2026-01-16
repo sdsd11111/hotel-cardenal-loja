@@ -10,6 +10,7 @@ const dbConfig = {
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
+    timezone: '-05:00', // Ecuador Time
 };
 
 // Pool de conexiones (reutilizable)

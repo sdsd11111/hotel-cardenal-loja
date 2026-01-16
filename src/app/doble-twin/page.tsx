@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     description: 'Reserve su habitación Doble Twin en el mejor hotel familiar de Loja. 28m² de confort, WiFi gratis, parking y desayuno tradicional cerca del Parque La Tebaida.',
     keywords: ['Habitación Doble Twin en Loja', 'Hospedaje en Loja', 'Hotel familiar en Loja', 'Desayuno tradicional', 'Hotel en Loja con parking'],
     alternates: {
-        canonical: 'https://hotelelcardenalloja.com/habitaciones/doble-twin',
+        canonical: 'https://hotelelcardenalloja.com/doble-twin',
     }
 };
 
@@ -54,8 +54,8 @@ export default function DobleTwinPage() {
                 </ul>
 
                 <h2>Precio y Reservas</h2>
-                <p>Precio base desde: $35.71 USD (más impuestos y servicios). El desayuno tradicional está incluido.</p>
-                <p>Reserve directamente vía WhatsApp al 099 661 6878 para obtener las mejores tarifas sin comisiones.</p>
+                <p>Consulte nuestras tarifas dinámicas según fechas y ocupación. El desayuno tradicional está incluido.</p>
+                <p>Reserve directamente vía WhatsApp al 099 661 6878 para obtener las mejores tarifas.</p>
 
                 <h2>Servicios Incluidos</h2>
                 <ul>
@@ -76,7 +76,7 @@ export default function DobleTwinPage() {
                 {/* Hero Section */}
                 <div className="relative h-screen flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/habitaciones/doble/doble-twin-main.webp?v=2"
+                        src="/images/habitaciones/doble/doble-twin-thumb.webp?v=2"
                         alt="Habitación Doble Twin - Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
@@ -317,12 +317,12 @@ export default function DobleTwinPage() {
 
                         {/* Right Column: Booking Widget */}
                         <aside className="lg:col-span-1 hidden lg:block sticky top-24">
-                            <RoomBookingWidget price="35.71" roomName="Doble Twin" />
+                            <RoomBookingWidget price="Cotizar" roomName="Doble Twin" />
                         </aside>
 
                         {/* Mobile Widget */}
                         <div className="lg:hidden order-last">
-                            <RoomBookingWidget price="35.71" roomName="Doble Twin" />
+                            <RoomBookingWidget price="Cotizar" roomName="Doble Twin" />
                         </div>
                     </div>
                 </div>

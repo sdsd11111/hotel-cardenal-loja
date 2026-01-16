@@ -37,7 +37,31 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
-  output: 'standalone'
+  output: 'standalone',
+  async redirects() {
+    return [
+      {
+        source: '/hospedaje',
+        destination: '/servicios',
+        permanent: true,
+      },
+      {
+        source: '/restaurante-y-eventos',
+        destination: '/restaurante',
+        permanent: true,
+      },
+      {
+        source: '/matrimonial',
+        destination: '/habitaciones/matrimonial',
+        permanent: true,
+      },
+      {
+        source: '/familiar-loft',
+        destination: '/habitaciones/familiar-loft',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig;

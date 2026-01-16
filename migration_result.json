@@ -1,9 +1,0 @@
-{
-  "success": true,
-  "cleanupCount": 5,
-  "testRecord": {
-    "id": 17,
-    "nombre_cliente": "Cristhopher Reyes",
-    "estado": "OK"
-  }
-}

@@ -137,7 +137,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                         </span>
                                     </div>
                                     <h1 className={cn(
-                                        "text-4xl md:text-8xl font-black text-white leading-[1.1] md:leading-tight animate-fadeInUp drop-shadow-2xl font-serif",
+                                        "text-4xl md:text-8xl font-black text-white leading-[1.1] md:leading-tight animate-fadeInUp drop-shadow-2xl font-serif whitespace-nowrap",
                                         themeClass ? "tracking-wider" : ""
                                     )}>
                                         {HERO_CONTENT.title}

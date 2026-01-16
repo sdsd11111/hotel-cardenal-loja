@@ -10,11 +10,10 @@ export async function GET(request: Request) {
         const entrada = searchParams.get('entrada');
         const salida = searchParams.get('salida');
 
-        // Incluir ninos_gratis, precio_nino_extra y hacer LEFT JOIN con room_type_configs para obtener price_options_json
+        // Incluir ninos_gratis, precio_nino_extra
         let sql = `SELECT h.id, h.nombre, h.slug, h.descripcion, h.amenidades, h.precio_texto, h.precio_numerico, h.imagen, h.max_adultos, h.max_ninos, h.ninos_gratis, h.precio_nino_extra, h.incluye_desayuno, h.incluye_almuerzo, h.incluye_cena, h.camas, h.activo, h.disponible, h.fecha_entrada, h.fecha_salida,
-                          c.price_options_json
+                          h.price_options_json
                    FROM habitaciones h
-                   LEFT JOIN room_type_configs c ON c.identifier = h.nombre
                    `;
 
 
