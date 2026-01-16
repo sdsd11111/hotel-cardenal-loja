@@ -88,6 +88,8 @@ function PagosContent() {
                         // Limpiar storage tras éxito
                         localStorage.removeItem('fullPendingPayment');
                         localStorage.removeItem('pendingCheckout');
+                        localStorage.removeItem('checkoutFormData');
+                        localStorage.removeItem('savedReservaId');
                     } else {
                         setStatus('error');
                         setMessage(data.message || 'El pago no pudo ser verificado.');

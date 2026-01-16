@@ -63,7 +63,34 @@ export default function CheckoutPage() {
         if (data) {
             setBookingData(JSON.parse(data));
         }
+
+        // Recuperar datos personales si existen
+        const savedFormData = localStorage.getItem('checkoutFormData');
+        if (savedFormData) {
+            setFormData(JSON.parse(savedFormData));
+        }
+
+        // Recuperar ID de reserva si ya se generó una
+        const savedId = localStorage.getItem('savedReservaId');
+        if (savedId) {
+            setSavedReservaId(savedId);
+            setStep(3); // Si ya tenía ID, mandarlo directo al paso de pago
+        }
     }, []);
+
+    // Guardar formData cada vez que cambie
+    useEffect(() => {
+        if (mounted) {
+            localStorage.setItem('checkoutFormData', JSON.stringify(formData));
+        }
+    }, [formData, mounted]);
+
+    // Guardar savedReservaId cuando se asigne
+    useEffect(() => {
+        if (savedReservaId) {
+            localStorage.setItem('savedReservaId', savedReservaId);
+        }
+    }, [savedReservaId]);
 
     const formatDate = (dateStr: string) => {
         if (!dateStr) return 'No definida';
@@ -125,6 +152,13 @@ export default function CheckoutPage() {
     const handleSaveReservation = () => {
         if (!formData.nombre || !formData.apellido || !formData.email || !formData.telefono || !formData.pais) {
             alert('Por favor completa todos los campos obligatorios');
+            return;
+        }
+
+        // Si ya tenemos un ID guardado, simplemente avanzamos al paso 3
+        // (La reserva ya existe en la DB como PENDIENTE)
+        if (savedReservaId) {
+            setStep(3);
             return;
         }
 
