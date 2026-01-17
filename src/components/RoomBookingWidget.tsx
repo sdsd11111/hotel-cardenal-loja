@@ -69,15 +69,18 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
             <div className="bg-cardenal-green text-white p-6 text-center space-y-1 relative">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-cardenal-gold/10 rounded-full blur-2xl -mr-12 -mt-12"></div>
                 <p className="text-[10px] uppercase tracking-widest text-cardenal-gold font-bold">Reserva Tu Experiencia</p>
-                <div className="flex items-baseline justify-center gap-1 relative z-10">
-                    {isLoadingPrice ? (
-                        <Loader2 className="w-6 h-6 animate-spin text-cardenal-gold" />
-                    ) : (
-                        <>
-                            <span className="text-3xl font-serif font-bold text-white tracking-tight">${price}</span>
-                            <span className="text-[10px] text-white/60 uppercase tracking-tighter">/ noche</span>
-                        </>
-                    )}
+                <div className="flex flex-col items-center justify-center relative z-10">
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-cardenal-gold mb-1">Cotizar</span>
+                    <div className="flex items-baseline gap-1">
+                        {isLoadingPrice ? (
+                            <Loader2 className="w-6 h-6 animate-spin text-cardenal-gold" />
+                        ) : (
+                            <>
+                                <span className="text-3xl font-serif font-bold text-white tracking-tight">${price}</span>
+                                <span className="text-[10px] text-white/60 uppercase tracking-tighter">/ noche</span>
+                            </>
+                        )}
+                    </div>
                 </div>
                 <p className="text-[9px] font-medium text-white/40 uppercase tracking-widest">Garantía de Mejor Precio Directo</p>
             </div>

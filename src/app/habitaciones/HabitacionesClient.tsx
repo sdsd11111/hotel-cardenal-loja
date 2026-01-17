@@ -828,8 +828,12 @@ function HabitacionesContent() {
                                                         </div>
 
                                                         {/* Price overlay - Dynamic pricing based on guest count */}
-                                                        <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-3 font-serif font-bold italic text-3xl shadow-2xl">
-                                                            ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold).toFixed(2)} <span className="text-[10px] font-normal not-italic">/ noche</span>
+                                                        <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-4 shadow-2xl flex flex-col items-start leading-tight">
+                                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-cardenal-gold mb-1 not-italic">Cotizar desde</span>
+                                                            <div className="flex items-baseline gap-1 font-serif font-bold italic text-3xl">
+                                                                ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold).toFixed(2)}
+                                                                <span className="text-[10px] font-normal not-italic ml-1 opacity-80">/ noche</span>
+                                                            </div>
                                                         </div>
                                                     </div>
 
