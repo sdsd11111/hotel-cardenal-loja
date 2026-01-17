@@ -139,6 +139,24 @@ export default function RecepcionPage() {
         });
     };
 
+    const getCheckInForDate = (date: Date) => {
+        const dateStr = date.toISOString().split('T')[0];
+        return reservas.find(r => {
+            if (r.habitacion_id !== selectedRoom.id) return false;
+            if (r.estado === 'CANCELADA') return false;
+            return r.fecha_entrada.split('T')[0] === dateStr;
+        });
+    };
+
+    const getCheckOutForDate = (date: Date) => {
+        const dateStr = date.toISOString().split('T')[0];
+        return reservas.find(r => {
+            if (r.habitacion_id !== selectedRoom.id) return false;
+            if (r.estado === 'CANCELADA') return false;
+            return r.fecha_salida.split('T')[0] === dateStr;
+        });
+    };
+
     const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
@@ -445,21 +463,44 @@ export default function RecepcionPage() {
                                                 </span>
                                             </div>
 
-                                            {occupiedRes && (
-                                                <div className={cn(
-                                                    "mt-2 p-2 rounded-xl text-[10px] font-bold leading-tight shadow-sm border border-l-4",
-                                                    occupiedRes.estado === 'OK' ? "bg-green-50 text-green-700 border-green-200 border-l-green-500" : "bg-orange-50 text-orange-700 border-orange-200 border-l-orange-400"
-                                                )}>
-                                                    <div className="flex items-center gap-1 mb-1">
-                                                        <Clock className="w-3 h-3" />
-                                                        <span className="truncate">{occupiedRes.nombre_cliente}</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between opacity-80 mt-1">
-                                                        <span>${occupiedRes.precio}</span>
-                                                        <span className="bg-white/50 px-1 rounded uppercase text-[8px]">{occupiedRes.estado}</span>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            <div className="mt-1.5 space-y-1">
+                                                {/* Indicador de SALIDA (Mañana) */}
+                                                {(() => {
+                                                    const res = getCheckOutForDate(date);
+                                                    if (!res) return null;
+                                                    return (
+                                                        <div className="bg-gray-100 text-gray-600 border border-gray-200 rounded-lg p-1.5 text-[9px] font-bold flex items-center gap-1 shadow-sm">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                                                            <span className="truncate">SALIDA: {res.nombre_cliente}</span>
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* Indicador de OCUPADO (Noche / Estancia) */}
+                                                {(() => {
+                                                    const res = getReservaForDate(date);
+                                                    if (!res) return null;
+                                                    const isCheckInDay = res.fecha_entrada.split('T')[0] === date.toISOString().split('T')[0];
+
+                                                    return (
+                                                        <div className={cn(
+                                                            "p-2 rounded-xl text-[10px] font-bold leading-tight shadow-sm border border-l-4",
+                                                            res.estado === 'OK' ? "bg-green-50 text-green-700 border-green-200 border-l-green-500" : "bg-orange-50 text-orange-700 border-orange-200 border-l-orange-400"
+                                                        )}>
+                                                            <div className="flex items-center gap-1 mb-1">
+                                                                {isCheckInDay ? <Plus className="w-3 h-3 text-blue-500" /> : <Clock className="w-3 h-3" />}
+                                                                <span className="truncate">{isCheckInDay ? 'ENTRADA: ' : ''}{res.nombre_cliente}</span>
+                                                            </div>
+                                                            {!isCheckInDay && (
+                                                                <div className="flex items-center justify-between opacity-80 mt-1">
+                                                                    <span>${res.precio}</span>
+                                                                    <span className="bg-white/50 px-1 rounded uppercase text-[8px]">{res.estado}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
                                         </div>
                                     );
                                 })}
