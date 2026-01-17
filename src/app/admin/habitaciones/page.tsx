@@ -107,15 +107,18 @@ export default function AdminHabitacionesPage() {
                                 <ChevronLeft className="w-4 h-4 mr-1" /> Volver
                             </Button>
                         </Link>
-                        <h1 className="text-2xl font-bold text-cardenal-green font-serif">Gestión de Habitaciones</h1>
+                        <h1 className="text-3xl font-black text-cardenal-green flex items-center gap-3 font-serif">
+                            <Home className="w-8 h-8" />
+                            Gestión de Habitaciones
+                        </h1>
                     </div>
                     <div className="flex gap-4">
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
+                        <div className="flex bg-gray-200 p-2 rounded-2xl border-2 border-gray-300 shadow-sm gap-2">
                             <button
                                 onClick={() => setActiveTab('inventory')}
                                 className={cn(
-                                    "px-4 py-1.5 text-sm font-bold rounded-md transition-all",
-                                    activeTab === 'inventory' ? "bg-white text-cardenal-green shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                    "px-6 py-2 text-base font-black rounded-xl transition-all",
+                                    activeTab === 'inventory' ? "bg-white text-cardenal-green shadow-md scale-105" : "text-gray-700 hover:bg-gray-300 hover:text-black"
                                 )}
                             >
                                 Inventario
@@ -123,8 +126,8 @@ export default function AdminHabitacionesPage() {
                             <button
                                 onClick={() => setActiveTab('configs')}
                                 className={cn(
-                                    "px-4 py-1.5 text-sm font-bold rounded-md transition-all",
-                                    activeTab === 'configs' ? "bg-white text-cardenal-green shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                    "px-6 py-2 text-base font-black rounded-xl transition-all",
+                                    activeTab === 'configs' ? "bg-white text-cardenal-green shadow-md scale-105" : "text-gray-700 hover:bg-gray-300 hover:text-black"
                                 )}
                             >
                                 Configuración de Modales
@@ -132,16 +135,16 @@ export default function AdminHabitacionesPage() {
                             <button
                                 onClick={() => setActiveTab('general')}
                                 className={cn(
-                                    "px-4 py-1.5 text-sm font-bold rounded-md transition-all",
-                                    activeTab === 'general' ? "bg-white text-cardenal-green shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                    "px-6 py-2 text-base font-black rounded-xl transition-all",
+                                    activeTab === 'general' ? "bg-white text-cardenal-green shadow-md scale-105" : "text-gray-700 hover:bg-gray-300 hover:text-black"
                                 )}
                             >
                                 General
                             </button>
                         </div>
                         {activeTab === 'inventory' && (
-                            <Button onClick={() => { setSelectedHabitacion(null); setShowForm(true); }} className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white">
-                                <Plus className="w-4 h-4 mr-2" /> Nueva Habitación
+                            <Button onClick={() => { setSelectedHabitacion(null); setShowForm(true); }} className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white font-black h-12 px-8 text-lg shadow-lg">
+                                <Plus className="w-6 h-6 mr-2 stroke-[3px]" /> Nueva Habitación
                             </Button>
                         )}
                     </div>
@@ -176,14 +179,14 @@ export default function AdminHabitacionesPage() {
                 )}
 
                 {activeTab === 'inventory' ? (
-                    <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm animate-fadeIn">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-cardenal-gold/10 rounded-lg">
-                                <Home className="w-5 h-5 text-cardenal-gold" />
+                    <div className="mb-8 bg-white p-10 rounded-3xl border-2 border-gray-300 shadow-xl animate-fadeIn">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-4 bg-cardenal-gold/20 rounded-2xl">
+                                <Home className="w-8 h-8 text-cardenal-gold" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-cardenal-green">Inventario Actual</h2>
-                                <p className="text-sm text-gray-500">Configure los precios y detalles que verán los clientes.</p>
+                                <h2 className="text-2xl font-black text-cardenal-green font-serif">Inventario Actual</h2>
+                                <p className="text-base text-black font-black uppercase tracking-widest mt-1">Configure los precios y detalles que verán los clientes.</p>
                             </div>
                         </div>
 
@@ -196,14 +199,14 @@ export default function AdminHabitacionesPage() {
                         />
                     </div>
                 ) : activeTab === 'configs' ? (
-                    <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm animate-fadeIn">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-cardenal-gold/10 rounded-lg">
-                                <Settings2 className="w-5 h-5 text-cardenal-gold" />
+                    <div className="mb-8 bg-white p-10 rounded-3xl border-2 border-gray-300 shadow-xl animate-fadeIn">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-4 bg-cardenal-gold/20 rounded-2xl">
+                                <Settings2 className="w-8 h-8 text-cardenal-gold" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-cardenal-green">Configuración de Modales</h2>
-                                <p className="text-sm text-gray-500">Modifica los detalles, precios y opciones de los botones "AGREGAR" y "DETALLE" (Tipos 301, 302, 303).</p>
+                                <h2 className="text-2xl font-black text-cardenal-green font-serif">Configuración de Modales</h2>
+                                <p className="text-base text-black font-black uppercase tracking-widest mt-1">Modifica los detalles, precios y opciones de los botones "AGREGAR" y "DETALLE".</p>
                             </div>
                         </div>
 
@@ -216,14 +219,14 @@ export default function AdminHabitacionesPage() {
                         )}
                     </div>
                 ) : (
-                    <div className="mb-8 bg-white p-6 rounded-xl border shadow-sm animate-fadeIn">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-cardenal-gold/10 rounded-lg">
-                                <Globe className="w-5 h-5 text-cardenal-gold" />
+                    <div className="mb-8 bg-white p-10 rounded-3xl border-2 border-gray-300 shadow-xl animate-fadeIn">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-4 bg-cardenal-gold/20 rounded-2xl">
+                                <Globe className="w-8 h-8 text-cardenal-gold" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-cardenal-green">Configuración General del Hotel</h2>
-                                <p className="text-sm text-gray-500">Ajuste políticas globales como edades de niños, impuestos base, etc.</p>
+                                <h2 className="text-2xl font-black text-cardenal-green font-serif">Configuración General</h2>
+                                <p className="text-base text-black font-black uppercase tracking-widest mt-1">Ajuste políticas globales como edades de niños, impuestos base, etc.</p>
                             </div>
                         </div>
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -26,7 +26,9 @@ import {
     Instagram,
     Facebook,
     Sparkles,
-    AlertCircle
+    AlertCircle,
+    Hotel,
+    Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -223,119 +225,148 @@ export default function AdminClientesPage() {
         return (
             <div className="space-y-8 animate-fadeIn">
                 {/* Datos Personales */}
-                <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-                    <h4 className="font-bold text-cardenal-green flex items-center gap-2 text-sm border-b pb-2">
-                        <User className="w-4 h-4" /> Datos Personales
+                <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
+                    <h4 className="text-xl font-black text-cardenal-green flex items-center gap-3 border-b-2 border-gray-100 pb-4 uppercase tracking-tight">
+                        <User className="w-7 h-7" /> Datos Personales
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombres *</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-black uppercase tracking-widest">Nombres *</label>
                             <Input
                                 value={client.nombre || ''}
                                 onChange={e => setEditingClient({ ...client, nombre: e.target.value })}
-                                className="text-sm h-10"
+                                className="h-12 border-2 border-gray-400 font-bold text-base"
                                 placeholder="Nombres"
                             />
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Apellidos</label>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-black uppercase tracking-widest">Apellidos</label>
                             <Input
                                 value={client.apellidos || ''}
                                 onChange={e => setEditingClient({ ...client, apellidos: e.target.value })}
-                                className="text-sm h-10"
+                                className="h-12 border-2 border-gray-400 font-bold text-base"
                                 placeholder="Apellidos"
                             />
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email *</label>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-black uppercase tracking-widest">Email *</label>
                             <Input
                                 type="email"
                                 value={client.email || ''}
                                 onChange={e => setEditingClient({ ...client, email: e.target.value })}
-                                className="text-sm h-10"
+                                className="h-12 border-2 border-gray-400 font-bold text-base"
                                 placeholder="email@ejemplo.com"
                             />
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Teléfono</label>
-                            <Input
-                                value={client.telefono || ''}
-                                onChange={e => setEditingClient({ ...client, telefono: e.target.value })}
-                                className="text-sm h-10"
-                                placeholder="099..."
-                            />
-                        </div>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Teléfono</label>
+                        <Input
+                            value={client.telefono || ''}
+                            onChange={e => setEditingClient({ ...client, telefono: e.target.value })}
+                            className="text-sm h-10"
+                            placeholder="099..."
+                        />
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Motivo</label>
-                            <Input
-                                value={client.motivo || ''}
-                                onChange={e => setEditingClient({ ...client, motivo: e.target.value })}
-                                className="text-sm h-10"
-                                placeholder="Ej: Reserva, Consulta"
-                            />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Sección Hotel: Hospedaje */}
+                    <div className="bg-orange-50/30 p-6 rounded-3xl border-2 border-orange-200 space-y-4">
+                        <h5 className="text-sm font-black text-orange-800 uppercase flex items-center gap-2 border-b border-orange-100 pb-2">
+                            <Hotel className="w-4 h-4" /> Datos de Hospedaje (Habitaciones)
+                        </h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-orange-900 uppercase tracking-widest">Entrada (Check-in)</label>
+                                <Input
+                                    type="date"
+                                    value={client.fecha_entrada || ''}
+                                    onChange={e => setEditingClient({ ...client, fecha_entrada: e.target.value })}
+                                    className="h-12 border-2 border-orange-400 font-black bg-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-orange-900 uppercase tracking-widest">Salida (Check-out)</label>
+                                <Input
+                                    type="date"
+                                    value={client.fecha_salida || ''}
+                                    onChange={e => setEditingClient({ ...client, fecha_salida: e.target.value })}
+                                    className="h-12 border-2 border-orange-400 font-black bg-white"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                <Calendar className="w-3 h-3 text-orange-500" /> Fecha entrada/evento
-                            </label>
-                            <Input
-                                type="date"
-                                value={client.fecha_entrada || ''}
-                                onChange={e => setEditingClient({ ...client, fecha_entrada: e.target.value })}
-                                className="text-sm h-10 border-orange-100"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-orange-600 uppercase flex items-center gap-1">
-                                <Clock className="w-3 h-3" /> Hora del Evento
-                            </label>
-                            <Input
-                                type="text"
-                                value={client.hora_evento || ''}
-                                onChange={e => setEditingClient({ ...client, hora_evento: e.target.value })}
-                                className="text-sm h-10 border-orange-200 bg-orange-50 font-bold"
-                                placeholder="HH:MM"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1">
-                                <Users className="w-3 h-3" /> Personas / Huéspedes
-                            </label>
-                            <Input
-                                type="number"
-                                value={client.adultos || 1}
-                                onChange={e => setEditingClient({ ...client, adultos: parseInt(e.target.value) || 1 })}
-                                className="text-sm h-10 border-blue-100"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Habitación Preferida</label>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-orange-900 uppercase tracking-widest">Habitación Preferida</label>
                             <Input
                                 value={client.habitacion_preferida || ''}
                                 onChange={e => setEditingClient({ ...client, habitacion_preferida: e.target.value })}
-                                className="text-sm h-10"
+                                className="h-12 border-2 border-gray-400 font-bold bg-white"
                                 placeholder="Ej: Suite Matrimonial"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Comentarios / Mensaje del Cliente</label>
-                        <Textarea
-                            value={client.comentarios || client.mensaje || ''}
-                            onChange={e => setEditingClient({ ...client, comentarios: e.target.value })}
-                            className="text-sm min-h-[80px]"
-                            placeholder="Notas que el cliente envió en el formulario..."
-                        />
+                    {/* Sección Eventos y Otros */}
+                    <div className="bg-blue-50/30 p-6 rounded-3xl border-2 border-blue-200 space-y-4">
+                        <h5 className="text-sm font-black text-blue-800 uppercase flex items-center gap-2 border-b border-blue-100 pb-2">
+                            <Calendar className="w-4 h-4" /> Datos de Reserva / Evento
+                        </h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-blue-900 uppercase tracking-widest">Motivo / Tipo</label>
+                                <Input
+                                    value={client.motivo || ''}
+                                    onChange={e => setEditingClient({ ...client, motivo: e.target.value })}
+                                    className="h-12 border-2 border-blue-400 font-bold bg-white"
+                                    placeholder="Ej: Evento, Cena"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-blue-900 uppercase tracking-widest">Hora (Si aplica)</label>
+                                <Input
+                                    type="text"
+                                    value={client.hora_evento || ''}
+                                    onChange={e => setEditingClient({ ...client, hora_evento: e.target.value })}
+                                    className="h-12 border-2 border-blue-400 font-black bg-white"
+                                    placeholder="HH:MM"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-blue-900 uppercase tracking-widest flex items-center gap-1">
+                                    <Users className="w-3 h-3" /> Adultos
+                                </label>
+                                <Input
+                                    type="number"
+                                    value={client.adultos || 1}
+                                    onChange={e => setEditingClient({ ...client, adultos: parseInt(e.target.value) || 1 })}
+                                    className="h-12 border-2 border-gray-400 font-bold bg-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-blue-900 uppercase tracking-widest flex items-center gap-1">
+                                    <Users className="w-3 h-3" /> Niños
+                                </label>
+                                <Input
+                                    type="number"
+                                    value={client.ninos || 0}
+                                    onChange={e => setEditingClient({ ...client, ninos: parseInt(e.target.value) || 0 })}
+                                    className="h-12 border-2 border-gray-400 font-bold bg-white"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Comentarios / Mensaje del Cliente</label>
+                    <Textarea
+                        value={client.comentarios || client.mensaje || ''}
+                        onChange={e => setEditingClient({ ...client, comentarios: e.target.value })}
+                        className="text-sm min-h-[80px]"
+                        placeholder="Notas que el cliente envió en el formulario..."
+                    />
+                </div>
                 {/* Perfil Detallado */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
@@ -511,7 +542,7 @@ export default function AdminClientesPage() {
                         {isSaving ? 'Guardando...' : <><Save className="w-4 h-4 mr-2" /> {client.id === 0 ? 'Crear Cliente' : 'Guardar Cambios'}</>}
                     </Button>
                 </div>
-            </div>
+            </div >
         );
     };
 
@@ -527,11 +558,11 @@ export default function AdminClientesPage() {
                             </Button>
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold text-cardenal-green flex items-center gap-2">
-                                <Users className="w-7 h-7" />
+                            <h1 className="text-3xl font-black text-cardenal-green flex items-center gap-3 font-serif">
+                                <Users className="w-8 h-8" />
                                 Gestión de Clientes
                             </h1>
-                            <p className="text-xs text-gray-500 font-medium">Base de datos de huéspedes</p>
+                            <p className="text-sm text-black font-black uppercase tracking-widest mt-1">Base de datos de huéspedes</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -582,299 +613,346 @@ export default function AdminClientesPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-white p-6 rounded-xl border-l-[6px] border-cardenal-gold shadow-sm flex items-center justify-between">
+                    <div className="bg-white p-7 rounded-2xl border-2 border-gray-300 border-l-[10px] border-l-cardenal-gold shadow-md flex items-center justify-between">
                         <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Clientes</p>
-                            <h2 className="text-4xl font-bold text-cardenal-green mt-1">{clientes.length}</h2>
+                            <p className="text-xs font-black text-gray-900 uppercase tracking-widest mb-1">Total Clientes</p>
+                            <h2 className="text-5xl font-black text-cardenal-green">{clientes.length}</h2>
                         </div>
-                        <Users className="w-12 h-12 text-gray-100" />
+                        <Users className="w-14 h-14 text-cardenal-gold/20" />
                     </div>
-                    <div className="bg-white p-6 rounded-xl border-l-[6px] border-blue-500 shadow-sm flex items-center justify-between">
+                    <div className="bg-white p-7 rounded-2xl border-2 border-gray-300 border-l-[10px] border-l-blue-600 shadow-md flex items-center justify-between">
                         <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nuevos este mes</p>
-                            <h2 className="text-4xl font-bold text-blue-600 mt-1">{clientes.filter(c => new Date(c.created_at).getMonth() === new Date().getMonth()).length}</h2>
+                            <p className="text-xs font-black text-gray-900 uppercase tracking-widest mb-1">Nuevos este mes</p>
+                            <h2 className="text-5xl font-black text-blue-700">{clientes.filter(c => new Date(c.created_at).getMonth() === new Date().getMonth()).length}</h2>
                         </div>
-                        <Calendar className="w-12 h-12 text-blue-50" />
+                        <Calendar className="w-14 h-14 text-blue-600/20" />
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex border-b border-gray-200 mb-6">
+                {/* View Switcher */}
+                <div className="flex bg-gray-200 p-2 rounded-2xl mb-8 w-fit gap-2 border-2 border-gray-300 shadow-sm">
                     <button
                         onClick={() => setView('gestion')}
                         className={cn(
-                            "px-6 py-3 font-bold text-sm transition-all relative outline-none",
-                            view === 'gestion' ? "text-cardenal-green" : "text-gray-400 hover:text-gray-600"
+                            "px-8 py-3 rounded-xl text-base font-black transition-all",
+                            view === 'gestion' ? "bg-white text-cardenal-green shadow-md scale-105" : "text-gray-700 hover:bg-gray-300 hover:text-black"
                         )}
                     >
-                        Lista de Clientes
-                        {view === 'gestion' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cardenal-gold" />}
+                        Gestión de Clientes
                     </button>
                     <button
                         onClick={() => setView('reporte')}
                         className={cn(
-                            "pb-4 px-2 text-sm font-bold transition-all relative",
-                            view === 'reporte' ? "text-cardenal-gold" : "text-gray-400 hover:text-gray-600"
+                            "px-8 py-3 rounded-xl text-base font-black transition-all",
+                            view === 'reporte' ? "bg-white text-cardenal-green shadow-md scale-105" : "text-gray-700 hover:bg-gray-300 hover:text-black"
                         )}
                     >
-                        Reporte de Reservas (PayPhone)
-                        {view === 'reporte' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cardenal-gold animate-slideIn"></div>}
+                        Reporte de Reservas
                     </button>
                 </div>
 
                 {view === 'gestion' ? (
-                    <div className="space-y-4">
-                        <div className="bg-white p-2 rounded-lg border flex items-center gap-2 shadow-sm">
-                            <div className="flex-1 relative">
-                                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por nombre, email o teléfono..."
-                                    className="w-full pl-10 pr-4 py-2 text-sm outline-none"
+                    <div className="bg-white p-8 rounded-3xl shadow-xl border-2 border-gray-300 mb-8">
+                        <div className="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
+                            <div className="relative w-full md:max-w-md">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-black" />
+                                <Input
+                                    placeholder="Buscar por nombre, email o cédula..."
                                     value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
+                                    onChange={e => setSearch(e.target.value)}
+                                    className="pl-14 py-7 bg-gray-100 border-2 border-gray-400 rounded-2xl text-lg font-black text-black placeholder:text-gray-600 focus:border-cardenal-gold transition-all"
                                 />
                             </div>
-                            <Button onClick={fetchClientes} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 font-bold text-xs uppercase tracking-wider h-10">
-                                Buscar
-                            </Button>
+                            <div className="text-sm font-black text-black bg-cardenal-gold/10 px-4 py-2 rounded-full border-2 border-cardenal-gold/30">
+                                Mostrando {clientes.length} resultados
+                            </div>
                         </div>
 
-                        <div className="space-y-3">
-                            {loading ? (
-                                <div className="text-center py-20 bg-white rounded-xl border">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cardenal-gold mx-auto mb-4"></div>
-                                    <p className="text-gray-500 text-sm">Cargando base de datos...</p>
-                                </div>
-                            ) : (
-                                <>
+                        <div className="overflow-x-auto rounded-2xl border-2 border-gray-300 shadow-inner">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-gray-200 border-b-2 border-gray-300">
+                                    <tr>
+                                        <th className="p-5 text-sm font-black text-black uppercase tracking-widest whitespace-nowrap">Cliente</th>
+                                        <th className="p-5 text-sm font-black text-black uppercase tracking-widest whitespace-nowrap">Contacto</th>
+                                        <th className="p-5 text-sm font-black text-black uppercase tracking-widest whitespace-nowrap">DNI / Razón Social</th>
+                                        <th className="p-5 text-sm font-black text-black uppercase tracking-widest whitespace-nowrap">Estadísticas</th>
+                                        <th className="p-5 text-sm font-black text-black uppercase tracking-widest whitespace-nowrap text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y-2 divide-gray-200">
                                     {/* Manual Creation Entry at the top */}
                                     {expandedClient === 0 && editingClient && (
-                                        <div className="bg-white rounded-xl border-2 border-cardenal-gold overflow-hidden shadow-lg animate-fadeIn mb-6">
-                                            <div className="p-4 bg-cardenal-gold/5 flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-cardenal-gold text-white rounded flex items-center justify-center">
-                                                        <Plus className="w-6 h-6" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-gray-800 uppercase text-sm">Crear Nuevo Cliente</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Formulario de Registro Manual</p>
-                                                    </div>
-                                                </div>
-                                                <Button onClick={() => { setExpandedClient(null); setEditingClient(null); }} variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                            <div className="p-8 space-y-8 bg-white">
-                                                {renderDetailsForm(editingClient)}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {clientes.length === 0 ? (
-                                        <div className="text-center py-20 bg-white rounded-xl border text-gray-500">
-                                            No se encontraron clientes
-                                        </div>
-                                    ) : (
-                                        clientes.map(cliente => (
-                                            <div key={cliente.id} className="bg-white rounded-xl border overflow-hidden shadow-sm transition-all">
-                                                <div className="p-4 flex items-center justify-between hover:bg-gray-50/50">
-                                                    <div className="flex items-center gap-4 flex-1">
-                                                        <button
-                                                            onClick={() => handleExpand(cliente.id)}
-                                                            className={cn(
-                                                                "p-1 border rounded transition-colors",
-                                                                expandedClient === cliente.id ? "bg-cardenal-gold text-white border-cardenal-gold" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
-                                                            )}
-                                                        >
-                                                            {expandedClient === cliente.id ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                                                        </button>
-                                                        <div className="w-10 h-10 bg-cardenal-green text-white rounded flex items-center justify-center font-bold text-lg">
-                                                            {cliente.nombre.charAt(0)}
-                                                        </div>
-                                                        <div className="min-w-[150px]">
-                                                            <h3 className="font-bold text-gray-800 uppercase text-sm">{cliente.nombre} {cliente.apellidos}</h3>
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="text-[10px] text-gray-400">{cliente.motivo || 'Cliente Registrado'}</p>
-                                                                {cliente.motivo?.toLowerCase().includes('evento') && (
-                                                                    <span className="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Evento</span>
-                                                                )}
+                                        <tr>
+                                            <td colSpan={5} className="p-0">
+                                                <div className="bg-white rounded-xl border-2 border-cardenal-gold overflow-hidden shadow-lg animate-fadeIn mb-6">
+                                                    <div className="p-4 bg-cardenal-gold/5 flex items-center justify-between">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 bg-cardenal-gold text-white rounded flex items-center justify-center">
+                                                                <Plus className="w-6 h-6" />
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="font-bold text-gray-800 uppercase text-sm">Crear Nuevo Cliente</h3>
+                                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Formulario de Registro Manual</p>
                                                             </div>
                                                         </div>
-                                                        <div className="hidden lg:grid grid-cols-4 gap-y-1 gap-x-4 flex-1 ml-8">
-                                                            <div className="space-y-0.5">
-                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Contacto</p>
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium truncate max-w-[150px]">
-                                                                    <Mail className="w-3 h-3 text-gray-400" /> {cliente.email}
-                                                                </div>
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
-                                                                    <Phone className="w-3 h-3 text-gray-400" /> {cliente.telefono}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="space-y-0.5">
-                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Detalles Estancia</p>
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-700 font-bold">
-                                                                    <Calendar className="w-3 h-3 text-orange-500" /> {cliente.fecha_entrada || '---'}
-                                                                </div>
-                                                                <div className="flex items-center gap-1.5 text-xs text-blue-600 font-bold">
-                                                                    <MapPin className="w-3 h-3" /> {cliente.pais || 'No especificado'}
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-0.5 max-w-[200px]">
-                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Peticiones / Comentarios</p>
-                                                                <p className="text-[10px] text-gray-600 italic truncate" title={cliente.comentarios}>
-                                                                    {cliente.comentarios || 'Sin peticiones'}
-                                                                </p>
-                                                            </div>
-
-                                                            <div className="space-y-0.5">
-                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Personas / Hab.</p>
-                                                                <div className="flex items-center gap-1.5 text-xs text-gray-700 font-bold">
-                                                                    <Users className="w-3 h-3 text-blue-500" /> {cliente.adultos} personas
-                                                                </div>
-                                                                <div className="text-[10px] text-gray-500 font-medium truncate">{cliente.habitacion_preferida || 'Sin preferencia'}</div>
-                                                            </div>
-
-                                                            <div className="space-y-0.5">
-                                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Comentarios</p>
-                                                                <div className="text-[11px] text-gray-600 italic leading-tight line-clamp-2 max-w-[200px]">
-                                                                    "{cliente.comentarios || cliente.mensaje || 'Sin comentarios'}"
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                        <Button onClick={() => { setExpandedClient(null); setEditingClient(null); }} variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                            <X className="w-4 h-4" />
+                                                        </Button>
                                                     </div>
-                                                    <div className="flex items-center gap-2 ml-4">
-                                                        <button onClick={() => handleExpand(cliente.id)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
-                                                            <Eye className="w-4 h-4" />
-                                                        </button>
-                                                        <a href={`tel:${cliente.telefono}`} className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors">
-                                                            <Phone className="w-4 h-4" />
-                                                        </a>
-                                                        <button onClick={() => handleDelete(cliente.id)} className="p-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Detailed Expansion */}
-                                                {expandedClient === cliente.id && editingClient && (
-                                                    <div className="border-t bg-gray-50/30 p-8">
+                                                    <div className="p-8 space-y-8 bg-white">
                                                         {renderDetailsForm(editingClient)}
                                                     </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={5} className="p-32 text-center bg-gray-50/50">
+                                                <div className="flex flex-col items-center gap-6">
+                                                    <div className="w-20 h-20 border-8 border-gray-200 border-t-cardenal-gold animate-spin rounded-full shadow-md"></div>
+                                                    <p className="text-2xl font-black text-black uppercase tracking-widest animate-pulse">Cargando base de datos...</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : clientes.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} className="p-32 text-center bg-gray-50/50">
+                                                <div className="flex flex-col items-center gap-6 opacity-30">
+                                                    <Search className="w-24 h-24 text-black" />
+                                                    <p className="text-3xl font-black text-black uppercase tracking-widest">No se encontraron clientes.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        clientes.map(cliente => (
+                                            <React.Fragment key={cliente.id}>
+                                                <tr className={cn(
+                                                    "transition-all duration-300 border-l-4 group cursor-pointer",
+                                                    expandedClient === cliente.id ? "bg-cardenal-gold/5 border-l-cardenal-gold" : "hover:bg-gray-50 border-l-transparent",
+                                                    cliente.es_vip ? "bg-yellow-50/30" : ""
+                                                )}>
+                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={cn(
+                                                                "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2",
+                                                                cliente.es_vip ? "bg-cardenal-gold text-white border-yellow-600" : "bg-cardenal-green text-white border-green-800"
+                                                            )}>
+                                                                {cliente.nombre[0]}
+                                                            </div>
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="font-black text-lg text-black leading-none">{cliente.nombre} {cliente.apellidos}</p>
+                                                                    {cliente.es_vip === 1 && <Crown className="w-5 h-5 text-cardenal-gold fill-cardenal-gold" />}
+                                                                </div>
+                                                                <p className="text-xs font-black text-gray-700 mt-1 uppercase tracking-tight">ID: #{cliente.id}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                        <div className="space-y-1.5">
+                                                            <div className="flex items-center gap-2 text-sm font-black text-black">
+                                                                <Mail className="w-4 h-4 text-cardenal-gold" /> {cliente.email || '—'}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-sm font-black text-black">
+                                                                <Phone className="w-4 h-4 text-green-700" /> {cliente.telefono || '—'}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                        <div className="space-y-1.5 uppercase">
+                                                            <p className="text-sm font-black text-black">{cliente.identificacion || '—'}</p>
+                                                            <p className="text-[10px] font-black text-gray-700 max-w-[200px] truncate">{cliente.razon_social || 'PERSONAL'}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="bg-cardenal-green/10 text-cardenal-green text-[10px] font-black px-2 py-0.5 rounded border border-cardenal-green/20">
+                                                                    {cliente.total_estadias || 0} VISITAS
+                                                                </div>
+                                                                {cliente.ultima_estadia && (
+                                                                    <div className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm">
+                                                                        ULT: {new Date(cliente.ultima_estadia).toLocaleDateString()}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {cliente.calificacion > 0 && (
+                                                                <div className="flex gap-0.5">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <Sparkles key={i} className={cn("w-3 h-3", i < cliente.calificacion ? "text-cardenal-gold fill-cardenal-gold" : "text-gray-300")} />
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-5 text-right">
+                                                        <div className="flex items-center justify-end gap-3">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleExpand(cliente.id)}
+                                                                className={cn("rounded-xl border-2 transition-all", expandedClient === cliente.id ? "bg-cardenal-gold text-white border-cardenal-gold" : "hover:bg-gray-100 border-gray-200 text-black")}
+                                                            >
+                                                                {expandedClient === cliente.id ? <X className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => { if (confirm('¿Eliminar cliente?')) fetch(`/api/clientes/${cliente.id}`, { method: 'DELETE' }).then(() => fetchClientes()) }}
+                                                                className="hover:bg-red-50 text-red-600 rounded-xl border-2 border-transparent hover:border-red-200"
+                                                            >
+                                                                <Trash2 className="w-5 h-5" />
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {expandedClient === cliente.id && (
+                                                    <tr>
+                                                        <td colSpan={5} className="p-0 bg-gray-100/50">
+                                                            <div className="p-10 border-x-4 border-b-4 border-cardenal-gold rounded-b-3xl shadow-inner animate-in slide-in-from-top duration-300">
+                                                                {renderDetailsForm(editingClient || cliente)}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                 )}
-                                            </div>
+                                            </React.Fragment>
                                         ))
                                     )}
-                                </>
-                            )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 ) : (
                     /* Reporte de Reservas (TAB) */
                     <div className="space-y-6">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <div className="flex flex-wrap items-end gap-6 mb-8">
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fecha de</label>
+                        <div className="bg-white p-8 rounded-3xl shadow-xl border-2 border-gray-300">
+                            <div className="flex flex-wrap items-end gap-6 mb-8 bg-gray-100 p-6 rounded-2xl border-2 border-gray-200">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-black uppercase tracking-widest block">Filtrar por</label>
                                     <div className="relative">
                                         <select
                                             value={filterTipo}
                                             onChange={(e) => setFilterTipo(e.target.value)}
-                                            className="appearance-none bg-gray-50 border border-gray-100 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium outline-none w-40"
+                                            className="appearance-none bg-white border-2 border-gray-400 rounded-xl px-5 py-3 pr-12 text-base font-black outline-none w-48 text-black shadow-sm"
                                         >
-                                            <option value="entrada">Check-in</option>
-                                            <option value="reserva">Reserva</option>
+                                            <option value="entrada">CHECK-IN</option>
+                                            <option value="reserva">FECHA RESERVA</option>
                                         </select>
-                                        <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400" />
+                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black" />
                                     </div>
                                 </div>
-                                <div className="space-y-1.5 flex-1 max-w-[200px]">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Desde</label>
+                                <div className="space-y-2 flex-1 max-w-[220px]">
+                                    <label className="text-xs font-black text-black uppercase tracking-widest block">Desde</label>
                                     <input
                                         type="date"
                                         value={filterDesde}
                                         onChange={(e) => setFilterDesde(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 text-sm"
+                                        className="w-full bg-white border-2 border-gray-400 rounded-xl px-5 py-3 text-base font-black text-black shadow-sm"
                                     />
                                 </div>
-                                <div className="space-y-1.5 flex-1 max-w-[200px]">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hasta</label>
+                                <div className="space-y-2 flex-1 max-w-[220px]">
+                                    <label className="text-xs font-black text-black uppercase tracking-widest block">Hasta</label>
                                     <input
                                         type="date"
                                         value={filterHasta}
                                         onChange={(e) => setFilterHasta(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 text-sm"
+                                        className="w-full bg-white border-2 border-gray-400 rounded-xl px-5 py-3 text-base font-black text-black shadow-sm"
                                     />
                                 </div>
-                                <Button onClick={fetchReservas} className="bg-[#0071c2] hover:bg-[#005a9c] text-white font-bold h-10 px-8">Mostrar</Button>
+                                <Button onClick={fetchReservas} className="bg-cardenal-green hover:bg-cardenal-green/90 text-white font-black h-14 px-10 rounded-xl text-lg shadow-lg uppercase tracking-widest">
+                                    Consultar Reporte
+                                </Button>
                             </div>
 
-                            <div className="border rounded-xl overflow-hidden bg-white">
+                            <div className="border-2 border-gray-300 rounded-2xl overflow-hidden bg-white shadow-inner">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="bg-gray-50 border-b">
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Nombre del huésped</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Check-in</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Check-out</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600">Habitaciones</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-center">Estado</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-right">Precio</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-right">Nro Reserva</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-600 text-center">Acciones</th>
+                                        <tr className="bg-gray-200 border-b-2 border-gray-300">
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest whitespace-nowrap">Nombre Huésped</th>
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest whitespace-nowrap">Check-In</th>
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest whitespace-nowrap">Check-Out</th>
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest whitespace-nowrap">Habitación</th>
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest text-center">Estado de Pago</th>
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest text-right">Precio Total</th>
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest text-right"># Reserva</th>
+                                            <th className="px-5 py-4 text-xs font-black text-black uppercase tracking-widest text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
                                         {loadingReservas ? (
                                             <tr>
-                                                <td colSpan={7} className="px-4 py-10 text-center text-gray-400 text-sm italic">Cargando reportes...</td>
+                                                <td colSpan={8} className="px-5 py-24 text-center bg-gray-50/50">
+                                                    <div className="flex flex-col items-center gap-4">
+                                                        <Loader2 className="w-12 h-12 animate-spin text-cardenal-gold stroke-[3px]" />
+                                                        <p className="text-lg font-black text-black uppercase tracking-widest italic">Generando reporte...</p>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         ) : reservas.length === 0 ? (
                                             <tr>
-                                                <td colSpan={7} className="px-4 py-10 text-center text-gray-400 text-sm italic">No hay datos en el rango seleccionado.</td>
+                                                <td colSpan={8} className="px-5 py-24 text-center bg-gray-50/50">
+                                                    <div className="flex flex-col items-center gap-4 opacity-30">
+                                                        <FileSpreadsheet className="w-16 h-16 text-black" />
+                                                        <p className="text-xl font-black text-black uppercase tracking-widest">Sin datos en este rango.</p>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         ) : (
                                             reservas
                                                 .filter(r => r.estado !== 'CANCELADA')
                                                 .map(reserva => (
-                                                    <tr key={reserva.id} className="hover:bg-gray-50/50 transition-colors">
-                                                        <td className="px-4 py-4">
-                                                            <div className="text-sm font-bold text-[#0071c2] uppercase">{reserva.nombre_cliente}</div>
-                                                            <div className="text-[10px] text-gray-400">{reserva.adultos} adultos, {reserva.ninos} niños</div>
+                                                    <tr key={reserva.id} className="hover:bg-gray-50 transition-all divide-x divide-gray-200 group">
+                                                        <td className="px-5 py-5">
+                                                            <div className="text-lg font-black text-black uppercase leading-tight">{reserva.nombre_cliente}</div>
+                                                            <div className="text-xs font-black text-gray-700 mt-1 uppercase tracking-tight">{reserva.adultos} ADULTOS, {reserva.ninos} NIÑOS</div>
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm font-medium">{new Date(reserva.fecha_entrada.split('T')[0] + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                                        <td className="px-4 py-4 text-sm text-gray-600">{new Date(reserva.fecha_salida.split('T')[0] + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                                        <td className="px-4 py-4 text-sm font-bold text-gray-700">
-                                                            {(() => {
-                                                                try {
-                                                                    const meta = JSON.parse(reserva.meta);
-                                                                    return meta.habitacion_nombre || reserva.habitacion_id;
-                                                                } catch (e) {
-                                                                    return reserva.habitacion_id;
-                                                                }
-                                                            })()}
+                                                        <td className="px-5 py-5 text-sm font-black text-black uppercase">
+                                                            {new Date(reserva.fecha_entrada.split('T')[0] + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                         </td>
-                                                        <td className="px-4 py-4">
+                                                        <td className="px-5 py-5 text-sm font-black text-red-600 uppercase">
+                                                            {new Date(reserva.fecha_salida.split('T')[0] + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </td>
+                                                        <td className="px-5 py-5 text-sm font-black text-gray-900 uppercase">
+                                                            <span className="bg-gray-100 px-2 py-1 rounded border border-gray-300">
+                                                                {(() => {
+                                                                    try {
+                                                                        const meta = JSON.parse(reserva.meta);
+                                                                        return meta.habitacion_nombre || reserva.habitacion_id;
+                                                                    } catch (e) {
+                                                                        return reserva.habitacion_id;
+                                                                    }
+                                                                })()}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-5 py-5">
                                                             <select
                                                                 value={reserva.estado}
                                                                 onChange={(e) => handleUpdateReservaStatus(reserva.id, e.target.value)}
                                                                 className={cn(
-                                                                    "text-xs font-bold border rounded px-2 py-1 outline-none",
-                                                                    reserva.estado === 'OK' ? "text-green-600 border-green-200 bg-green-50" :
-                                                                        reserva.estado === 'CANCELADA' ? "text-red-600 border-red-200 bg-red-50" :
-                                                                            reserva.estado === 'PENDIENTE' ? "text-orange-600 border-orange-200 bg-orange-50 font-bold" :
-                                                                                "text-gray-600 border-gray-200"
+                                                                    "text-xs font-black border-2 rounded-xl px-3 py-2 outline-none w-full shadow-sm",
+                                                                    reserva.estado === 'OK' ? "text-white border-green-800 bg-green-600" :
+                                                                        reserva.estado === 'CANCELADA' ? "text-white border-red-800 bg-red-600" :
+                                                                            reserva.estado === 'PENDIENTE' ? "text-white border-orange-800 bg-orange-600" :
+                                                                                "text-black border-gray-400 bg-gray-200"
                                                                 )}
                                                             >
-                                                                <option value="PENDIENTE">PENDIENTE</option>
-                                                                <option value="OK">OK</option>
-                                                                <option value="CANCELADA">CANCELADA</option>
-                                                                <option value="NO PRESENTADO">NO PRESENTADO</option>
+                                                                <option value="PENDIENTE" className="bg-white text-black font-bold">🔴 PENDIENTE</option>
+                                                                <option value="OK" className="bg-white text-black font-bold">🟢 PAGADO (OK)</option>
+                                                                <option value="CANCELADA" className="bg-white text-black font-bold">⚪ CANCELADA</option>
+                                                                <option value="NO PRESENTADO" className="bg-white text-black font-bold">❌ NO PRESENTADO</option>
                                                             </select>
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm text-right font-bold text-gray-800">US${Number(reserva.precio).toFixed(2)}</td>
-                                                        <td className="px-4 py-4 text-sm text-right text-[#0071c2] font-medium">{reserva.numero_reserva || '---'}</td>
-                                                        <td className="px-4 py-4 text-center">
+                                                        <td className="px-5 py-5 text-base text-right font-black text-black">
+                                                            <span className="bg-yellow-100 px-2 py-1 rounded border border-yellow-300">
+                                                                ${Number(reserva.precio).toFixed(2)}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-5 py-5 text-sm text-right text-cardenal-green font-black tracking-tighter">
+                                                            {reserva.numero_reserva || '---'}
+                                                        </td>
+                                                        <td className="px-5 py-5 text-center">
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"

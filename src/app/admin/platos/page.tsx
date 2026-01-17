@@ -139,27 +139,27 @@ export default function AdminPlatosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-cardenal-cream font-sans">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-cardenal-cream/30 font-sans">
+      <header className="bg-white border-b-2 border-gray-200 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center gap-6">
             <Link href="/admin">
-              <Button variant="ghost" size="sm">
-                <ChevronLeft className="w-4 h-4 mr-1" /> Volver
+              <Button variant="outline" size="sm" className="border-2 border-gray-300 font-black text-black hover:bg-gray-100">
+                <ChevronLeft className="w-5 h-5 mr-1 stroke-[3px]" /> VOLVER
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold text-text-main font-serif">Gestión de Hero Dinámico</h1>
+            <h1 className="text-3xl font-black text-cardenal-green uppercase tracking-tighter">Gestión de Hero Dinámico</h1>
           </div>
           <div className="flex space-x-4">
             <Button
-              variant="outline"
               onClick={() => {
                 setSelectedPlato(null);
                 setShowForm(true);
               }}
+              className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white font-black px-8 h-12 shadow-lg rounded-xl"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar Plato
+              <Plus className="mr-2 h-5 w-5 stroke-[3px]" />
+              AGREGAR PLATO
             </Button>
           </div>
         </div>
@@ -167,11 +167,16 @@ export default function AdminPlatosPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         {showForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-xl font-semibold mb-4">
-                {selectedPlato ? 'Editar Plato' : 'Nuevo Plato'}
-              </h2>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-gray-200">
+              <div className="flex items-center gap-4 mb-8 border-b-2 border-gray-100 pb-6">
+                <div className="p-3 bg-cardenal-gold/20 rounded-xl">
+                  <UtensilsCrossed className="w-7 h-7 text-cardenal-gold" />
+                </div>
+                <h2 className="text-3xl font-black text-cardenal-green uppercase tracking-tight">
+                  {selectedPlato ? 'Editar Plato' : 'Nuevo Plato'}
+                </h2>
+              </div>
               <PlatoForm
                 plato={selectedPlato}
                 onSuccess={handleFormSuccess}

@@ -223,7 +223,10 @@ export default function RecepcionPage() {
             if (r.estado === 'CANCELADA') return false;
             if (editingReserva && r.id === editingReserva.id) return false;
 
-            return (formData.entrada < r.fecha_salida && formData.salida > r.fecha_entrada);
+            const rEntrada = r.fecha_entrada.split('T')[0];
+            const rSalida = r.fecha_salida.split('T')[0];
+
+            return (formData.entrada < rSalida && formData.salida > rEntrada);
         });
 
         if (hasOverlap) {
@@ -336,7 +339,7 @@ export default function RecepcionPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#fafafa] flex flex-col font-sans">
+        <div className="h-screen overflow-hidden bg-[#fafafa] flex flex-col font-sans">
             {/* Header */}
             <header className="bg-white border-b sticky top-0 z-30 px-6 py-4 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-4">
@@ -346,8 +349,8 @@ export default function RecepcionPage() {
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-xl font-bold text-cardenal-green font-serif">Panel de Recepción</h1>
-                        <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Gestión Interna de Habitaciones</p>
+                        <h1 className="text-3xl font-black text-cardenal-green font-serif tracking-tight">Panel de Recepción</h1>
+                        <p className="text-base text-black uppercase tracking-widest font-black mt-1">Gestión Interna de Habitaciones</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -363,220 +366,226 @@ export default function RecepcionPage() {
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar: Rooms */}
-                <aside className="w-80 bg-white border-r overflow-y-auto p-6 flex flex-col gap-4">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Seleccionar Habitación</h3>
+                <aside className="w-80 bg-white border-r-2 border-gray-300 overflow-y-auto p-6 flex flex-col gap-4">
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-black border-b-2 border-gray-200 pb-2 mb-2">Seleccionar Habitación</h3>
                     {ROOMS_CONFIG.map((room) => (
                         <button
                             key={room.id}
                             onClick={() => setSelectedRoom(room)}
                             className={cn(
-                                "flex flex-col p-4 rounded-2xl border-2 transition-all duration-300 text-left relative overflow-hidden group",
+                                "flex flex-col p-5 rounded-2xl border-4 transition-all duration-300 text-left relative overflow-hidden group shadow-sm",
                                 selectedRoom.id === room.id
-                                    ? "border-cardenal-gold bg-cardenal-gold/5 shadow-md"
-                                    : "border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm"
+                                    ? "border-cardenal-gold bg-cardenal-gold/10 shadow-lg"
+                                    : "border-gray-200 bg-white hover:border-gray-400 hover:shadow-md"
                             )}
                         >
                             {selectedRoom.id === room.id && (
-                                <div className="absolute top-2 right-2">
-                                    <CheckCircle2 className="w-4 h-4 text-cardenal-gold" />
+                                <div className="absolute top-3 right-3">
+                                    <CheckCircle2 className="w-6 h-6 text-cardenal-gold" />
                                 </div>
                             )}
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className={cn("p-2 rounded-xl", room.color)}>
-                                    <Bed className="w-5 h-5 text-gray-700" />
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className={cn("p-3 rounded-xl border-2 border-black/10", room.color)}>
+                                    <Bed className="w-7 h-7 text-gray-900" />
                                 </div>
                                 <div>
-                                    <span className="text-xs font-black text-gray-400 uppercase">{room.type}</span>
-                                    <h4 className="font-bold text-gray-800 tracking-tight">{room.name}</h4>
+                                    <span className="text-xs font-black text-black uppercase bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{room.type}</span>
+                                    <h4 className="text-xl font-black text-gray-900 tracking-tight mt-1">{room.name}</h4>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between mt-2">
-                                <div className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md">
-                                    <Users className="w-3 h-3" />
+                            <div className="flex items-center justify-between mt-3">
+                                <div className="flex items-center gap-2 text-sm font-black text-black bg-gray-100 px-3 py-1 rounded-lg border border-gray-300">
+                                    <Users className="w-4 h-4" />
                                     <span>Cap: {room.capacity}</span>
                                 </div>
-                                <span className="text-[10px] font-bold text-cardenal-gold"># {room.num}</span>
+                                <span className="text-lg font-black text-cardenal-gold tracking-tighter"># {room.num}</span>
                             </div>
                         </button>
                     ))}
                 </aside>
 
                 {/* Main Content: Calendar */}
-                <main className="flex-1 overflow-y-auto p-8">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <main className="flex-1 flex flex-col overflow-hidden bg-gray-50/50 p-4">
+                    <div className="flex-none mb-4">
+                        <div className="flex items-center justify-between bg-white px-6 py-4 rounded-2xl shadow-sm border border-gray-200">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800 capitalize">
+                                <h2 className="text-2xl font-black text-black capitalize font-serif">
                                     {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                                 </h2>
-                                <p className="text-sm text-gray-500 font-medium">Habitación: <span className="text-cardenal-gold font-bold">{selectedRoom.name}</span></p>
+                                <p className="text-sm text-gray-800 font-bold mt-0.5">Habitación: <span className="text-cardenal-gold font-black bg-gray-100 px-2 py-0.5 rounded border border-gray-200">{selectedRoom.name}</span></p>
                             </div>
                             <div className="flex items-center gap-4">
-                                <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
-                                    <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="rounded-lg">
-                                        <ChevronLeft className="w-5 h-5" />
+                                <div className="flex bg-white p-1 rounded-xl border border-gray-300 shadow-sm">
+                                    <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="h-8 w-8 rounded-lg hover:bg-gray-100 text-black">
+                                        <ChevronLeft className="w-5 h-5 stroke-[3px]" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" onClick={handleNextMonth} className="rounded-lg">
-                                        <ChevronRight className="w-5 h-5" />
+                                    <div className="w-[1px] bg-gray-200 mx-1" />
+                                    <Button variant="ghost" size="icon" onClick={handleNextMonth} className="h-8 w-8 rounded-lg hover:bg-gray-100 text-black">
+                                        <ChevronRight className="w-5 h-5 stroke-[3px]" />
                                     </Button>
                                 </div>
-                                <Button className="bg-cardenal-green hover:bg-cardenal-green/90 text-white rounded-xl font-bold shadow-lg flex gap-2"
+                                <Button className="bg-cardenal-green hover:bg-cardenal-green/90 text-white rounded-xl font-black text-sm py-2 px-4 shadow-md flex gap-2 transform active:scale-95 transition-all"
                                     onClick={() => handleDayClick(new Date())}>
-                                    <Plus className="w-4 h-4" />
-                                    Nueva Reserva
+                                    <Plus className="w-5 h-5 stroke-[3px]" />
+                                    NUEVA RESERVA
                                 </Button>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden">
-                            <div className="grid grid-cols-7 bg-gray-50/50 border-b border-gray-100">
-                                {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => (
-                                    <div key={day} className="py-4 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                                        {day}
-                                    </div>
-                                ))}
-                            </div>
+                    <div className="flex-1 bg-white rounded-2xl shadow-lg border border-gray-300 overflow-hidden flex flex-col">
+                        <div className="grid grid-cols-7 bg-gray-100 border-b border-gray-200 flex-none">
+                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => (
+                                <div key={day} className="py-3 text-center text-xs font-black uppercase tracking-widest text-black">
+                                    {day}
+                                </div>
+                            ))}
+                        </div>
 
-                            <div className="grid grid-cols-7 auto-rows-[140px]">
-                                {daysInMonth().map((date, idx) => {
-                                    if (!date) return <div key={`empty-${idx}`} className="bg-gray-50/20 border-r border-b border-gray-100" />;
+                        <div className="grid grid-cols-7 flex-1">
+                            {daysInMonth().map((date, idx) => {
+                                if (!date) return <div key={`empty-${idx}`} className="bg-gray-50/20 border-r border-b border-gray-100" />;
 
-                                    const occupiedRes = getReservaForDate(date);
-                                    const isToday = date.toDateString() === new Date().toDateString();
+                                const occupiedRes = getReservaForDate(date);
+                                const isToday = date.toDateString() === new Date().toDateString();
 
-                                    return (
-                                        <div
-                                            key={idx}
-                                            onClick={() => handleDayClick(date)}
-                                            className={cn(
-                                                "relative border-r border-b border-gray-100 p-3 transition-colors group cursor-pointer",
-                                                !occupiedRes && "hover:bg-cardenal-gold/5",
-                                                isToday && "bg-cardenal-green/5"
-                                            )}
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <span className={cn(
-                                                    "text-sm font-bold flex items-center justify-center w-7 h-7 rounded-full",
-                                                    isToday ? "bg-cardenal-green text-white" : "text-gray-400"
-                                                )}>
-                                                    {date.getDate()}
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-1.5 space-y-1">
-                                                {/* Indicador de SALIDA (Mañana) */}
-                                                {(() => {
-                                                    const res = getCheckOutForDate(date);
-                                                    if (!res) return null;
-                                                    return (
-                                                        <div className="bg-gray-100 text-gray-600 border border-gray-200 rounded-lg p-1.5 text-[9px] font-bold flex items-center gap-1 shadow-sm">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                                                            <span className="truncate">SALIDA: {res.nombre_cliente}</span>
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                                {/* Indicador de OCUPADO (Noche / Estancia) */}
-                                                {(() => {
-                                                    const res = getReservaForDate(date);
-                                                    if (!res) return null;
-                                                    const isCheckInDay = res.fecha_entrada.split('T')[0] === date.toISOString().split('T')[0];
-
-                                                    return (
-                                                        <div className={cn(
-                                                            "p-2 rounded-xl text-[10px] font-bold leading-tight shadow-sm border border-l-4",
-                                                            res.estado === 'OK' ? "bg-green-50 text-green-700 border-green-200 border-l-green-500" : "bg-orange-50 text-orange-700 border-orange-200 border-l-orange-400"
-                                                        )}>
-                                                            <div className="flex items-center gap-1 mb-1">
-                                                                {isCheckInDay ? <Plus className="w-3 h-3 text-blue-500" /> : <Clock className="w-3 h-3" />}
-                                                                <span className="truncate">{isCheckInDay ? 'ENTRADA: ' : ''}{res.nombre_cliente}</span>
-                                                            </div>
-                                                            {!isCheckInDay && (
-                                                                <div className="flex items-center justify-between opacity-80 mt-1">
-                                                                    <span>${res.precio}</span>
-                                                                    <span className="bg-white/50 px-1 rounded uppercase text-[8px]">{res.estado}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })()}
-                                            </div>
+                                return (
+                                    <div
+                                        key={idx}
+                                        onClick={() => handleDayClick(date)}
+                                        className={cn(
+                                            "relative border-r border-b border-gray-200 p-2 transition-colors group cursor-pointer h-full min-h-0 flex flex-col",
+                                            !occupiedRes && "hover:bg-cardenal-gold/5",
+                                            isToday && "bg-cardenal-green/5"
+                                        )}
+                                        style={{ height: 'calc(100% / 6)' }} // Force 6 rows to fill height equally
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <span className={cn(
+                                                "text-lg font-black flex items-center justify-center w-8 h-8 rounded-full",
+                                                isToday ? "bg-cardenal-green text-white shadow-md" : "text-black bg-gray-100 border border-gray-300"
+                                            )}>
+                                                {date.getDate()}
+                                            </span>
                                         </div>
-                                    );
-                                })}
-                            </div>
+
+                                        <div className="mt-1.5 space-y-1">
+                                            {/* Indicador de SALIDA (Mañana) */}
+                                            {(() => {
+                                                const res = getCheckOutForDate(date);
+                                                if (!res) return null;
+                                                return (
+                                                    <div className="bg-red-600 text-white border-2 border-red-800 rounded-lg p-2 text-[10px] font-black flex items-center gap-1.5 shadow-md">
+                                                        <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                                        <span className="truncate uppercase">SALIDA: {res.nombre_cliente}</span>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* Indicador de OCUPADO (Noche / Estancia) */}
+                                            {(() => {
+                                                const res = getReservaForDate(date);
+                                                if (!res) return null;
+                                                const isCheckInDay = res.fecha_entrada.split('T')[0] === date.toISOString().split('T')[0];
+
+                                                return (
+                                                    <div className={cn(
+                                                        "p-2.5 rounded-xl text-[11px] font-black leading-tight shadow-md border-2 border-l-[6px]",
+                                                        res.estado === 'OK'
+                                                            ? "bg-green-600 text-white border-green-800 border-l-green-900"
+                                                            : "bg-orange-600 text-white border-orange-800 border-l-orange-900"
+                                                    )}>
+                                                        <div className="flex items-center gap-1 mb-1">
+                                                            {isCheckInDay ? <Plus className="w-3 h-3 text-blue-500" /> : <Clock className="w-3 h-3" />}
+                                                            <span className="truncate">{isCheckInDay ? 'ENTRADA: ' : ''}{res.nombre_cliente}</span>
+                                                        </div>
+                                                        {!isCheckInDay && (
+                                                            <div className="flex items-center justify-between mt-1 text-white/90">
+                                                                <span className="font-black bg-black/20 px-1.5 rounded">${res.precio}</span>
+                                                                <span className="bg-white/30 px-1.5 rounded uppercase text-[9px] font-black">{res.estado}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </main>
             </div>
 
             {/* Manual Booking / Edit Modal */}
-            {showBookingModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                        <div className={cn("p-8 flex items-center justify-between text-white", editingReserva ? "bg-cardenal-gold" : "bg-cardenal-green")}>
-                            <div>
-                                <h3 className="text-2xl font-serif font-bold">{editingReserva ? 'Editar Estado' : 'Reserva Manual'}</h3>
-                                <p className="text-sm text-white/70">Habitación: <span className="font-bold">{selectedRoom.name}</span></p>
-                            </div>
-                            <button onClick={() => setShowBookingModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSaveManualReserva} className="p-10 space-y-5">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5 col-span-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nombre del Huésped</label>
-                                    <Input required value={formData.nombre} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, nombre: e.target.value })} className="bg-gray-50 border-gray-100 rounded-xl py-6 font-bold" />
+            {
+                showBookingModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                        <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                            <div className={cn("p-8 flex items-center justify-between text-white", editingReserva ? "bg-cardenal-gold" : "bg-cardenal-green")}>
+                                <div>
+                                    <h3 className="text-2xl font-serif font-bold">{editingReserva ? 'Editar Estado' : 'Reserva Manual'}</h3>
+                                    <p className="text-sm text-white/70">Habitación: <span className="font-bold">{selectedRoom.name}</span></p>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Precio Total ($)</label>
-                                    <Input type="number" step="0.01" required value={formData.precio} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, precio: parseFloat(e.target.value) })} className="bg-gray-50 border-gray-100 rounded-xl py-6 font-bold" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Estado</label>
-                                    <select
-                                        value={formData.estado}
-                                        onChange={e => setFormData({ ...formData, estado: e.target.value })}
-                                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-3.5 font-bold text-sm focus:outline-none ring-1 ring-gray-200"
-                                    >
-                                        <option value="PENDIENTE">PENDIENTE (Falta cancelar)</option>
-                                        <option value="OK">OK (Ya cancelado)</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Check-In</label>
-                                    <Input type="date" required value={formData.entrada} onChange={e => setFormData({ ...formData, entrada: e.target.value })} className="bg-gray-50 border-gray-100 rounded-xl py-6 font-bold" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Check-Out</label>
-                                    <Input type="date" required value={formData.salida} onChange={e => setFormData({ ...formData, salida: e.target.value })} className="bg-gray-50 border-gray-100 rounded-xl py-6 font-bold" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Adultos</label>
-                                    <Input type="number" min="1" max={selectedRoom.capacity} readOnly={!!editingReserva} value={formData.adultos} onChange={e => setFormData({ ...formData, adultos: parseInt(e.target.value) })} className="bg-gray-50 border-gray-100 rounded-xl py-6 font-bold" />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Niños</label>
-                                    <Input type="number" min="0" value={formData.ninos} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, ninos: parseInt(e.target.value) })} className="bg-gray-50 border-gray-100 rounded-xl py-6 font-bold" />
-                                </div>
+                                <button onClick={() => setShowBookingModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                                    <X className="w-6 h-6" />
+                                </button>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
-                                {editingReserva && (
-                                    <Button type="button" onClick={handleCancelReserva} variant="destructive" className="flex-1 py-8 rounded-2xl font-black uppercase tracking-widest">
-                                        <Trash2 className="w-5 h-5 mr-2" /> Eliminar
+                            <form onSubmit={handleSaveManualReserva} className="p-10 space-y-5">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5 col-span-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Nombre del Huésped</label>
+                                        <Input required value={formData.nombre} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, nombre: e.target.value })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black focus:border-cardenal-green transition-all" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Precio Total ($)</label>
+                                        <Input type="number" step="0.01" required value={formData.precio} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, precio: parseFloat(e.target.value) })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Estado de Pago</label>
+                                        <select
+                                            value={formData.estado}
+                                            onChange={e => setFormData({ ...formData, estado: e.target.value })}
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-4 font-black text-lg focus:outline-none ring-1 ring-gray-300 text-black shadow-sm"
+                                        >
+                                            <option value="PENDIENTE" className="font-bold">🔴 PENDIENTE</option>
+                                            <option value="OK" className="font-bold">🟢 OK (PAGADO)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Fecha Check-In</label>
+                                        <Input type="date" required value={formData.entrada} onChange={e => setFormData({ ...formData, entrada: e.target.value })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Fecha Check-Out</label>
+                                        <Input type="date" required value={formData.salida} onChange={e => setFormData({ ...formData, salida: e.target.value })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Adultos</label>
+                                        <Input type="number" min="1" max={selectedRoom.capacity} readOnly={!!editingReserva} value={formData.adultos} onChange={e => setFormData({ ...formData, adultos: parseInt(e.target.value) })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Niños</label>
+                                        <Input type="number" min="0" value={formData.ninos} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, ninos: parseInt(e.target.value) })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    {editingReserva && (
+                                        <Button type="button" onClick={handleCancelReserva} variant="destructive" className="flex-1 py-8 rounded-2xl font-black uppercase tracking-widest">
+                                            <Trash2 className="w-5 h-5 mr-2" /> Eliminar
+                                        </Button>
+                                    )}
+                                    <Button type="submit" className="flex-[2] bg-cardenal-green hover:bg-cardenal-green/90 text-white py-8 rounded-2xl font-black uppercase tracking-widest shadow-xl">
+                                        <Save className="w-5 h-5 mr-2" /> {editingReserva ? 'Guardar Cambios' : 'Confirmar Reserva'}
                                     </Button>
-                                )}
-                                <Button type="submit" className="flex-[2] bg-cardenal-green hover:bg-cardenal-green/90 text-white py-8 rounded-2xl font-black uppercase tracking-widest shadow-xl">
-                                    <Save className="w-5 h-5 mr-2" /> {editingReserva ? 'Guardar Cambios' : 'Confirmar Reserva'}
-                                </Button>
-                            </div>
-                        </form>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

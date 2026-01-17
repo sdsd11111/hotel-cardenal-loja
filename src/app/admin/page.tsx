@@ -76,15 +76,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-cardenal-cream/30 font-sans">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-cardenal-green font-serif">Panel de Administración</h1>
+      <header className="bg-white border-b-2 border-gray-200 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-3xl font-black text-cardenal-green uppercase tracking-tighter">Panel de Administración</h1>
           <Button
             variant="outline"
-            className="text-red-600 border-red-300 hover:bg-red-50"
+            className="text-red-600 border-2 border-red-300 font-black hover:bg-red-50 h-12 px-6 rounded-xl uppercase tracking-widest"
             onClick={handleLogout}
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-2 h-5 w-5 stroke-[2.5px]" />
             Cerrar Sesión
           </Button>
         </div>
@@ -92,23 +92,23 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 font-serif mb-4">Bienvenido al Panel de Control</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Selecciona una opción para comenzar a gestionar el contenido de tu hotel.
+          <h2 className="text-4xl font-black text-black uppercase tracking-tight mb-4">Bienvenido al Panel de Control</h2>
+          <p className="text-lg text-gray-800 font-bold max-w-2xl mx-auto uppercase tracking-tighter">
+            Selecciona una opción para comenzar a gestionar el contenido de su hotel.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {menuItems.map((item) => (
             <Link key={item.href} href={item.href} className="group">
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 h-full flex flex-col items-center text-center group-hover:-translate-y-1">
-                <div className={`p-4 rounded-full mb-6 ${item.color} shadow-lg group-hover:scale-110 transition-transform`}>
-                  <item.icon className="w-8 h-8" />
+              <div className="bg-white p-6 rounded-2xl shadow-md border-2 border-gray-300 hover:border-cardenal-gold hover:shadow-xl transition-all duration-300 h-full flex flex-col items-center text-center group-hover:-translate-y-1">
+                <div className={`p-4 rounded-3xl mb-6 ${item.color} shadow-lg group-hover:scale-110 transition-transform`}>
+                  <item.icon className="w-10 h-10 stroke-[2px]" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-cardenal-gold transition-colors">
+                <h3 className="text-xl font-black text-black mb-3 group-hover:text-cardenal-green transition-colors uppercase tracking-tight">
                   {item.title}
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-gray-600 font-bold text-base leading-snug">
                   {item.description}
                 </p>
               </div>

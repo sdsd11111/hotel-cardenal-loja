@@ -58,89 +58,72 @@ export default function AdminHabitacionesList({
     return (
         <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
             <Table>
-                <TableHeader className="bg-gray-50">
+                <TableHeader className="bg-gray-200 border-b-2 border-gray-300">
                     <TableRow>
-                        <TableHead className="w-[120px]">Imagen</TableHead>
-                        <TableHead>Habitación</TableHead>
-                        <TableHead>Capacidad</TableHead>
-                        <TableHead className="text-right">Precio</TableHead>
-                        <TableHead className="text-center">Disponibilidad</TableHead>
-                        <TableHead className="text-center">Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
+                        <TableHead className="w-[140px] p-5 text-sm font-black text-black uppercase tracking-widest">Imagen</TableHead>
+                        <TableHead className="p-5 text-sm font-black text-black uppercase tracking-widest">Habitación</TableHead>
+                        <TableHead className="p-5 text-sm font-black text-black uppercase tracking-widest">Capacidad</TableHead>
+                        <TableHead className="p-5 text-sm font-black text-black uppercase tracking-widest text-right">Precio</TableHead>
+                        <TableHead className="p-5 text-sm font-black text-black uppercase tracking-widest text-right">Acciones</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {habitaciones.map((habitacion) => (
-                        <TableRow key={habitacion.id} className="hover:bg-gray-50/50 transition-colors">
-                            <TableCell>
-                                <div className="relative w-20 h-14">
+                        <TableRow key={habitacion.id} className="hover:bg-gray-100 transition-all divide-x divide-gray-100 border-b-2 border-gray-200">
+                            <TableCell className="p-5">
+                                <div className="relative w-24 h-16 shadow-md rounded-lg overflow-hidden border-2 border-gray-300">
                                     <Image
                                         src={habitacion.imagen ? (habitacion.imagen.startsWith('/api') ? `${habitacion.imagen}${habitacion.imagen.includes('?') ? '&' : '?'}v=${Date.now()}` : habitacion.imagen) : '/placeholder.jpg'}
                                         alt={habitacion.nombre}
                                         fill
-                                        sizes="(max-width: 768px) 80px, 80px"
-                                        className="object-cover rounded-md"
+                                        sizes="100px"
+                                        className="object-cover"
                                         unoptimized
                                     />
                                 </div>
                             </TableCell>
-                            <TableCell>
-                                <div className="font-bold text-cardenal-green font-serif">{habitacion.nombre}</div>
-                                <div className="text-xs text-gray-400 truncate max-w-[200px]">{habitacion.descripcion}</div>
+                            <TableCell className="p-5">
+                                <div className="font-black text-xl text-black font-serif leading-tight">{habitacion.nombre}</div>
+                                <div className="text-xs font-black text-gray-700 mt-1 line-clamp-2 max-w-[250px] uppercase tracking-tighter">{habitacion.descripcion}</div>
                             </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-3 text-xs text-gray-600">
-                                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {habitacion.max_adultos + habitacion.max_ninos}</span>
-                                    <span className="flex items-center gap-1"><Bed className="w-3 h-3" /> {habitacion.camas}</span>
+                            <TableCell className="p-5">
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="flex items-center gap-2 text-sm font-black text-black"><Users className="w-4 h-4 text-cardenal-gold" /> {habitacion.max_adultos + habitacion.max_ninos} PERSONAS</span>
+                                    <span className="flex items-center gap-2 text-sm font-black text-black"><Bed className="w-4 h-4 text-cardenal-gold" /> {habitacion.camas} CAMAS</span>
                                 </div>
                             </TableCell>
-                            <TableCell className="text-right">
-                                <div className="font-bold text-sm">{habitacion.precio_texto}</div>
-                                <div className="text-[10px] text-gray-400">Val: ${Number(habitacion.precio_numerico).toFixed(2)}</div>
+                            <TableCell className="p-5 text-right">
+                                <div className="font-black text-lg text-cardenal-green bg-green-50 px-2 py-1 rounded inline-block border border-green-100">{habitacion.precio_texto}</div>
+                                <div className="text-xs font-black text-gray-800 mt-1 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 inline-block">VAL: ${Number(habitacion.precio_numerico).toFixed(2)}</div>
                             </TableCell>
-                            <TableCell className="text-center">
-                                <div className="flex flex-col items-center gap-1">
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${habitacion.disponible ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                                        {habitacion.disponible ? 'Libre' : 'Ocupada'}
-                                    </span>
-                                    {habitacion.fecha_salida && (
-                                        <span className="text-[8px] text-gray-400">Hasta: {new Date(habitacion.fecha_salida).toLocaleDateString()}</span>
-                                    )}
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${habitacion.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {habitacion.activo ? 'Activo' : 'Oculto'}
-                                </span>
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex justify-end space-x-2">
+                            <TableCell className="p-5">
+                                <div className="flex justify-end gap-3">
                                     <Button
                                         variant="outline"
-                                        size="sm"
-                                        className="h-8 w-8 p-0"
+                                        size="icon"
+                                        className="h-10 w-10 border-2 transition-all hover:bg-amber-50"
                                         onClick={() => onToggleStatus(habitacion.id, habitacion.activo)}
                                         title={habitacion.activo ? 'Ocultar' : 'Mostrar'}
                                     >
-                                        {habitacion.activo ? <EyeOff className="h-4 w-4 text-amber-600" /> : <Eye className="h-4 w-4 text-cardenal-green" />}
+                                        {habitacion.activo ? <EyeOff className="h-5 w-5 text-amber-600" /> : <Eye className="h-5 w-5 text-cardenal-green" />}
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        size="sm"
-                                        className="h-8 w-8 p-0"
+                                        size="icon"
+                                        className="h-10 w-10 border-2 transition-all hover:bg-gray-100"
                                         onClick={() => onEdit(habitacion)}
                                         title="Editar"
                                     >
-                                        <Pencil className="h-4 w-4 text-gray-600" />
+                                        <Pencil className="h-5 w-5 text-black" />
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
+                                        size="icon"
+                                        className="h-10 w-10 border-2 transition-all text-red-600 hover:bg-red-50 border-red-200"
                                         onClick={() => onDelete(habitacion.id)}
                                         title="Eliminar"
                                     >
-                                        <Trash2 className="h-4 w-4" />
+                                        <Trash2 className="h-5 w-5" />
                                     </Button>
                                 </div>
                             </TableCell>

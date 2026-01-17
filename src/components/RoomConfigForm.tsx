@@ -5,7 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Save, X, Users, Coffee, Check, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Save, X, Users, Coffee, Check, AlertCircle, Settings2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PriceOption {
     personas: number;
@@ -125,15 +126,17 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
     return (
         <div className="space-y-8 animate-fadeIn">
             {/* Tabs for different room types */}
-            <div className="flex border-b border-gray-200">
+            <div className="flex bg-gray-200 p-2 rounded-2xl border-2 border-gray-300 shadow-sm gap-2">
                 {configs.map(config => (
                     <button
                         key={config.id}
                         onClick={() => setSelectedId(config.id)}
-                        className={`px-6 py-3 font-bold text-sm transition-colors relative ${selectedId === config.id
-                            ? 'text-cardenal-green border-b-2 border-cardenal-gold'
-                            : 'text-gray-400 hover:text-gray-600'
-                            }`}
+                        className={cn(
+                            "px-8 py-3 rounded-xl text-base font-black transition-all",
+                            selectedId === config.id
+                                ? "bg-white text-cardenal-green shadow-md scale-105"
+                                : "text-gray-700 hover:bg-gray-300 hover:text-black"
+                        )}
                     >
                         Habitación {config.identifier}
                     </button>
@@ -143,61 +146,68 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column: General Info & Amenities */}
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-                        <h3 className="font-bold text-cardenal-green border-b pb-2">Información General</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-500 uppercase">Título de Pantalla</label>
+                    <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
+                        <h3 className="text-xl font-black text-cardenal-green border-b-2 border-gray-200 pb-3 flex items-center gap-2">
+                            <Settings2 className="w-6 h-6" /> Información General
+                        </h3>
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-black uppercase tracking-widest">Título de Pantalla</label>
                                 <Input
                                     value={editingConfig.display_title}
                                     onChange={e => setEditingConfig({ ...editingConfig, display_title: e.target.value })}
+                                    className="border-2 border-gray-400 font-black h-12"
                                 />
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-500 uppercase">Tamaño (m²)</label>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-black uppercase tracking-widest">Tamaño (m²)</label>
                                 <Input
                                     type="number"
                                     value={editingConfig.room_size}
                                     onChange={e => setEditingConfig({ ...editingConfig, room_size: parseInt(e.target.value) })}
+                                    className="border-2 border-gray-400 font-black h-12"
                                 />
                             </div>
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Descripción</label>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-black uppercase tracking-widest">Descripción</label>
                             <Textarea
                                 value={editingConfig.description}
                                 onChange={e => setEditingConfig({ ...editingConfig, description: e.target.value })}
-                                className="h-24"
+                                className="h-32 border-2 border-gray-400 font-black text-base"
                             />
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3 p-4 bg-gray-100 rounded-xl border-2 border-gray-200">
                             <input
                                 type="checkbox"
                                 checked={editingConfig.has_balcony}
                                 onChange={e => setEditingConfig({ ...editingConfig, has_balcony: e.target.checked })}
                                 id="has_balcony"
+                                className="w-6 h-6 text-cardenal-gold border-2 border-gray-400 rounded focus:ring-cardenal-gold"
                             />
-                            <label htmlFor="has_balcony" className="text-sm font-medium text-gray-700">Tiene Balcón</label>
+                            <label htmlFor="has_balcony" className="text-sm font-black text-black uppercase tracking-widest cursor-pointer">Tiene Balcón</label>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-                        <div className="flex justify-between items-center border-b pb-2">
-                            <h3 className="font-bold text-cardenal-green">Amenidades (Columna "Tipo de Habitación")</h3>
-                            <Button variant="ghost" size="sm" onClick={addAmenity} className="text-cardenal-gold">
-                                <Plus className="w-4 h-4 mr-1" /> Agregar
+                    <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
+                        <div className="flex justify-between items-center border-b-2 border-gray-200 pb-3">
+                            <h3 className="text-xl font-black text-cardenal-green flex items-center gap-2">
+                                <Plus className="w-6 h-6" /> Amenidades
+                            </h3>
+                            <Button variant="outline" size="sm" onClick={addAmenity} className="text-cardenal-gold font-black border-2 border-cardenal-gold/50 shadow-sm">
+                                <Plus className="w-4 h-4 mr-1 stroke-[3px]" /> Agregar
                             </Button>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 gap-3">
                             {amenities.map((amenity, idx) => (
-                                <div key={idx} className="flex gap-2">
+                                <div key={idx} className="flex gap-3 bg-gray-50 p-2 rounded-xl border-2 border-gray-200">
                                     <Input
                                         value={amenity}
                                         onChange={e => handleAmenityChange(idx, e.target.value)}
-                                        className="text-sm h-8"
+                                        className="text-base font-black h-10 border-gray-300"
                                     />
-                                    <button onClick={() => removeAmenity(idx)} className="text-red-400 hover:text-red-600">
-                                        <Trash2 className="w-4 h-4" />
+                                    <button onClick={() => removeAmenity(idx)} className="text-red-500 hover:text-red-700 p-2">
+                                        <Trash2 className="w-5 h-5" />
                                     </button>
                                 </div>
                             ))}
@@ -207,89 +217,91 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
 
                 {/* Right Column: Price Options */}
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-xl border shadow-sm space-y-6">
-                        <div className="flex justify-between items-center border-b pb-2">
-                            <h3 className="font-bold text-cardenal-green">Opciones de Precio (Botón "AGREGAR")</h3>
-                            <Button variant="outline" size="sm" onClick={addPriceOption}>
-                                <Plus className="w-4 h-4 mr-1" /> Nueva Opción
+                    <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-8">
+                        <div className="flex justify-between items-center border-b-2 border-gray-200 pb-4">
+                            <h3 className="text-xl font-black text-cardenal-green flex items-center gap-2">
+                                <Coffee className="w-6 h-6" /> Opciones de Precio
+                            </h3>
+                            <Button onClick={addPriceOption} className="bg-cardenal-gold text-white font-black shadow-lg">
+                                <Plus className="w-4 h-4 mr-2 stroke-[3px]" /> Nueva Opción
                             </Button>
                         </div>
 
                         <div className="space-y-8">
                             {priceOptions.map((option, optIdx) => (
-                                <div key={optIdx} className="p-4 border border-gray-100 rounded-lg bg-gray-50/50 space-y-4 relative group">
+                                <div key={optIdx} className="p-6 border-2 border-gray-200 rounded-2xl bg-gray-100/50 space-y-6 relative group transition-all hover:border-cardenal-gold/50 shadow-sm">
                                     <button
                                         onClick={() => removePriceOption(optIdx)}
-                                        className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute top-4 right-4 text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-5 h-5" />
                                     </button>
 
-                                    <div className="grid grid-cols-4 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                                <Users className="w-3 h-3" /> Personas
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-black uppercase tracking-widest flex items-center gap-1">
+                                                <Users className="w-4 h-4 text-cardenal-gold" /> Personas
                                             </label>
                                             <Input
                                                 type="number"
                                                 value={option.personas}
                                                 onChange={e => handlePriceOptionChange(optIdx, 'personas', parseInt(e.target.value))}
-                                                className="h-8"
+                                                className="h-10 border-2 border-gray-300 font-black text-lg bg-white"
                                             />
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-black uppercase tracking-widest">
                                                 Iconos
                                             </label>
                                             <Input
                                                 type="number"
                                                 value={option.personasIconos}
                                                 onChange={e => handlePriceOptionChange(optIdx, 'personasIconos', parseInt(e.target.value))}
-                                                className="h-8"
+                                                className="h-10 border-2 border-gray-300 font-black text-lg bg-white"
                                             />
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">Precio Base</label>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-black uppercase tracking-widest">Precio Base</label>
                                             <Input
                                                 type="number"
                                                 value={option.precioBase}
                                                 onChange={e => handlePriceOptionChange(optIdx, 'precioBase', parseFloat(e.target.value))}
-                                                className="h-8 font-bold"
+                                                className="h-10 border-2 border-cardenal-green/50 font-black text-lg bg-green-50 text-cardenal-green"
                                             />
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase">IVA/Imp.</label>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-black uppercase tracking-widest">IVA/Imp.</label>
                                             <Input
                                                 type="number"
                                                 value={option.impuestos}
                                                 onChange={e => handlePriceOptionChange(optIdx, 'impuestos', parseFloat(e.target.value))}
-                                                className="h-8"
+                                                className="h-10 border-2 border-gray-300 font-black text-lg bg-white"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                                            "Tus Opciones" (Checklist)
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-black uppercase tracking-widest flex items-center gap-2">
+                                            <Check className="w-4 h-4 text-green-600" /> "Tus Opciones" (Checklist)
                                         </label>
-                                        <div className="grid grid-cols-1 gap-1.5">
+                                        <div className="grid grid-cols-1 gap-2">
                                             {option.incluye.map((item, incIdx) => (
-                                                <div key={incIdx} className="flex gap-2">
-                                                    <div className="p-1 text-green-500">
-                                                        {incIdx === 0 ? <Coffee className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+                                                <div key={incIdx} className="flex gap-3 bg-white p-2 rounded-xl border-2 border-gray-200">
+                                                    <div className="p-1.5 bg-green-100 text-green-700 rounded-lg">
+                                                        {incIdx === 0 ? <Coffee className="w-4 h-4" /> : <Check className="w-4 h-4 stroke-[3px]" />}
                                                     </div>
                                                     <Input
                                                         value={item}
                                                         onChange={e => handleIncludeChange(optIdx, incIdx, e.target.value)}
-                                                        className="h-7 text-xs"
+                                                        className="h-10 text-sm font-black border-none bg-transparent"
                                                     />
-                                                    <button onClick={() => removeInclude(optIdx, incIdx)} className="text-gray-300 hover:text-red-400">
-                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    <button onClick={() => removeInclude(optIdx, incIdx)} className="text-red-400 hover:text-red-600 p-2">
+                                                        <Trash2 className="w-5 h-5" />
                                                     </button>
                                                 </div>
                                             ))}
-                                            <Button variant="ghost" size="sm" onClick={() => addInclude(optIdx)} className="h-6 text-[10px] text-gray-500 self-start">
-                                                <Plus className="w-3 h-3 mr-1" /> Agregar item
+                                            <Button variant="ghost" size="sm" onClick={() => addInclude(optIdx)} className="h-10 text-xs font-black text-cardenal-gold border-2 border-dashed border-cardenal-gold/30 hover:bg-cardenal-gold/5 flex items-center gap-2">
+                                                <Plus className="w-4 h-4 stroke-[3px]" /> AGREGAR ITEM A LA LISTA
                                             </Button>
                                         </div>
                                     </div>

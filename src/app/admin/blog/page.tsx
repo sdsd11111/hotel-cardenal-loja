@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Plus, LayoutDashboard, Pencil, Trash2, Link as LinkIcon, Loader2, Upload, FileText, Eye, EyeOff, Image as ImageIcon } from 'lucide-react';
+import { Plus, LayoutDashboard, Pencil, Trash2, Link as LinkIcon, Loader2, Upload, FileText, Eye, EyeOff, Image as ImageIcon, ChevronLeft, Save } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -185,21 +186,21 @@ export default function AdminBlogPage() {
 
     return (
         <div className="min-h-screen bg-cardenal-cream text-text-main font-sans">
-            <header className="bg-white border-b border-cardenal-sand">
-                <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
+            <header className="bg-white border-b-2 border-gray-200 shadow-md">
+                <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
+                    <div className="flex items-center gap-6">
                         <Link href="/admin">
-                            <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-gray-700">
-                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                                Volver
+                            <Button variant="outline" size="sm" className="border-2 border-gray-300 font-black text-black hover:bg-gray-100">
+                                <LayoutDashboard className="mr-2 h-5 w-5 stroke-[2px]" />
+                                VOLVER
                             </Button>
                         </Link>
-                        <h1 className="text-xl font-bold text-white pl-4 border-l border-gray-600">
+                        <h1 className="text-3xl font-black text-cardenal-green uppercase tracking-tighter pl-6 border-l-4 border-cardenal-gold">
                             Gestor de Blog
                         </h1>
                     </div>
-                    <Button onClick={() => { setSelectedArticle(null); setFormData(initialFormState); setShowForm(true); }} className="bg-cardenal-green hover:bg-cardenal-gold text-white font-bold rounded-lg transition-all duration-300">
-                        <Plus className="mr-2 h-4 w-4" />
+                    <Button onClick={() => { setSelectedArticle(null); setFormData(initialFormState); setShowForm(true); }} className="bg-cardenal-green hover:bg-cardenal-green/90 text-white font-black px-8 h-12 rounded-xl shadow-lg uppercase tracking-widest">
+                        <Plus className="mr-2 h-5 w-5 stroke-[3px]" />
                         Crear Artículo
                     </Button>
                 </div>
@@ -209,9 +210,9 @@ export default function AdminBlogPage() {
                 {isLoading ? <Loader2 className="animate-spin text-blue-500 mx-auto" /> : (
                     <div className="grid gap-4">
                         {articles.map(article => (
-                            <div key={article.id} className="bg-white p-4 rounded-lg flex items-center justify-between border border-cardenal-sand hover:border-cardenal-green/50 shadow-sm transition-all duration-300">
-                                <div className="flex gap-4 items-center">
-                                    <div className="w-16 h-16 rounded bg-gray-700 overflow-hidden flex-shrink-0 relative">
+                            <div key={article.id} className="bg-white p-6 rounded-3xl flex items-center justify-between border-2 border-gray-200 hover:border-cardenal-green shadow-sm transition-all duration-300 group">
+                                <div className="flex gap-6 items-center">
+                                    <div className="w-24 h-24 rounded-2xl bg-gray-200 overflow-hidden flex-shrink-0 relative border-2 border-gray-100 shadow-inner">
                                         {article.imagen_url ? (
                                             <Image
                                                 src={article.imagen_url}
@@ -220,41 +221,68 @@ export default function AdminBlogPage() {
                                                 alt=""
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-500"><ImageIcon className="w-6 h-6" /></div>
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon className="w-8 h-8" /></div>
                                         )}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-lg text-white">{article.titulo}</h3>
-                                        <div className="text-sm text-gray-400 flex gap-2">
-                                            <span>{article.fecha_publicacion?.split(' ')[0]}</span>
-                                            <span>•</span>
-                                            <span>{article.categoria}</span>
-                                            <span>•</span>
-                                            <span className={article.activo ? "text-cardenal-green font-bold" : "text-cardenal-gold font-bold"}>{article.activo ? 'Publicado' : 'Borrador'}</span>
+                                        <h3 className="font-black text-xl text-black uppercase tracking-tight group-hover:text-cardenal-green transition-colors">{article.titulo}</h3>
+                                        <div className="text-sm font-bold text-gray-700 flex flex-wrap gap-3 mt-2 uppercase tracking-tighter">
+                                            <span className="bg-gray-100 px-2 py-1 rounded-lg border border-gray-200">{article.fecha_publicacion?.split(' ')[0]}</span>
+                                            <span className="text-gray-300">•</span>
+                                            <span className="bg-cardenal-cream/50 px-2 py-1 rounded-lg border border-cardenal-sand">{article.categoria}</span>
+                                            <span className="text-gray-300">•</span>
+                                            <span className={cn(
+                                                "px-2 py-1 rounded-lg border font-black",
+                                                article.activo ? "bg-green-100 text-green-800 border-green-300" : "bg-orange-100 text-orange-800 border-orange-300"
+                                            )}>
+                                                {article.activo ? 'PUBLICADO' : 'BORRADOR'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-3">
                                     {/* Status Toggle */}
                                     <Button
                                         size="icon"
-                                        variant="ghost"
+                                        variant="outline"
                                         onClick={() => handleToggleStatus(article)}
-                                        className={article.activo ? "text-cardenal-green hover:text-cardenal-green-dark hover:bg-cardenal-green/10" : "text-text-muted hover:text-text-main hover:bg-cardenal-sand"}
+                                        className={cn(
+                                            "h-12 w-12 border-2",
+                                            article.activo
+                                                ? "border-green-300 text-green-600 bg-green-50 hover:bg-green-100"
+                                                : "border-gray-300 text-gray-500 bg-gray-50 hover:bg-gray-100"
+                                        )}
                                         title={article.activo ? "Desactivar" : "Activar"}
                                     >
-                                        {article.activo ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                        {article.activo ? <Eye className="w-6 h-6 stroke-[2.5px]" /> : <EyeOff className="w-6 h-6 stroke-[2.5px]" />}
                                     </Button>
 
                                     {/* View Link */}
                                     <Link href={`/blog/${article.slug}`} target="_blank">
-                                        <Button size="icon" variant="ghost" className="text-blue-400 hover:text-white" title="Ver en la web">
-                                            <LinkIcon className="w-4 h-4" />
+                                        <Button size="icon" variant="outline" className="h-12 w-12 border-2 border-blue-300 text-blue-600 bg-blue-50 hover:bg-blue-100" title="Ver en la web">
+                                            <LinkIcon className="w-6 h-6 stroke-[2.5px]" />
                                         </Button>
                                     </Link>
 
-                                    <Button size="icon" variant="ghost" onClick={() => handleEdit(article)} title="Editar"><Pencil className="w-4 h-4" /></Button>
-                                    <Button size="icon" variant="ghost" className="text-red-500 hover:text-red-400" onClick={() => handleDelete(article.id)} title="Eliminar"><Trash2 className="w-4 h-4" /></Button>
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        onClick={() => handleEdit(article)}
+                                        className="h-12 w-12 border-2 border-orange-300 text-orange-600 bg-orange-50 hover:bg-orange-100"
+                                        title="Editar"
+                                    >
+                                        <Pencil className="w-6 h-6 stroke-[2.5px]" />
+                                    </Button>
+
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        onClick={() => handleDelete(article.id)}
+                                        className="h-12 w-12 border-2 border-red-300 text-red-600 bg-red-50 hover:bg-red-100"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 className="w-6 h-6 stroke-[2.5px]" />
+                                    </Button>
                                 </div>
                             </div>
                         ))}
@@ -262,24 +290,24 @@ export default function AdminBlogPage() {
                 )}
 
                 {showForm && (
-                    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex overflow-hidden">
-                        <div className="bg-gray-900 w-full h-full flex flex-col md:flex-row shadow-2xl">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex overflow-hidden">
+                        <div className="bg-white w-full h-full flex flex-col md:flex-row shadow-2xl">
 
                             {/* Sidebar / Main Form Fields */}
-                            <div className="w-full md:w-1/3 lg:w-1/4 border-r border-gray-800 overflow-y-auto p-6 space-y-6 bg-gray-900">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-xl font-bold flex items-center gap-2">
-                                        <FileText className="w-5 h-5 text-blue-500" />
+                            <div className="w-full md:w-1/3 lg:w-1/4 border-r-2 border-gray-200 overflow-y-auto p-8 space-y-8 bg-gray-50/50">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-2xl font-black text-cardenal-green flex items-center gap-3 uppercase tracking-tighter">
+                                        <FileText className="w-7 h-7" />
                                         {selectedArticle ? 'Editar' : 'Nuevo'}
                                     </h2>
-                                    <Button variant="ghost" size="sm" onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white">Cerrar</Button>
+                                    <Button variant="outline" size="sm" onClick={() => setShowForm(false)} className="border-2 border-gray-300 font-black text-black">CERRAR</Button>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Título</label>
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Título</label>
                                         <input
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm focus:border-blue-500 outline-none"
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold focus:border-cardenal-green outline-none h-12"
                                             value={formData.titulo}
                                             onChange={e => setFormData({ ...formData, titulo: e.target.value })}
                                             placeholder="Mi Gran Artículo"
@@ -287,10 +315,10 @@ export default function AdminBlogPage() {
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Slug (URL)</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Slug (URL)</label>
                                         <input
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-gray-300 font-mono text-xs"
+                                            className="w-full bg-gray-100 border-2 border-gray-300 rounded-xl p-3 text-gray-700 font-mono text-sm h-12"
                                             value={formData.slug}
                                             placeholder="mi-articulo-ejemplo"
                                             onChange={e => setFormData({ ...formData, slug: e.target.value })}
@@ -298,12 +326,12 @@ export default function AdminBlogPage() {
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Imagen Principal</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Imagen Principal</label>
                                         <div className="space-y-4">
                                             {/* Preview Image */}
                                             {(formData.imagen_url || imageFile) && (
-                                                <div className="relative w-full h-32 bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                                                <div className="relative w-full h-40 bg-gray-200 rounded-2xl overflow-hidden border-2 border-gray-300 shadow-inner">
                                                     {imageFile ? (
                                                         <img
                                                             src={URL.createObjectURL(imageFile)}
@@ -325,41 +353,41 @@ export default function AdminBlogPage() {
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleImageChange}
-                                                className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-blue-400 hover:file:bg-gray-700 cursor-pointer"
+                                                className="w-full text-xs font-black text-gray-700 file:mr-4 file:py-2 file:px-6 file:rounded-xl file:border-2 file:border-gray-300 file:text-xs file:font-black file:bg-white file:text-cardenal-green hover:file:bg-gray-50 cursor-pointer"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-gray-500 uppercase">Fecha</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-black uppercase tracking-widest">Fecha</label>
                                             <input
                                                 type="date"
-                                                className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-xs"
+                                                className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold text-xs h-12"
                                                 value={formData.fecha_publicacion}
                                                 onChange={e => setFormData({ ...formData, fecha_publicacion: e.target.value })}
                                             />
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-gray-500 uppercase">Estado</label>
-                                            <div className="flex items-center h-9">
-                                                <div className="flex items-center space-x-2 cursor-pointer">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-black uppercase tracking-widest">Estado</label>
+                                            <div className="flex items-center h-12 bg-white px-3 rounded-xl border-2 border-gray-400">
+                                                <div className="flex items-center space-x-3 cursor-pointer">
                                                     <Switch
                                                         id="activo-blog"
                                                         checked={formData.activo}
                                                         onCheckedChange={checked => setFormData({ ...formData, activo: checked })}
-                                                        thumbClassName="bg-black"
+                                                        className="data-[state=checked]:bg-cardenal-green data-[state=unchecked]:bg-gray-300"
                                                     />
-                                                    <span className="text-sm text-gray-300">Publicado</span>
+                                                    <span className="text-xs font-black text-black uppercase">Publicado</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Categoría</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Categoría</label>
                                         <select
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm"
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold h-12 outline-none appearance-none"
                                             value={formData.categoria}
                                             onChange={e => setFormData({ ...formData, categoria: e.target.value })}
                                         >
@@ -370,50 +398,50 @@ export default function AdminBlogPage() {
                                         </select>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Tags</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Tags</label>
                                         <input
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm"
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold h-12"
                                             value={formData.tags}
                                             onChange={e => setFormData({ ...formData, tags: e.target.value })}
-                                            placeholder="Ej: turismo, comida, centro histórico (separados por coma)"
+                                            placeholder="Ej: turismo, comida, centro histórico"
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Autor</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Autor</label>
                                         <input
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm"
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold h-12"
                                             value={formData.autor}
                                             onChange={e => setFormData({ ...formData, autor: e.target.value })}
                                             placeholder="Ej: Juan Pérez"
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Palabra Clave (SEO)</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Palabra Clave (SEO)</label>
                                         <input
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm"
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold h-12"
                                             value={formData.palabra_clave}
                                             onChange={e => setFormData({ ...formData, palabra_clave: e.target.value })}
                                             placeholder="Ej: hotel en loja, turismo"
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Meta Descripción (SEO)</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Meta Descripción (SEO)</label>
                                         <textarea
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm h-20"
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold h-24"
                                             value={formData.meta_description}
-                                            placeholder="Resumen para Google (150-160 caracteres)"
+                                            placeholder="Resumen para Google"
                                             onChange={e => setFormData({ ...formData, meta_description: e.target.value })}
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-gray-500 uppercase">Extracto</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-black uppercase tracking-widest">Extracto</label>
                                         <textarea
-                                            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm h-20"
+                                            className="w-full bg-white border-2 border-gray-400 rounded-xl p-3 text-black font-bold h-24"
                                             value={formData.extracto}
                                             onChange={e => setFormData({ ...formData, extracto: e.target.value })}
                                         />
@@ -422,41 +450,50 @@ export default function AdminBlogPage() {
                             </div>
 
                             {/* Split Editor Section */}
-                            <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-950">
+                            <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
                                 {/* Editor Toolbar */}
-                                <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-900">
-                                    <div className="flex space-x-1 bg-gray-800 rounded p-1">
+                                <div className="flex items-center justify-between px-6 py-4 border-b-2 border-gray-200 bg-gray-50">
+                                    <div className="flex space-x-2 bg-gray-200 rounded-xl p-1.5 border-2 border-gray-300">
                                         <button
                                             onClick={() => setPreviewMode('edit')}
-                                            className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'edit' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                            className={cn(
+                                                "px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all",
+                                                previewMode === 'edit' ? 'bg-cardenal-green text-white shadow-md' : 'text-gray-600 hover:text-black hover:bg-gray-300'
+                                            )}
                                         >
                                             Escribir
                                         </button>
                                         <button
                                             onClick={() => setPreviewMode('split')}
-                                            className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'split' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                            className={cn(
+                                                "px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all",
+                                                previewMode === 'split' ? 'bg-cardenal-green text-white shadow-md' : 'text-gray-600 hover:text-black hover:bg-gray-300'
+                                            )}
                                         >
                                             Dividido
                                         </button>
                                         <button
                                             onClick={() => setPreviewMode('preview')}
-                                            className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'preview' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                            className={cn(
+                                                "px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all",
+                                                previewMode === 'preview' ? 'bg-cardenal-green text-white shadow-md' : 'text-gray-600 hover:text-black hover:bg-gray-300'
+                                            )}
                                         >
                                             Vista Previa
                                         </button>
                                     </div>
-                                    <Button size="sm" onClick={handleSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white border-0">
-                                        {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : null}
-                                        Guardar Todo
+                                    <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-cardenal-gold hover:bg-cardenal-gold/90 text-white font-black px-10 h-14 rounded-xl shadow-xl uppercase tracking-[0.2em] transition-transform hover:scale-105">
+                                        {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <Save className="w-6 h-6 mr-3 stroke-[3px]" />}
+                                        GUARDAR TODO
                                     </Button>
                                 </div>
 
                                 {/* Editor Areas */}
                                 <div className="flex-1 flex overflow-hidden">
                                     {/* Write Area */}
-                                    <div className={`h-full border-r border-gray-800 ${previewMode === 'preview' ? 'hidden' : ''} ${previewMode === 'split' ? 'w-1/2' : 'w-full'}`}>
+                                    <div className={`h-full border-r-2 border-gray-200 ${previewMode === 'preview' ? 'hidden' : ''} ${previewMode === 'split' ? 'w-1/2' : 'w-full'}`}>
                                         <textarea
-                                            className="w-full h-full bg-gray-950 text-gray-300 font-mono text-sm p-6 outline-none resize-none leading-relaxed"
+                                            className="w-full h-full bg-gray-50 text-black font-mono text-base p-10 outline-none resize-none leading-relaxed border-none focus:bg-white transition-colors"
                                             value={formData.contenido}
                                             placeholder="# Escribe tu artículo aquí...&#10;&#10;Soporta **Markdown**."
                                             onChange={e => setFormData({ ...formData, contenido: e.target.value })}

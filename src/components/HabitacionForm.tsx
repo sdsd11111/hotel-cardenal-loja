@@ -246,79 +246,64 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Nombre de la Habitación</label>
-                        <Input {...register('nombre')} error={errors.nombre?.message} placeholder="Ej: Matrimonial Deluxe" />
+                        <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Nombre de la Habitación</label>
+                        <Input {...register('nombre')} error={errors.nombre?.message} placeholder="Ej: Matrimonial Deluxe" className="border-2 border-gray-400 font-bold" />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">Slug (URL)</label>
-                        <Input {...register('slug')} error={errors.slug?.message} placeholder="ej-matrimonial-deluxe" />
+                        <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Slug (URL)</label>
+                        <Input {...register('slug')} error={errors.slug?.message} placeholder="ej-matrimonial-deluxe" className="border-2 border-gray-400 font-bold" />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">Descripción</label>
-                        <Textarea {...register('descripcion')} error={errors.descripcion?.message} rows={3} />
+                        <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Descripción</label>
+                        <Textarea {...register('descripcion')} error={errors.descripcion?.message} rows={3} className="border-2 border-gray-400 font-bold" />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Precio Texto</label>
-                            <Input {...register('precio_texto')} error={errors.precio_texto?.message} />
+                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Precio Texto</label>
+                            <Input {...register('precio_texto')} error={errors.precio_texto?.message} className="border-2 border-gray-400 font-bold" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Precio Numérico</label>
-                            <Input type="number" step="0.01" {...register('precio_numerico')} error={errors.precio_numerico?.message} />
+                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Precio Numérico</label>
+                            <Input type="number" step="0.01" {...register('precio_numerico')} error={errors.precio_numerico?.message} className="border-2 border-gray-400 font-bold" />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Max Adultos</label>
-                            <Input type="number" {...register('max_adultos')} error={errors.max_adultos?.message} />
+                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Max Adultos</label>
+                            <Input type="number" {...register('max_adultos')} error={errors.max_adultos?.message} className="border-2 border-gray-400 font-bold" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Max Niños</label>
-                            <Input type="number" {...register('max_ninos')} error={errors.max_ninos?.message} />
+                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Max Niños</label>
+                            <Input type="number" {...register('max_ninos')} error={errors.max_ninos?.message} className="border-2 border-gray-400 font-bold" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Camas</label>
-                            <Input type="number" {...register('camas')} error={errors.camas?.message} />
+                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Camas</label>
+                            <Input type="number" {...register('camas')} error={errors.camas?.message} className="border-2 border-gray-400 font-bold" />
                         </div>
                     </div>
 
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
-                        <h4 className="text-sm font-bold text-blue-700 uppercase tracking-wider">Configuración de Niños</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Niños Gratis</label>
-                                <Input type="number" {...register('ninos_gratis')} error={errors.ninos_gratis?.message} />
-                                <p className="text-xs text-gray-500 mt-1">Cantidad de niños sin cargo adicional</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Precio Niño Extra (USD)</label>
-                                <Input type="number" step="0.01" {...register('precio_nino_extra')} error={errors.precio_nino_extra?.message} />
-                                <p className="text-xs text-gray-500 mt-1">Cobro por cada niño adicional</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-4">
-                        <h4 className="text-sm font-bold text-yellow-700 uppercase tracking-wider">Comidas Incluidas</h4>
-                        <div className="grid grid-cols-3 gap-4">
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" {...register('incluye_desayuno')} className="form-checkbox h-5 w-5 text-cardenal-gold rounded focus:ring-cardenal-gold" />
-                                <span className="text-sm font-medium">Desayuno Incluido</span>
+                    <div className="p-5 bg-yellow-100 border-2 border-yellow-400 rounded-2xl space-y-4 shadow-sm">
+                        <h4 className="text-sm font-black text-yellow-900 uppercase tracking-widest">Comidas Incluidas</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                            <label className="flex items-center space-x-3 cursor-pointer group">
+                                <input type="checkbox" {...register('incluye_desayuno')} className="form-checkbox h-6 w-6 text-cardenal-gold rounded-lg border-2 border-yellow-500 focus:ring-cardenal-gold" />
+                                <span className="text-sm font-black text-yellow-900 uppercase tracking-tight">Desayuno Incluido</span>
                             </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" {...register('incluye_almuerzo')} className="form-checkbox h-5 w-5 text-cardenal-gold rounded focus:ring-cardenal-gold" />
-                                <span className="text-sm font-medium">Almuerzo Incluido</span>
+                            <label className="flex items-center space-x-3 cursor-pointer group">
+                                <input type="checkbox" {...register('incluye_almuerzo')} className="form-checkbox h-6 w-6 text-cardenal-gold rounded-lg border-2 border-yellow-500 focus:ring-cardenal-gold" />
+                                <span className="text-sm font-black text-yellow-900 uppercase tracking-tight">Almuerzo Incluido</span>
                             </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" {...register('incluye_cena')} className="form-checkbox h-5 w-5 text-cardenal-gold rounded focus:ring-cardenal-gold" />
-                                <span className="text-sm font-medium">Cena Incluida</span>
+                            <label className="flex items-center space-x-3 cursor-pointer group">
+                                <input type="checkbox" {...register('incluye_cena')} className="form-checkbox h-6 w-6 text-cardenal-gold rounded-lg border-2 border-yellow-500 focus:ring-cardenal-gold" />
+                                <span className="text-sm font-black text-yellow-900 uppercase tracking-tight">Cena Incluida</span>
                             </label>
                         </div>
-                        <p className="text-xs text-gray-500 italic">Marca las opciones que vienen incluidas en el precio base de la habitación.</p>
+                        <p className="text-[10px] text-yellow-800 font-black italic uppercase">Marca las opciones incluidas en el precio base.</p>
                     </div>
 
 
@@ -339,26 +324,27 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Amenidades</label>
-                        <div className="flex gap-2 mb-2">
+                        <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Amenidades</label>
+                        <div className="flex gap-2 mb-3">
                             <Input
                                 value={newAmenidad}
                                 onChange={(e) => setNewAmenidad(e.target.value)}
                                 placeholder="Ej: Jacuzzi, Balcón..."
+                                className="border-2 border-gray-400 font-bold"
                                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenidad())}
                             />
-                            <Button type="button" onClick={addAmenidad} variant="outline" size="icon">
-                                <Plus className="h-4 w-4" />
+                            <Button type="button" onClick={addAmenidad} variant="outline" className="h-10 w-10 border-2 border-cardenal-gold text-cardenal-gold hover:bg-cardenal-gold/10">
+                                <Plus className="h-6 w-6 stroke-[3px]" />
                             </Button>
                         </div>
-                        <div className="flex flex-wrap gap-2 min-h-[50px] p-2 bg-gray-50 rounded-lg border">
+                        <div className="flex flex-wrap gap-2 min-h-[60px] p-4 bg-gray-100 rounded-2xl border-2 border-gray-300 shadow-inner">
                             {amenidades.map((am, i) => (
-                                <span key={i} className="bg-cardenal-green text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                <span key={i} className="bg-cardenal-green text-white text-xs font-black px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm border border-green-800 uppercase tracking-tighter">
                                     {am}
-                                    <button type="button" onClick={() => removeAmenidad(i)}><X className="h-3 w-3" /></button>
+                                    <button type="button" onClick={() => removeAmenidad(i)} className="hover:bg-white/20 rounded-full p-0.5"><X className="h-4 w-4 stroke-[3px]" /></button>
                                 </span>
                             ))}
-                            {amenidades.length === 0 && <span className="text-gray-400 text-xs italic">No hay amenidades agregadas</span>}
+                            {amenidades.length === 0 && <span className="text-gray-500 text-xs font-black italic uppercase">No hay amenidades agregadas</span>}
                         </div>
                     </div>
 

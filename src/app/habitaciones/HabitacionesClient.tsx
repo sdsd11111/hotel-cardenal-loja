@@ -130,20 +130,35 @@ function HabitacionesContent() {
         ninosEdades: [] as number[]
     });
 
+    const [roomConfigs, setRoomConfigs] = useState<any[]>([]);
+
     useEffect(() => {
-        const fetchSettings = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch('/api/admin/settings');
-                if (response.ok) {
-                    const data = await response.json();
+                let freshConfigs = [];
+                // 1. Fetch child age threshold
+                const settingsRes = await fetch('/api/admin/settings');
+                if (settingsRes.ok) {
+                    const data = await settingsRes.json();
                     const threshold = data.find((s: any) => s.setting_key === 'child_age_threshold');
                     if (threshold) setChildAgeThreshold(parseInt(threshold.setting_value));
                 }
+
+                // 2. Fetch centralized room configurations (for pricing)
+                const configsRes = await fetch('/api/admin/room-configs');
+                if (configsRes.ok) {
+                    freshConfigs = await configsRes.json();
+                    setRoomConfigs(freshConfigs);
+                }
+
+                // 3. Initial fetch of rooms USING the fresh configs to avoid race condition
+                fetchHabitaciones(undefined, undefined, 0, freshConfigs);
             } catch (err) {
-                console.error('Error fetching settings:', err);
+                console.error('Error fetching data:', err);
+                fetchHabitaciones(); // Fallback if settings fail
             }
         };
-        fetchSettings();
+        fetchData();
     }, []);
 
     const handleAplicarFiltros = () => {
@@ -164,12 +179,13 @@ function HabitacionesContent() {
         fetchHabitaciones(fechaEntrada, fechaSalida);
     };
 
-    const fetchHabitaciones = async (entradaVal?: string, salidaVal?: string, retryCount = 0) => {
+    const fetchHabitaciones = async (entradaVal?: string, salidaVal?: string, retryCount = 0, providedConfigs?: any[]) => {
         try {
             setIsLoading(true);
             const params = new URLSearchParams();
             const ent = entradaVal !== undefined ? entradaVal : appliedFilters.entrada;
             const sal = salidaVal !== undefined ? salidaVal : appliedFilters.salida;
+            const activeConfigs = providedConfigs || roomConfigs;
 
             if (ent) params.append('entrada', ent);
             if (sal) params.append('salida', sal);
@@ -185,7 +201,7 @@ function HabitacionesContent() {
                 if (retryCount < 2) {
                     console.warn(`Retry ${retryCount + 1} for habitaciones...`);
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait longer on retry
-                    return fetchHabitaciones(ent, sal, retryCount + 1);
+                    return fetchHabitaciones(ent, sal, retryCount + 1, providedConfigs);
                 }
                 throw new Error(`Error al cargar habitaciones (${response.status})`);
             }
@@ -194,8 +210,22 @@ function HabitacionesContent() {
 
             // Transform DB data to interface format
             let mappedData: Habitacion[] = data.map((room: any) => {
+                const nombreLower = room.nombre.toLowerCase();
+                let identifier = '303'; // Default logic to match modal
+                if (nombreLower.includes('301') || (!nombreLower.includes('302') && !nombreLower.includes('303') && room.max_adultos <= 2)) identifier = '301';
+                else if (nombreLower.includes('302')) identifier = '302';
+
+                // Try to use centralized config for price options
+                const config = activeConfigs.find((c: any) => c.identifier === identifier);
                 let priceOptions = [];
-                if (room.price_options_json) {
+
+                if (config && config.price_options_json) {
+                    try {
+                        priceOptions = typeof config.price_options_json === 'string'
+                            ? JSON.parse(config.price_options_json)
+                            : config.price_options_json;
+                    } catch { priceOptions = []; }
+                } else if (room.price_options_json) {
                     try {
                         priceOptions = typeof room.price_options_json === 'string'
                             ? JSON.parse(room.price_options_json)
@@ -223,7 +253,6 @@ function HabitacionesContent() {
                     incluyeAlmuerzo: room.incluye_almuerzo === 1,
                     incluyeCena: room.incluye_cena === 1,
                     priceOptions: priceOptions,
-                    // Trust database/API value primarily. 
                     disponible: room.disponible === 1,
                     fecha_entrada: room.fecha_entrada,
                     fecha_salida: room.fecha_salida
@@ -829,7 +858,9 @@ function HabitacionesContent() {
 
                                                         {/* Price overlay - Dynamic pricing based on guest count */}
                                                         <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-4 shadow-2xl flex flex-col items-start leading-tight">
-                                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-cardenal-gold mb-1 not-italic">Cotizar desde</span>
+                                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-cardenal-gold mb-1 not-italic">
+                                                                {appliedFilters.adultos > 0 ? `Tarifa para ${appliedFilters.adultos + appliedFilters.ninosEdades.length} ${appliedFilters.adultos + appliedFilters.ninosEdades.length === 1 ? 'persona' : 'personas'}` : 'Cotizar desde'}
+                                                            </span>
                                                             <div className="flex items-baseline gap-1 font-serif font-bold italic text-3xl">
                                                                 ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold).toFixed(2)}
                                                                 <span className="text-[10px] font-normal not-italic ml-1 opacity-80">/ noche</span>
