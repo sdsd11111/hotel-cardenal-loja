@@ -842,8 +842,8 @@ export default function AdminClientesPage() {
                                                             <div className="text-sm font-bold text-[#0071c2] uppercase">{reserva.nombre_cliente}</div>
                                                             <div className="text-[10px] text-gray-400">{reserva.adultos} adultos, {reserva.ninos} niños</div>
                                                         </td>
-                                                        <td className="px-4 py-4 text-sm font-medium">{new Date(reserva.fecha_entrada).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                                        <td className="px-4 py-4 text-sm text-gray-600">{new Date(reserva.fecha_salida).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                        <td className="px-4 py-4 text-sm font-medium">{new Date(reserva.fecha_entrada.split('T')[0] + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                        <td className="px-4 py-4 text-sm text-gray-600">{new Date(reserva.fecha_salida.split('T')[0] + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                                                         <td className="px-4 py-4 text-sm font-bold text-gray-700">
                                                             {(() => {
                                                                 try {

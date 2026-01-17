@@ -133,7 +133,9 @@ export default function RecepcionPage() {
         return reservas.find(r => {
             if (r.habitacion_id !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
-            return dateStr >= r.fecha_entrada && dateStr < r.fecha_salida;
+            const checkIn = r.fecha_entrada.split('T')[0];
+            const checkOut = r.fecha_salida.split('T')[0];
+            return dateStr >= checkIn && dateStr < checkOut;
         });
     };
 

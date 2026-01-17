@@ -51,7 +51,7 @@ export async function POST(request: Request) {
                 habitacion_nombre: reservationData?.habitacion_nombre || ''
             });
 
-            const updated: any = await query(
+            await query(
                 `UPDATE reservas 
                  SET habitacion_id = ?,
                      fecha_entrada = ?,
@@ -81,7 +81,10 @@ export async function POST(request: Request) {
                 ]
             );
 
-            console.log('Reserva actualizada:', updated);
+            // Sincronizar reporte de clientes al actualizar una reserva
+            await syncWithClientes(reservationData, reservationData?.numero_reserva || clientTransactionId || updateExisting.toString());
+
+            console.log('Reserva actualizada y cliente sincronizado');
             return NextResponse.json({ success: true, message: 'Reserva reagendada exitosamente' });
         }
 
@@ -106,6 +109,9 @@ export async function POST(request: Request) {
                     clientTransactionId,
                     reservationData
                 );
+                // Sincronizar clientes ya que se creó una reserva (aunque sea pendiente)
+                await syncWithClientes(reservationData, clientTransactionId);
+
                 // Decisión: Enviamos correo para que el cliente tenga su respaldo de "Solicitud Recibida".
                 await sendBookingEmails(reservationData, clientTransactionId, 'PENDING_TRANSFER');
 
@@ -147,6 +153,7 @@ export async function POST(request: Request) {
                 clientTransactionId,
                 reservationData
             );
+            // Sincronizar con Lista de Clientes
             await syncWithClientes(reservationData, clientTransactionId);
             return NextResponse.json({ success: true, message: 'Reserva manual creada' });
         }
