@@ -25,6 +25,7 @@ export default function CheckoutPage() {
     const [reservationSaved, setReservationSaved] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'selection' | 'card' | 'transfer'>('selection');
     const [savedReservaId, setSavedReservaId] = useState<string>('');
+    const [clientTxId, setClientTxId] = useState<string>('');
     const [isCreatingTransferReservation, setIsCreatingTransferReservation] = useState(false);
 
 
@@ -70,10 +71,12 @@ export default function CheckoutPage() {
             setFormData(JSON.parse(savedFormData));
         }
 
-        // Recuperar ID de reserva si ya se generó una
+        // Recuperar ID de reserva o transacción si ya se generó
         const savedId = localStorage.getItem('savedReservaId');
-        if (savedId) {
-            setSavedReservaId(savedId);
+        const savedTxId = localStorage.getItem('clientTxId');
+        if (savedId || savedTxId) {
+            setSavedReservaId(savedId || '');
+            setClientTxId(savedTxId || '');
             setStep(3); // Si ya tenía ID, mandarlo directo al paso de pago
         }
     }, []);
@@ -85,12 +88,11 @@ export default function CheckoutPage() {
         }
     }, [formData, mounted]);
 
-    // Guardar savedReservaId cuando se asigne
+    // Guardar IDs cuando se asignen
     useEffect(() => {
-        if (savedReservaId) {
-            localStorage.setItem('savedReservaId', savedReservaId);
-        }
-    }, [savedReservaId]);
+        if (savedReservaId) localStorage.setItem('savedReservaId', savedReservaId);
+        if (clientTxId) localStorage.setItem('clientTxId', clientTxId);
+    }, [savedReservaId, clientTxId]);
 
     const formatDate = (dateStr: string) => {
         if (!dateStr) return 'No definida';
@@ -155,58 +157,12 @@ export default function CheckoutPage() {
             return;
         }
 
-        // Si ya tenemos un ID guardado, simplemente avanzamos al paso 3
-        // (La reserva ya existe en la DB como PENDIENTE)
-        if (savedReservaId) {
-            setStep(3);
-            return;
+        // Ya no creamos la reserva en la DB aquí. 
+        // Solo generamos un ID transaccional temporal para PayPhone y pasamos al paso 3.
+        if (!clientTxId) {
+            setClientTxId(`hotel-${Date.now()}`);
         }
-
-        setIsPaymentLoading(true);
-
-        const personalData = {
-            nombre_cliente: `${formData.nombre} ${formData.apellido}`,
-            email_cliente: formData.email,
-            whatsapp: `${formData.codigoPais}${formData.telefono}`,
-            pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
-            reserva_para: formData.reservaPara,
-            metodo_pago: 'tab',
-            adultos: option.personas,
-            ninos: 0,
-            precio: total,
-            comision: 0,
-            estado: 'PENDIENTE',
-            meta: JSON.stringify({
-                peticiones: formData.peticiones,
-                pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
-                reserva_para: formData.reservaPara,
-                habitacion_nombre: habitacion.nombre,
-                metodo_pago: 'tab'
-            })
-        };
-
-        fetch('/api/reservas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                habitacion_id: habitacion.id,
-                fecha_entrada: fechaEntrada,
-                fecha_salida: fechaSalida,
-                ...personalData
-            })
-        }).then(res => res.json())
-            .then(data => {
-                console.log('Reserva guardada:', data);
-                setSavedReservaId(data.id || 'new');
-                setReservationSaved(true);
-                setStep(3); // Update step to "Terminar reserva"
-                setIsPaymentLoading(false);
-            })
-            .catch(err => {
-                console.error('Error al guardar reserva:', err);
-                setIsPaymentLoading(false);
-                alert('Error al guardar los datos. Por favor intenta de nuevo.');
-            });
+        setStep(3);
     };
 
     return (
@@ -549,7 +505,8 @@ export default function CheckoutPage() {
                                                     onClick={() => {
                                                         const params = new URLSearchParams({
                                                             amount: total.toFixed(2),
-                                                            reserva: savedReservaId,
+                                                            reserva: 'PENDIENTE', // Indicador para que el backend cree la reserva al confirmar
+                                                            clientTransactionId: clientTxId,
                                                             email: formData.email,
                                                             nombre: `${formData.nombre} ${formData.apellido}`,
                                                             entrada: fechaEntrada,
@@ -642,7 +599,7 @@ export default function CheckoutPage() {
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({
                                                                     id: "TRANSFERENCIA",
-                                                                    clientTransactionId: savedReservaId,
+                                                                    clientTransactionId: clientTxId,
                                                                     reservationData: {
                                                                         habitacion_id: habitacion.id,
                                                                         habitacion_nombre: habitacion.nombre,
@@ -666,7 +623,14 @@ export default function CheckoutPage() {
 
                                                             if (res.ok) {
                                                                 // Open WhatsApp after successful reservation creation
-                                                                window.open(`https://wa.me/593994199622?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva #${savedReservaId} de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
+                                                                window.open(`https://wa.me/593994199622?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
+                                                                // Limpiar datos ya que la reserva se creó
+                                                                localStorage.removeItem('pendingCheckout');
+                                                                localStorage.removeItem('checkoutFormData');
+                                                                localStorage.removeItem('savedReservaId');
+                                                                localStorage.removeItem('clientTxId');
+                                                                setStep(2);
+                                                                router.push('/');
                                                             } else {
                                                                 alert('No se pudo crear la reserva: ' + (data.message || 'Inténtalo de nuevo.'));
                                                             }

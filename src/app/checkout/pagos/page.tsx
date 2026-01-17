@@ -90,6 +90,7 @@ function PagosContent() {
                         localStorage.removeItem('pendingCheckout');
                         localStorage.removeItem('checkoutFormData');
                         localStorage.removeItem('savedReservaId');
+                        localStorage.removeItem('clientTxId');
                     } else {
                         setStatus('error');
                         setMessage(data.message || 'El pago no pudo ser verificado.');
