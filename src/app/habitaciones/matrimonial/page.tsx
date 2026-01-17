@@ -282,12 +282,12 @@ export default function MatrimonialPage() {
 
                         {/* Right Column: Booking Widget */}
                         <aside className="lg:col-span-1 hidden lg:block sticky top-24">
-                            <RoomBookingWidget price="26.78" roomName="Matrimonial" />
+                            <RoomBookingWidget price="Cotizar" roomName="Matrimonial" />
                         </aside>
 
                         {/* Mobile Widget */}
                         <div className="lg:hidden order-last">
-                            <RoomBookingWidget price="26.78" roomName="Matrimonial" />
+                            <RoomBookingWidget price="Cotizar" roomName="Matrimonial" />
                         </div>
                     </div>
                 </div>

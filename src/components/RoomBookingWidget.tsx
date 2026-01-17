@@ -25,8 +25,10 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
 
     // Dynamic Price Fetching
     useEffect(() => {
+        // If the initial price is already "Cotizar", don't try to fetch a numeric price
+        if (!roomName || initialPrice === 'Cotizar') return;
+
         const fetchCurrentPrice = async () => {
-            if (!roomName) return;
             try {
                 setIsLoadingPrice(true);
                 const response = await fetch('/api/habitaciones');
@@ -45,7 +47,7 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
         };
 
         fetchCurrentPrice();
-    }, [roomName]);
+    }, [roomName, initialPrice]);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -76,7 +78,9 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
                             <Loader2 className="w-6 h-6 animate-spin text-cardenal-gold" />
                         ) : (
                             <>
-                                <span className="text-3xl font-serif font-bold text-white tracking-tight">${price}</span>
+                                <span className="text-3xl font-serif font-bold text-white tracking-tight">
+                                    {price === 'Cotizar' ? '$Cotizar' : `$${price}`}
+                                </span>
                                 <span className="text-[10px] text-white/60 uppercase tracking-tighter">/ noche</span>
                             </>
                         )}

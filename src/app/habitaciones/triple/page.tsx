@@ -281,12 +281,12 @@ export default function TriplePage() {
 
                         {/* Right Column: Booking Widget */}
                         <aside className="lg:col-span-1 hidden lg:block sticky top-24">
-                            <RoomBookingWidget price="40.18" roomName="Triple" />
+                            <RoomBookingWidget price="Cotizar" roomName="Triple" />
                         </aside>
 
                         {/* Mobile Widget */}
                         <div className="lg:hidden order-last">
-                            <RoomBookingWidget price="40.18" roomName="Triple" />
+                            <RoomBookingWidget price="Cotizar" roomName="Triple" />
                         </div>
                     </div>
                 </div>
