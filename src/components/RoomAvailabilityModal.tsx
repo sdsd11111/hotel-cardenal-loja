@@ -76,6 +76,7 @@ interface RoomAvailabilityModalProps {
         almuerzo: boolean;
         cena: boolean;
     };
+    inventoryCount: number;
 }
 
 // Opciones de precio basadas en número de personas
@@ -94,7 +95,8 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     fechaSalida,
     onClose,
     onAddToCart,
-    initialMeals
+    initialMeals,
+    inventoryCount
 }) => {
     const [config, setConfig] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -133,9 +135,19 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
         const fetchConfig = async () => {
             try {
                 const nombreLower = habitacion.nombre.toLowerCase();
-                let identifier = '303'; // Default to triple if unclear
-                if (nombreLower.includes('301') || (!nombreLower.includes('302') && !nombreLower.includes('303') && habitacion.capacidad.maxAdultos <= 2)) identifier = '301';
-                else if (nombreLower.includes('302')) identifier = '302';
+                let identifier = '303';
+
+                if (nombreLower.includes('301') || nombreLower.includes('matrimonial')) {
+                    identifier = '301';
+                } else if (nombreLower.includes('302') || nombreLower.includes('doble') || nombreLower.includes('twin')) {
+                    identifier = '302';
+                } else if (nombreLower.includes('303') || nombreLower.includes('triple')) {
+                    identifier = '303';
+                } else {
+                    if (habitacion.capacidad.maxAdultos <= 2) identifier = '301';
+                    else if (habitacion.capacidad.maxAdultos === 3) identifier = '302';
+                    else identifier = '303';
+                }
 
                 const response = await fetch('/api/admin/room-configs');
                 if (response.ok) {
@@ -160,8 +172,8 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     }, [habitacion]);
 
     // Fallbacks if config not loaded or loading
-    const isTriple = config ? config.identifier === '303' : habitacion.nombre.toLowerCase().includes('303');
-    const isDobleTwin = config ? config.identifier === '302' : habitacion.nombre.toLowerCase().includes('302');
+    const isTriple = config ? config.identifier === '303' : (habitacion.nombre.toLowerCase().includes('303') || habitacion.nombre.toLowerCase().includes('triple'));
+    const isDobleTwin = config ? config.identifier === '302' : (habitacion.nombre.toLowerCase().includes('302') || habitacion.nombre.toLowerCase().includes('doble') || habitacion.nombre.toLowerCase().includes('twin'));
     const displayTitle = config ? config.display_title : habitacion.nombre;
     const roomSize = config ? config.room_size : (isTriple ? 30 : isDobleTwin ? 28 : 24);
     const hasBalcony = config ? config.has_balcony : isTriple;
@@ -169,8 +181,9 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     const finalPriceOptions = React.useMemo(() => {
         if (!config) return [];
         const options = config.price_options_json as PriceOption[];
-        const filtered = options.filter(option => option.personas <= initialOccupancy);
-        return filtered.length > 0 ? filtered : options;
+        // STRICT FILTER: Only show the option that matches initialOccupancy
+        const exactMatch = options.filter(option => option.personas === initialOccupancy);
+        return exactMatch.length > 0 ? exactMatch : options; // Fallback if no exact match (should not happen with applied filters)
     }, [config, initialOccupancy]);
 
     const amenidadesUnicas = config ? config.amenities_json as string[] : habitacion.amenidades;
@@ -337,7 +350,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                         {/* Availability Warning */}
                         <div className="flex items-center gap-2 text-red-600 text-sm mb-4">
                             <AlertCircle className="w-4 h-4" />
-                            <span className="font-medium">Nos quedan 2</span>
+                            <span className="font-bold">{inventoryCount === 1 ? '¡Solo nos queda 1!' : `Nos quedan ${inventoryCount}`}</span>
                         </div>
 
                         {/* Location */}
@@ -469,7 +482,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                             onChange={(e) => handleSelectChange(index, parseInt(e.target.value))}
                                             className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 outline-none mb-3"
                                         >
-                                            {[0, 1, 2].map((i) => (
+                                            {Array.from({ length: Math.min(inventoryCount, 4) + 1 }).map((_, i) => (
                                                 <option key={i} value={i}>{i}</option>
                                             ))}
                                         </select>

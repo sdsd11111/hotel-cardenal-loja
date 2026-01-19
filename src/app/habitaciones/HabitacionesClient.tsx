@@ -1123,6 +1123,24 @@ function HabitacionesContent() {
                 {availabilityRoom && (
                     <RoomAvailabilityModal
                         habitacion={availabilityRoom}
+                        inventoryCount={(() => {
+                            const nombreUpper = availabilityRoom.nombre.toUpperCase();
+                            let type = 'triple'; // default fallback
+                            if (nombreUpper.includes('MATRIMONIAL') || nombreUpper.includes('301')) type = 'matrimonial';
+                            else if (nombreUpper.includes('DOBLE') || nombreUpper.includes('TWIN') || nombreUpper.includes('302')) type = 'doble';
+                            else if (nombreUpper.includes('TRIPLE') || nombreUpper.includes('303')) type = 'triple';
+
+                            // Count how many rooms of this type are available IN THE CURRENT FETCHED DATA
+                            return habitaciones.filter(h => {
+                                const hUpper = h.nombre.toUpperCase();
+                                let hType = '';
+                                if (hUpper.includes('MATRIMONIAL') || hUpper.includes('301')) hType = 'matrimonial';
+                                else if (hUpper.includes('DOBLE') || hUpper.includes('TWIN') || hUpper.includes('302')) hType = 'doble';
+                                else if (hUpper.includes('TRIPLE') || hUpper.includes('303')) hType = 'triple';
+
+                                return hType === type && h.disponible;
+                            }).length;
+                        })()}
                         initialOccupancy={appliedFilters.adultos + appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length}
                         fechaEntrada={appliedFilters.entrada}
                         fechaSalida={appliedFilters.salida}
