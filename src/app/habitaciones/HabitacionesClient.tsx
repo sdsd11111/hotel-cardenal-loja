@@ -159,6 +159,15 @@ function HabitacionesContent() {
             }
         };
         fetchData();
+
+        // Auto-refresh every 30 seconds to keep availability up to date
+        const refreshInterval = setInterval(() => {
+            // Only refresh if we have dates selected, or just refresh everything to be safe
+            // We pass the current applied filters to keep the view consistent
+            fetchHabitaciones(undefined, undefined, 0);
+        }, 30000);
+
+        return () => clearInterval(refreshInterval);
     }, []);
 
     const handleAplicarFiltros = () => {
@@ -526,8 +535,8 @@ function HabitacionesContent() {
         // Esto permite que el sistema "entienda" que la habitación está siendo reservada
         try {
             // Guardar cada ítem del carrito como una reserva individual
-            await Promise.all(cart.map(item =>
-                fetch('/api/reservas', {
+            const results = await Promise.all(cart.map(async (item) => {
+                const response = await fetch('/api/reservas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -543,13 +552,27 @@ function HabitacionesContent() {
                             total_items: cart.length
                         }
                     })
-                })
-            ));
-        } catch (dbError) {
-            console.error('Error al persistir reserva en la DB:', dbError);
-        }
+                });
 
-        router.push(`/contacto?${params.toString()}#formulario-contacto`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al reservar');
+                }
+                return response;
+            }));
+
+            // Solo si todo salió bien, redirigimos
+            router.push(`/contacto?${params.toString()}#formulario-contacto`);
+        } catch (dbError: any) {
+            console.error('Error al persistir reserva en la DB:', dbError);
+            setValidationMessage(dbError.message || 'La habitación seleccionada ya no está disponible. Por favor intente con otras fechas.');
+
+            // Scroll to error message
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+
+            // Clear message after delay
+            setTimeout(() => setValidationMessage(''), 8000);
+        }
     };
 
     const [showHelpTip, setShowHelpTip] = useState(false);

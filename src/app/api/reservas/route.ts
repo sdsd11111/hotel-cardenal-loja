@@ -69,6 +69,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
         }
 
+        // --- AVAILABILITY CHECK ---
+        const isAvailable = await checkAvailability(habitacion_id, fecha_entrada, fecha_salida);
+        if (!isAvailable) {
+            return NextResponse.json({
+                error: 'La habitación no está disponible para las fechas seleccionadas.',
+                code: 'ROOM_UNAVAILABLE'
+            }, { status: 409 });
+        }
+        // --------------------------
+
         const result: any = await query(
             `INSERT INTO reservas (
                 habitacion_id, fecha_entrada, fecha_salida, nombre_cliente, email_cliente,
@@ -99,6 +109,24 @@ export async function POST(request: Request) {
         console.error('Error saving reserva:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
+}
+
+// Helper: Check Availability
+async function checkAvailability(habitacionId: any, fechaEntrada: any, fechaSalida: any) {
+    if (!habitacionId || !fechaEntrada || !fechaSalida) return false;
+
+    // Lógica: Buscar reservas con estado OK o CONFIRMADA que solapen.
+    let sql = `SELECT id FROM reservas 
+               WHERE habitacion_id = ? 
+               AND estado IN ('OK', 'CONFIRMADA')
+               AND (fecha_entrada < ? AND fecha_salida > ?)`;
+
+    // Overlap: (start1 < end2) AND (end1 > start2)
+    // Params order: [habitacionId, fechaSalida, fechaEntrada]
+    const params = [habitacionId, fechaSalida, fechaEntrada];
+
+    const rows: any = await query(sql, params);
+    return rows.length === 0;
 }
 
 // PUT - Update reservation (Manual status change)
