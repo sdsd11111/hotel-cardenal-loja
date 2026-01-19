@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -130,7 +130,20 @@ function HabitacionesContent() {
         ninosEdades: [] as number[]
     });
 
+    // Ref to always have the latest filters inside the setInterval closure
+    const appliedFiltersRef = useRef(appliedFilters);
+    useEffect(() => {
+        appliedFiltersRef.current = appliedFilters;
+    }, [appliedFilters]);
+
     const [roomConfigs, setRoomConfigs] = useState<any[]>([]);
+    // Ref to avoid stale closures in the auto-refresh interval
+    const roomConfigsRef = useRef<any[]>([]);
+    useEffect(() => {
+        roomConfigsRef.current = roomConfigs;
+    }, [roomConfigs]);
+
+    const [isConfigsLoaded, setIsConfigsLoaded] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -149,10 +162,15 @@ function HabitacionesContent() {
                 if (configsRes.ok) {
                     freshConfigs = await configsRes.json();
                     setRoomConfigs(freshConfigs);
+                    roomConfigsRef.current = freshConfigs;
+                    setIsConfigsLoaded(true);
                 }
 
-                // 3. Initial fetch of rooms USING the fresh configs to avoid race condition
-                fetchHabitaciones(undefined, undefined, 0, freshConfigs);
+                // Initial fetch with current URL params
+                const ent = searchParams.get('entrada') || '';
+                const sal = searchParams.get('salida') || '';
+                console.log('Initial fetch with configs:', freshConfigs.length);
+                fetchHabitaciones(ent, sal, 0, freshConfigs);
             } catch (err) {
                 console.error('Error fetching data:', err);
                 fetchHabitaciones(); // Fallback if settings fail
@@ -160,12 +178,13 @@ function HabitacionesContent() {
         };
         fetchData();
 
-        // Auto-refresh every 30 seconds to keep availability up to date
+        // Auto-refresh every 10 seconds to keep availability up to date
         const refreshInterval = setInterval(() => {
-            // Only refresh if we have dates selected, or just refresh everything to be safe
-            // We pass the current applied filters to keep the view consistent
-            fetchHabitaciones(undefined, undefined, 0);
-        }, 30000);
+            // Background refresh WITHOUT showing the loading spinner
+            // We use the Ref to get the LATEST applied filters even inside this closure
+            const filters = appliedFiltersRef.current;
+            fetchHabitaciones(filters.entrada, filters.salida, 0, undefined, true);
+        }, 10000);
 
         return () => clearInterval(refreshInterval);
     }, []);
@@ -178,6 +197,20 @@ function HabitacionesContent() {
             return;
         }
 
+        const params = new URLSearchParams();
+        if (fechaEntrada) params.set('entrada', fechaEntrada);
+        if (fechaSalida) params.set('salida', fechaSalida);
+        if (filtroAdultos > 0) params.set('adultos', filtroAdultos.toString());
+        if (filtroNinos > 0) {
+            params.set('ninos', filtroNinos.toString());
+            if (ninosEdades.length > 0) {
+                params.set('edades', ninosEdades.join(','));
+            }
+        }
+        router.push(`/habitaciones?${params.toString()}`, { scroll: false });
+
+        // setAppliedFilters will be called by the useEffect watching searchParams
+        // but we can also set it here to be immediate
         setAppliedFilters({
             entrada: fechaEntrada,
             salida: fechaSalida,
@@ -185,21 +218,39 @@ function HabitacionesContent() {
             ninos: filtroNinos,
             ninosEdades: ninosEdades
         });
+
         fetchHabitaciones(fechaEntrada, fechaSalida);
     };
 
-    const fetchHabitaciones = async (entradaVal?: string, salidaVal?: string, retryCount = 0, providedConfigs?: any[]) => {
+    const fetchHabitaciones = async (entradaVal?: string, salidaVal?: string, retryCount = 0, providedConfigs?: any[], isSilent = false) => {
         try {
-            setIsLoading(true);
+            if (!isSilent) setIsLoading(true);
             const params = new URLSearchParams();
-            const ent = entradaVal !== undefined ? entradaVal : appliedFilters.entrada;
-            const sal = salidaVal !== undefined ? salidaVal : appliedFilters.salida;
-            const activeConfigs = providedConfigs || roomConfigs;
+
+            // Always use the latest Ref to avoid stale closure state (like guest counts)
+            const filters = appliedFiltersRef.current;
+            const ent = entradaVal !== undefined ? entradaVal : filters.entrada;
+            const sal = salidaVal !== undefined ? salidaVal : filters.salida;
+
+            // Use the Ref to ensure we have the latest configs even in stale interval closures
+            const activeConfigs = providedConfigs || roomConfigsRef.current;
+
+            // CRITICAL SAFETY: If we are in the background and configs are missing, DO NOT procedeed
+            // to avoid overwriting correct UI with base prices
+            if (isSilent && activeConfigs.length === 0 && isConfigsLoaded) {
+                console.warn('[Habitaciones] Abortando refresco silencioso por falta de configs.');
+                return;
+            }
+
+            console.log(`[Habitaciones] Cargando con ${activeConfigs.length} configs. Per: ${filters.adultos}+${filters.ninos}. Silent: ${isSilent}`);
 
             if (ent) params.append('entrada', ent);
             if (sal) params.append('salida', sal);
 
-            const response = await fetch(`/api/habitaciones?${params.toString()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache' } });
+            // Bypass cache with timestamp
+            params.append('_t', Date.now().toString());
+
+            const response = await fetch(`/api/habitaciones?${params.toString()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
 
 
             if (!response.ok) {
@@ -210,7 +261,7 @@ function HabitacionesContent() {
                 if (retryCount < 2) {
                     console.warn(`Retry ${retryCount + 1} for habitaciones...`);
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait longer on retry
-                    return fetchHabitaciones(ent, sal, retryCount + 1, providedConfigs);
+                    return fetchHabitaciones(ent, sal, retryCount + 1, providedConfigs, isSilent);
                 }
                 throw new Error(`Error al cargar habitaciones (${response.status})`);
             }
@@ -221,11 +272,26 @@ function HabitacionesContent() {
             let mappedData: Habitacion[] = data.map((room: any) => {
                 const nombreLower = room.nombre.toLowerCase();
                 let identifier = '303'; // Default logic to match modal
-                if (nombreLower.includes('301') || (!nombreLower.includes('302') && !nombreLower.includes('303') && room.max_adultos <= 2)) identifier = '301';
-                else if (nombreLower.includes('302')) identifier = '302';
+
+                if (nombreLower.includes('301') || nombreLower.includes('matrimonial')) {
+                    identifier = '301';
+                } else if (nombreLower.includes('302') || nombreLower.includes('doble') || nombreLower.includes('twin')) {
+                    identifier = '302';
+                } else if (nombreLower.includes('303') || nombreLower.includes('triple')) {
+                    identifier = '303';
+                } else {
+                    // Fallback based on capacity if name doesn't help
+                    if (room.max_adultos <= 2) identifier = '301';
+                    else if (room.max_adultos === 3) identifier = '302';
+                    else identifier = '303';
+                }
 
                 // Try to use centralized config for price options
                 const config = activeConfigs.find((c: any) => c.identifier === identifier);
+                if (!config && activeConfigs.length > 0) {
+                    console.warn(`[Habitaciones] No se encontró config para identifier: ${identifier} (${room.nombre})`);
+                }
+
                 let priceOptions = [];
 
                 if (config && config.price_options_json) {
@@ -240,6 +306,10 @@ function HabitacionesContent() {
                             ? JSON.parse(room.price_options_json)
                             : room.price_options_json;
                     } catch { priceOptions = []; }
+                }
+
+                if (priceOptions.length === 0 && activeConfigs.length > 0) {
+                    console.error(`[Habitaciones] ADVERTENCIA: La habitación ${room.nombre} (${identifier}) no tiene opciones de precio.`);
                 }
 
                 return {
@@ -268,46 +338,23 @@ function HabitacionesContent() {
                 };
             });
 
-            // LOGICA DE FILTRO POR PERSONAS (SOLICITUD ESPECIFICA)
-            // 1 persona -> Solo Matrimonial
-            // 2 personas -> Matrimonial y Doble
-            // 3 personas -> Doble y Triple
-            // 4+ personas -> Solo Triple
-
-            const totalHuespedes = filtroAdultos + filtroNinos;
-
-            if (totalHuespedes > 0) {
-                mappedData = mappedData.filter(room => {
-                    const name = room.nombre.toLowerCase();
-
-                    if (totalHuespedes === 1) {
-                        return name.includes('matrimonial');
-                    }
-                    if (totalHuespedes === 2) {
-                        return name.includes('matrimonial') || name.includes('doble') || name.includes('twin');
-                    }
-                    if (totalHuespedes === 3) {
-                        return name.includes('doble') || name.includes('twin') || name.includes('triple');
-                    }
-                    if (totalHuespedes >= 4) {
-                        return name.includes('triple');
-                    }
-                    return true;
-                });
-            }
-
             setHabitaciones(mappedData);
 
-            // Initialize pendingMeals for each room - Preselect included meals which have no extra cost
-            const initialMeals: Record<number, { desayuno: boolean; almuerzo: boolean; cena: boolean }> = {};
-            mappedData.forEach(room => {
-                initialMeals[room.id] = {
-                    desayuno: !!room.incluyeDesayuno,
-                    almuerzo: !!room.incluyeAlmuerzo,
-                    cena: !!room.incluyeCena
-                };
+            // Initialize pendingMeals for each room - Preserve existing state if present to avoid UI reset
+            setPendingMeals(prev => {
+                const updatedMeals = { ...prev };
+                mappedData.forEach(room => {
+                    // Only initialize if the room is NOT already in the state
+                    if (!updatedMeals[room.id]) {
+                        updatedMeals[room.id] = {
+                            desayuno: !!room.incluyeDesayuno,
+                            almuerzo: !!room.incluyeAlmuerzo,
+                            cena: !!room.incluyeCena
+                        };
+                    }
+                });
+                return updatedMeals;
             });
-            setPendingMeals(initialMeals);
 
         } catch (err) {
             console.error('Error loading habitaciones:', err);
@@ -317,35 +364,51 @@ function HabitacionesContent() {
     };
 
     useEffect(() => {
+        // Only run this if configs are already loaded to avoid race condition on mount
+        if (!isConfigsLoaded) return;
+
         const entrada = searchParams.get('entrada');
         const salida = searchParams.get('salida');
-        const adultos = searchParams.get('adultos');
-        const ninos = searchParams.get('ninos');
+        const adultosStr = searchParams.get('adultos');
+        const ninosStr = searchParams.get('ninos');
+        const ninosEdadesStr = searchParams.get('edades');
 
-        if (entrada) {
-            setFechaEntrada(entrada);
-            setAppliedFilters(prev => ({ ...prev, entrada }));
-        }
-        if (salida) {
-            setFechaSalida(salida);
-            setAppliedFilters(prev => ({ ...prev, salida }));
-        }
-        if (adultos) {
-            const val = parseInt(adultos);
-            setFiltroAdultos(val);
-            setAppliedFilters(prev => ({ ...prev, adultos: val }));
-        }
-        if (ninos) {
-            const val = parseInt(ninos);
-            setFiltroNinos(val);
-            // Intentar recuperar edades si vienen en la URL (opcional, por ahora inicializamos a 5 años si no están)
-            setNinosEdades(Array(val).fill(5));
-            setAppliedFilters(prev => ({ ...prev, ninos: val, ninosEdades: Array(val).fill(5) }));
-        }
+        // Only update if we have actual parameters in the URL
+        // to avoid resetting state to "empty" on partial navigations
+        if (entrada || salida || adultosStr || ninosStr) {
+            if (entrada) setFechaEntrada(entrada);
+            if (salida) setFechaSalida(salida);
 
-        // Initial fetch with URL params (or default empty)
-        fetchHabitaciones(entrada || '', salida || '');
-    }, [searchParams]);
+            const adultos = adultosStr ? parseInt(adultosStr) : 0;
+            const ninos = ninosStr ? parseInt(ninosStr) : 0;
+
+            setFiltroAdultos(adultos);
+            setFiltroNinos(ninos);
+
+            let parsedEdades: number[] = [];
+            if (ninosEdadesStr) {
+                parsedEdades = ninosEdadesStr.split(',').map(Number);
+            } else if (ninos > 0) {
+                parsedEdades = Array(ninos).fill(5);
+            }
+            setNinosEdades(parsedEdades);
+
+            // Update Applied Filters in one shot
+            setAppliedFilters({
+                entrada: entrada || '',
+                salida: salida || '',
+                adultos,
+                ninos,
+                ninosEdades: parsedEdades
+            });
+
+            // Trigger fetch with these values
+            fetchHabitaciones(entrada || '', salida || '');
+        } else {
+            // If URL is empty, we still initial fetch once
+            fetchHabitaciones();
+        }
+    }, [searchParams, isConfigsLoaded]);
 
     useEffect(() => {
         const desayuno = searchParams.get('desayuno');

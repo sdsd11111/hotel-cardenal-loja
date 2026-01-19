@@ -1,6 +1,8 @@
-
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/mysql';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: Request) {
     try {
@@ -37,7 +39,12 @@ export async function GET(request: Request) {
             const ocupadasRaw: any = await query(reservasSql, [salida, entrada]);
             const idsReservados = new Set(ocupadasRaw.map((r: any) => r.habitacion_id));
 
+            console.log(`[API] Buscando disponibilidad ${entrada} -> ${salida}. Ocupadas:`, Array.from(idsReservados));
+
             habitaciones.forEach((hab: any) => {
+                // Keep track of the original global status
+                const originalDisponible = hab.disponible;
+
                 // 1. Verificar Reservas
                 const reservada = idsReservados.has(hab.id);
 
@@ -50,22 +57,27 @@ export async function GET(request: Request) {
                     if (solapaBlock) bloqueadaManual = true;
                 }
 
-                // Si hay fechas de búsqueda, 'disponible' debe reflejar LA DISPONIBILIDAD PARA ESAS FECHAS.
-                // Si está reservada o bloqueada manualmente en ese rango, NO está disponible.
-                if (reservada || bloqueadaManual) {
+                // La habitación NO está disponible si:
+                // - Ya estaba marcada como NO disponible globalmente (hab.disponible === 0)
+                // - Tiene una reserva en ese rango
+                // - Tiene un bloqueo manual en ese rango
+                if (originalDisponible === 0 || reservada || bloqueadaManual) {
                     hab.disponible = 0;
                     hab.reservada = reservada;
                     hab.bloqueadaManual = bloqueadaManual;
                 } else {
-                    // Si no hay conflicto en ese rango, forzamos disponible = 1 
-                    // (cumpliendo el requerimiento: "si busco del 28 al 31 debe salir libre")
+                    // Solo si pasa todos los checks, es 1
                     hab.disponible = 1;
                 }
             });
         }
 
-        // Return fresh data every time
-        return NextResponse.json(habitaciones);
+        // Return fresh data every time with cache-control headers
+        const responseData = NextResponse.json(habitaciones);
+        responseData.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        responseData.headers.set('Pragma', 'no-cache');
+        responseData.headers.set('Expires', '0');
+        return responseData;
     } catch (error: any) {
         console.error('Error fetching habitaciones:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
