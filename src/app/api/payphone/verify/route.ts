@@ -388,7 +388,7 @@ async function syncWithClientes(data: any, reservationNumber: string) {
 }
 
 async function sendBookingEmails(data: any, reservationNumber: string, status: 'CONFIRMED' | 'PENDING_TRANSFER' = 'CONFIRMED') {
-    const ownerEmail = "cristhopheryeah113@gmail.com";
+    const ownerEmail = "elcardenalhotel@gmail.com";
     const guestEmail = data?.email_cliente;
     const guestName = data?.nombre_cliente || 'Huésped';
     const habitacion = data?.habitacion_nombre || data?.habitacion_id || 'No especificada';
@@ -435,7 +435,7 @@ async function sendBookingEmails(data: any, reservationNumber: string, status: '
                 </div>
                 <p><strong>Próximo Paso:</strong> Por favor envíe el comprobante de transferencia por WhatsApp para confirmar su reserva definitivamente.</p>
                 <div style="text-align: center; margin: 20px 0;">
-                    <a href="https://wa.me/593994199622" style="background: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Enviar Comprobante Ahora</a>
+                    <a href="https://wa.me/593996616878" style="background: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Enviar Comprobante Ahora</a>
                 </div>
                 <hr style="border: none; border-top: 1px solid #eee;">
                 <p style="font-size: 12px; color: #666; text-align: center;">Loja, Ecuador | www.hotelelcardenalloja.com</p>

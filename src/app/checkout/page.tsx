@@ -551,7 +551,7 @@ export default function CheckoutPage() {
                                                 </button>
                                             </div>
 
-                                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 space-y-4">
+                                            <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 hide-scrollbar overflow-x-auto space-y-4">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                                     <div>
                                                         <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Banco</p>
@@ -559,19 +559,27 @@ export default function CheckoutPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Tipo de Cuenta</p>
-                                                        <p className="font-bold text-gray-900 uppercase">Cuenta Corriente</p>
+                                                        <p className="font-bold text-gray-900 uppercase italic">CUENTA DE AHORROS</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Número</p>
-                                                        <p className="font-bold text-[#0071c2] text-lg">2100224466</p>
+                                                        <p className="font-bold text-[#0071c2] text-lg">2203979069</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Beneficiario</p>
-                                                        <p className="font-bold text-gray-900">OJEDA ALVARADO RAMON AGUSTIN</p>
+                                                        <p className="font-bold text-gray-900">Remigio Mendez Flores</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Identificación</p>
-                                                        <p className="font-bold text-gray-900">1100344225</p>
+                                                        <p className="font-bold text-gray-900">1102903794</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Email</p>
+                                                        <p className="font-bold text-gray-900">elcardenalhotel@gmail.com</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Teléfono</p>
+                                                        <p className="font-bold text-gray-900">593 996616878</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Concepto / Referencia</p>
@@ -623,7 +631,7 @@ export default function CheckoutPage() {
 
                                                             if (res.ok) {
                                                                 // Open WhatsApp after successful reservation creation
-                                                                window.open(`https://wa.me/593994199622?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
+                                                                window.open(`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
                                                                 // Limpiar datos ya que la reserva se creó
                                                                 localStorage.removeItem('pendingCheckout');
                                                                 localStorage.removeItem('checkoutFormData');
