@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, X, Users, Coffee, Check, AlertCircle, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SeasonalPriceManager from './SeasonalPriceManager';
 
 interface PriceOption {
     personas: number;
@@ -143,6 +144,15 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
                 ))}
             </div>
 
+            {/* Seasonal Prices Section */}
+            <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl">
+                <SeasonalPriceManager
+                    roomConfigId={editingConfig.id}
+                    basePriceOptions={priceOptions}
+                    onUpdate={onUpdate}
+                />
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column: General Info & Amenities */}
                 <div className="space-y-6">
@@ -189,7 +199,7 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
                         </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
+                    <div className="hidden bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
                         <div className="flex justify-between items-center border-b-2 border-gray-200 pb-3">
                             <h3 className="text-xl font-black text-cardenal-green flex items-center gap-2">
                                 <Plus className="w-6 h-6" /> Amenidades
@@ -216,7 +226,7 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
                 </div>
 
                 {/* Right Column: Price Options */}
-                <div className="space-y-6">
+                <div className="space-y-6 hidden">
                     <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-8">
                         <div className="flex justify-between items-center border-b-2 border-gray-200 pb-4">
                             <h3 className="text-xl font-black text-cardenal-green flex items-center gap-2">
@@ -312,6 +322,10 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
                 </div>
             </div>
 
+
+
+
+
             <div className="flex justify-end pt-4 border-t sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 -mx-4">
                 <Button
                     onClick={handleSave}
@@ -323,6 +337,6 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
                     )}
                 </Button>
             </div>
-        </div>
+        </div >
     );
 }

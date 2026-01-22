@@ -72,7 +72,8 @@ const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninosEdades: n
         bestOption = sortedOptions[sortedOptions.length - 1];
     }
 
-    let basicPrice = bestOption.precioBase + bestOption.impuestos;
+    // Use only precioBase - no impuestos in seasonal prices
+    let basicPrice = bestOption.precioBase;
 
     // Si hay más niños de los que "caben" en la opción de precio (gratis o no), 
     // podríamos cobrar el nino extra, pero el usuario dijo que los pequeños no pagan.
@@ -287,25 +288,59 @@ function HabitacionesContent() {
                 }
 
                 // Try to use centralized config for price options
+                // Try to use centralized config for price options
                 const config = activeConfigs.find((c: any) => c.identifier === identifier);
                 if (!config && activeConfigs.length > 0) {
                     console.warn(`[Habitaciones] No se encontró config para identifier: ${identifier} (${room.nombre})`);
                 }
 
                 let priceOptions = [];
+                let effectiveJson = room.price_options_json; // Default fallback
 
-                if (config && config.price_options_json) {
-                    try {
-                        priceOptions = typeof config.price_options_json === 'string'
-                            ? JSON.parse(config.price_options_json)
-                            : config.price_options_json;
-                    } catch { priceOptions = []; }
-                } else if (room.price_options_json) {
-                    try {
-                        priceOptions = typeof room.price_options_json === 'string'
-                            ? JSON.parse(room.price_options_json)
-                            : room.price_options_json;
-                    } catch { priceOptions = []; }
+                if (config) {
+                    effectiveJson = config.price_options_json;
+
+                    // Seasonal Pricing Logic
+                    if (config.seasonal_prices && Array.isArray(config.seasonal_prices) && config.seasonal_prices.length > 0) {
+                        const today = new Date();
+                        let checkStart = ent ? new Date(ent + 'T12:00:00') : today; // Use noon to avoid timezone shift issues on pure dates
+                        let checkEnd = sal ? new Date(sal + 'T12:00:00') : new Date(checkStart);
+
+                        // If invalid dates, fallback to today
+                        if (isNaN(checkStart.getTime())) checkStart = new Date();
+                        if (isNaN(checkEnd.getTime())) checkEnd = new Date();
+
+                        // Normalize to start of day for comparison
+                        checkStart.setHours(0, 0, 0, 0);
+                        checkEnd.setHours(0, 0, 0, 0);
+
+                        const matchedSeason = config.seasonal_prices.find((sp: any) => {
+                            // sp.start_date comes as string often
+                            const spStart = new Date(sp.start_date);
+                            const spEnd = new Date(sp.end_date);
+
+                            // Adjust if timezone offset is an issue, but usually date string parsing is UTC
+                            // Let's ensure we compare similarly
+                            spStart.setHours(0, 0, 0, 0);
+                            spEnd.setHours(23, 59, 59, 999);
+
+                            return checkStart <= spEnd && checkEnd >= spStart;
+                        });
+
+                        if (matchedSeason) {
+                            effectiveJson = matchedSeason.price_options_json;
+                            // console.log(`[Habitaciones] 📅 Temporada detectada para ${identifier}:`, matchedSeason);
+                        }
+                    }
+                }
+
+                try {
+                    priceOptions = typeof effectiveJson === 'string'
+                        ? JSON.parse(effectiveJson)
+                        : effectiveJson || [];
+                } catch (e) {
+                    console.error('Error parsing price options', e);
+                    priceOptions = [];
                 }
 
                 if (priceOptions.length === 0 && activeConfigs.length > 0) {

@@ -82,10 +82,10 @@ interface RoomAvailabilityModalProps {
 // Opciones de precio basadas en número de personas
 interface PriceOption {
     personas: number;
-    personasIconos: number;
+    personasIconos?: number;
     precioBase: number;
-    impuestos: number;
-    incluye: string[];
+    impuestos?: number;
+    incluye?: string[];
 }
 
 export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
@@ -179,12 +179,15 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     const hasBalcony = config ? config.has_balcony : isTriple;
 
     const finalPriceOptions = React.useMemo(() => {
-        if (!config) return [];
-        const options = config.price_options_json as PriceOption[];
+        // Use prop options first as they contain seasonal logic from parent
+        const options = (habitacion.priceOptions && habitacion.priceOptions.length > 0)
+            ? habitacion.priceOptions
+            : (config ? config.price_options_json as PriceOption[] : []);
+
         // STRICT FILTER: Only show the option that matches initialOccupancy
         const exactMatch = options.filter(option => option.personas === initialOccupancy);
-        return exactMatch.length > 0 ? exactMatch : options; // Fallback if no exact match (should not happen with applied filters)
-    }, [config, initialOccupancy]);
+        return exactMatch.length > 0 ? exactMatch : options;
+    }, [config, initialOccupancy, habitacion.priceOptions]);
 
     const amenidadesUnicas = config ? config.amenities_json as string[] : habitacion.amenidades;
 
@@ -420,7 +423,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                     {/* Personas */}
                                     <div className="md:col-span-1 px-4 py-4 flex items-center justify-center border-r border-gray-200">
                                         <div className="flex gap-0.5">
-                                            {Array.from({ length: option.personasIconos }).map((_, i) => (
+                                            {Array.from({ length: option.personasIconos || 1 }).map((_, i) => (
                                                 <Users key={i} className="w-5 h-5 text-gray-700" />
                                             ))}
                                         </div>
@@ -429,7 +432,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                     {/* Opciones (Tus opciones) */}
                                     <div className="md:col-span-2 px-4 py-4 border-r border-gray-200 text-sm space-y-2">
                                         <div className="font-bold text-gray-900 mb-2">Tus opciones:</div>
-                                        {option.incluye.map((item, i) => (
+                                        {(option.incluye || []).map((item, i) => (
                                             <div key={i} className={cn(
                                                 "flex items-start gap-1",
                                                 i === 0 ? "text-green-700" : "text-green-600"
@@ -457,7 +460,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                         <div className="font-bold text-gray-400 mb-2 md:hidden">Precio:</div>
                                         <div className="text-xl font-bold text-gray-900 leading-tight">
                                             US${(
-                                                (option.precioBase + option.impuestos) +
+                                                option.precioBase +
                                                 (Object.keys(selectedMeals[index] || {}).reduce((total, mealKey) => {
                                                     const isSelected = selectedMeals[index]?.[mealKey as keyof typeof selectedMeals[number]];
                                                     const isIncluded = mealKey === 'desayuno' ? habitacion.incluyeDesayuno :
@@ -570,7 +573,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                     {cantidadSeleccionada} {cantidadSeleccionada === 1 ? 'habitación' : 'habitaciones'} por
                                                 </div>
                                                 <div className="text-2xl font-bold text-gray-900 leading-tight">
-                                                    US${((option.precioBase + option.impuestos) +
+                                                    US${(option.precioBase +
                                                         (Object.values(selectedMeals[index] || {}).filter((v, i) => {
                                                             const mealKeys = ['desayuno', 'almuerzo', 'cena'] as const;
                                                             const meal = mealKeys[i];
