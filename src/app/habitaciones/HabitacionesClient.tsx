@@ -463,6 +463,11 @@ function HabitacionesContent() {
 
         const nombre = hab.nombre.toLowerCase();
 
+        // REGLA: Si es 1 sola persona, SOLO mostrar matrimoniales
+        if (total === 1) {
+            return nombre.includes('matrimonial') || nombre.includes('301');
+        }
+
         // Reglas específicas por tipo de habitación
         if (nombre.includes('triple') || nombre.includes('303')) {
             // TRIPLE (303): Máximo de Personas = 4, Máximo adultos 4, Máximo niños 2
