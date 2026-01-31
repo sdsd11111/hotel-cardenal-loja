@@ -1,0 +1,18 @@
+﻿--- Room Type Configs ---
+[
+  {
+    "identifier": "301",
+    "display_title": "Habitacion-Matrimonial",
+    "price_options_json": "[{\"personas\":2,\"personasIconos\":2,\"precioBase\":30,\"impuestos\":5,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]},{\"personas\":1,\"personasIconos\":1,\"precioBase\":20,\"impuestos\":3,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]}]"
+  },
+  {
+    "identifier": "302",
+    "display_title": "Habitacion-2 camas",
+    "price_options_json": "[{\"personas\":3,\"personasIconos\":3,\"precioBase\":40,\"impuestos\":6,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]},{\"personas\":2,\"personasIconos\":2,\"precioBase\":30,\"impuestos\":5,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]},{\"personas\":1,\"personasIconos\":1,\"precioBase\":20,\"impuestos\":3,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]}]"
+  },
+  {
+    "identifier": "303",
+    "display_title": "Habitacion-Triple",
+    "price_options_json": "[{\"personas\":4,\"personasIconos\":4,\"precioBase\":50,\"impuestos\":7,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]},{\"personas\":3,\"personasIconos\":3,\"precioBase\":40,\"impuestos\":6,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]},{\"personas\":2,\"personasIconos\":2,\"precioBase\":30,\"impuestos\":5,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]},{\"personas\":1,\"personasIconos\":1,\"precioBase\":1,\"impuestos\":0,\"incluye\":[\"Desayuno incluido (Fant├ístico)\",\"Cancelaci├│n gratis antes del 24 de diciembre 2025\"]}]"
+  }
+]

@@ -125,7 +125,13 @@ export default function CheckoutPage() {
         );
     }
 
-    const { habitacion, option, cantidad, fechaEntrada, fechaSalida, comidas } = bookingData;
+    const {
+        habitacion, option, cantidad, fechaEntrada, fechaSalida, comidas,
+        childPricingPolicy = 'free',
+        childFixedPrice = 0,
+        ninosEdades = [],
+        childAgeThreshold = 8
+    } = bookingData;
 
     const getNoches = () => {
         if (!fechaEntrada || !fechaSalida) return 1;
@@ -136,8 +142,7 @@ export default function CheckoutPage() {
     };
 
     const noches = getNoches();
-    const totalBase = (option.precioBase) * cantidad * noches;
-    const impuestos = (option.impuestos) * cantidad * noches;
+    const precioBaseHabitacion = (option.precioBase) * cantidad * noches;
 
     // Calcular extras de comidas
     const extraComidas = Object.entries(comidas || {}).reduce((total: number, [meal, selected]) => {
@@ -148,7 +153,28 @@ export default function CheckoutPage() {
         return total + (isIncluded ? 0 : 1.0 * cantidad * noches);
     }, 0);
 
-    const total = totalBase + impuestos + extraComidas;
+    // Calcular extras de niños si aplica
+    const extraNinos = childPricingPolicy === 'fixed'
+        ? (ninosEdades.filter((age: number) => age < childAgeThreshold).length * childFixedPrice * cantidad * noches)
+        : 0;
+
+    // Precio base sin impuestos
+    const subtotal = precioBaseHabitacion + extraComidas + extraNinos;
+
+    // IVA 15%
+    const iva = subtotal * 0.15;
+
+    // Precio con IVA (para transferencia)
+    const totalConIVA = subtotal + iva;
+
+    // Comisión tarjeta 5.6% (sobre precio con IVA)
+    const comisionTarjeta = totalConIVA * 0.056;
+
+    // Precio final con tarjeta
+    const totalConTarjeta = totalConIVA + comisionTarjeta;
+
+    // Precio que se mostrará en el desglose (sin comisión aún)
+    const total = totalConIVA;
 
     // 1. Guardar Reserva (Paso 1 del Checkout Final)
     const handleSaveReservation = () => {
@@ -282,22 +308,48 @@ export default function CheckoutPage() {
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span>{cantidad}x {habitacion.nombre}</span>
-                                    <span>US${totalBase + impuestos}</span>
+                                    <span>US${precioBaseHabitacion.toFixed(2)}</span>
                                 </div>
                                 {extraComidas > 0 && (
                                     <div className="flex justify-between text-blue-700">
                                         <span>Extras de comidas</span>
-                                        <span>US${extraComidas}</span>
+                                        <span>US${extraComidas.toFixed(2)}</span>
                                     </div>
                                 )}
+                                {extraNinos > 0 && (
+                                    <div className="flex justify-between text-amber-700">
+                                        <span>Suplemento por niños</span>
+                                        <span>US${extraNinos.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between font-medium border-t border-blue-100 pt-2 mt-2">
+                                    <span>Subtotal</span>
+                                    <span>US${subtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-gray-700">
+                                    <span>IVA (15%)</span>
+                                    <span>US${iva.toFixed(2)}</span>
+                                </div>
                             </div>
                             <div className="flex justify-between items-center border-t border-blue-200 pt-4 mt-4">
                                 <span className="text-2xl font-bold">Precio</span>
                                 <div className="text-right">
                                     <span className="text-2xl font-bold">US${total.toFixed(2)}</span>
-                                    <p className="text-[10px] text-gray-500">Incluye impuestos y cargos</p>
+                                    <p className="text-[10px] text-gray-500">Precio con IVA</p>
                                 </div>
                             </div>
+                            {paymentMethod === 'card' && (
+                                <div className="border-t border-blue-200 mt-4 pt-4 space-y-2 text-sm">
+                                    <div className="flex justify-between text-orange-700">
+                                        <span>Comisión por tarjeta (5.6%)</span>
+                                        <span>US${comisionTarjeta.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center font-bold text-lg">
+                                        <span>Total a Pagar</span>
+                                        <span className="text-orange-700">US${totalConTarjeta.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -503,8 +555,10 @@ export default function CheckoutPage() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <button
                                                     onClick={() => {
+                                                        setPaymentMethod('card');
+                                                        // Cobrar precio con IVA + comisión (20.6% total)
                                                         const params = new URLSearchParams({
-                                                            amount: total.toFixed(2),
+                                                            amount: totalConTarjeta.toFixed(2),
                                                             reserva: 'PENDIENTE', // Indicador para que el backend cree la reserva al confirmar
                                                             clientTransactionId: clientTxId,
                                                             email: formData.email,
@@ -618,7 +672,7 @@ export default function CheckoutPage() {
                                                                         whatsapp: `${formData.codigoPais}${formData.telefono}`,
                                                                         adultos: option.personas,
                                                                         ninos: 0,
-                                                                        precio: total,
+                                                                        precio: totalConIVA, // Para transferencia solo cobrar IVA (15%)
                                                                         pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
                                                                         estado: 'PENDIENTE',
                                                                         peticiones: `[TRANSFERENCIA] ${formData.peticiones}`,
@@ -631,7 +685,7 @@ export default function CheckoutPage() {
 
                                                             if (res.ok) {
                                                                 // Open WhatsApp after successful reservation creation
-                                                                window.open(`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva de ${total.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
+                                                                window.open(`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva de ${totalConIVA.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
                                                                 // Limpiar datos ya que la reserva se creó
                                                                 localStorage.removeItem('pendingCheckout');
                                                                 localStorage.removeItem('checkoutFormData');

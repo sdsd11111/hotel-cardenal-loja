@@ -23,7 +23,7 @@ export default function SobreNosotrosClient() {
                         className="object-cover"
                         priority
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-cardenal-cream"></div>
+                    {/* <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-cardenal-cream"></div> */}
 
                     <div className="relative z-10 container mx-auto px-4 text-center text-white mt-10">
                         <span className="inline-block px-4 py-1 bg-cardenal-gold text-white text-xs font-black uppercase tracking-[0.3em] mb-4">

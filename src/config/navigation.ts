@@ -47,20 +47,20 @@ export const mainNav: NavItemType[] = [
           },
         ],
       },
-      // Gastronomía
+      // Experiencias (Antes Gastronomía)
       {
-        label: 'Gastronomía',
-        href: '/servicios/gastronomia',
+        label: 'Experiencias',
+        href: '/servicios/tours-experiencias',
         children: [
           {
-            label: 'Restaurante Gourmet',
-            href: '/restaurante',
-            description: 'Experiencia culinaria excepcional',
+            label: 'Experiencias',
+            href: '/servicios/tours-experiencias',
+            description: 'Descubre nuestros servicios exclusivos',
           },
           {
-            label: 'Room Service',
-            href: '/servicios/room-service',
-            description: 'Servicio a la habitación 24/7',
+            label: 'Restaurante',
+            href: '/restaurante',
+            description: 'Experiencia culinaria excepcional',
           },
           {
             label: 'Bar y Terraza',

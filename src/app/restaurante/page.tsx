@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { headerData } from '@/types';
 import HeroPlatos from '@/components/HeroPlatos';
 import { Coffee, Utensils, Clock, MapPin, ChevronRight, Image as ImageIcon, Phone, Mail, Sun, Info, Users, Heart, CheckCircle, Wifi, Car, Home } from 'lucide-react';
+import { EventForm } from '@/components/EventForm';
 
 export const metadata: Metadata = {
     title: 'Restaurante y Desayuno Tradicional en Loja | Hotel El Cardenal',
@@ -274,6 +275,15 @@ export default function RestaurantePage() {
                             👉 Ver Habitaciones con Desayuno Incluido
                         </Link>
                     </div>
+
+                    {/* H2: Formulario de Solicitud Directa */}
+                    <section className="mt-20">
+                        <div className="text-center mb-10">
+                            <h2 className="text-3xl font-serif font-bold text-cardenal-green mb-4">Reserve su Mesa o Evento Especial</h2>
+                            <p className="text-gray-600 max-w-2xl mx-auto">Complete el siguiente formulario y nos pondremos en contacto con usted para confirmar su reserva.</p>
+                        </div>
+                        <EventForm />
+                    </section>
 
                 </div>
             </main>

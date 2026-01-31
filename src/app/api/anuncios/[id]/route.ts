@@ -18,6 +18,29 @@ export async function PUT(
         const activo = formData.get('activo') === 'true' ? 1 : 0;
         const posicion = formData.get('posicion')?.toString() || 'bottom-right';
         const estilo = formData.get('estilo')?.toString() || '{}';
+        const fecha_inicio = formData.get('fecha_inicio')?.toString() || null;
+        const fecha_fin = formData.get('fecha_fin')?.toString() || null;
+
+        // Validation: End date >= Start date
+        if (fecha_inicio && fecha_fin && fecha_inicio > fecha_fin) {
+            return NextResponse.json({ error: 'La fecha de fin debe ser posterior a la de inicio' }, { status: 400 });
+        }
+
+        // Validation: Overlap check
+        if (activo === 1 && fecha_inicio && fecha_fin) {
+            const overlapCheck = await query(
+                `SELECT id FROM anuncios 
+                 WHERE activo = 1 
+                 AND id != ? 
+                 AND ((fecha_inicio <= ? AND fecha_fin >= ?) OR (fecha_inicio <= ? AND fecha_fin >= ?) OR (? <= fecha_inicio AND ? >= fecha_fin))
+                 LIMIT 1`,
+                [id, fecha_fin, fecha_inicio, fecha_fin, fecha_inicio, fecha_inicio, fecha_fin]
+            ) as any[];
+
+            if (overlapCheck.length > 0) {
+                return NextResponse.json({ error: 'Ya existe un anuncio activo en ese rango de fechas.' }, { status: 400 });
+            }
+        }
 
         // Image Handling
         const imagenFile = formData.get('imagen') as File | null;
@@ -31,8 +54,10 @@ export async function PUT(
                     boton_link = ?, 
                     activo = ?, 
                     posicion = ?, 
-                    estilo = ?`;
-        const queryParams: any[] = [titulo, descripcion, llamativo, boton_texto, boton_link, activo, posicion, estilo];
+                    estilo = ?,
+                    fecha_inicio = ?,
+                    fecha_fin = ?`;
+        const queryParams: any[] = [titulo, descripcion, llamativo, boton_texto, boton_link, activo, posicion, estilo, fecha_inicio, fecha_fin];
 
         if (imagenFile && imagenFile.size > 0) {
             const arrayBuffer = await imagenFile.arrayBuffer();

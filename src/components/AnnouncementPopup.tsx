@@ -14,13 +14,21 @@ export default function AnnouncementPopup() {
 
     useEffect(() => {
         const fetchAnnouncements = async () => {
+            if (typeof window !== 'undefined' && window.hasSeenAnnouncement) return;
+
             try {
-                const response = await fetch('/api/anuncios?active=true');
+                // Fetch activeNow=true for Home Popup
+                const response = await fetch('/api/anuncios?activeNow=true');
                 if (response.ok) {
                     const data = await response.json();
-                    setAnnouncements(data);
-                    if (data.length > 0) {
-                        // Show with a delay
+                    console.log('DEBUG Popup: Received data:', data);
+
+                    // Filter in case API returns potential array but we specifically want active currently
+                    const validData = Array.isArray(data) ? data : (data ? [data] : []);
+
+                    setAnnouncements(validData);
+                    console.log('DEBUG Popup: Valid announcements count:', validData.length);
+                    if (validData.length > 0) {
                         setTimeout(() => setIsVisible(true), 1500);
                     }
                 }
@@ -30,6 +38,12 @@ export default function AnnouncementPopup() {
         };
         fetchAnnouncements();
     }, []);
+
+    const handleClose = () => {
+        setIsVisible(false);
+        setTimeout(() => setIsClosed(true), 500);
+        if (typeof window !== 'undefined') window.hasSeenAnnouncement = true;
+    };
 
     if (announcements.length === 0 || isClosed) return null;
 
@@ -68,7 +82,7 @@ export default function AnnouncementPopup() {
 
                 <div className="p-6">
                     <button
-                        onClick={() => { setIsVisible(false); setTimeout(() => setIsClosed(true), 500); }}
+                        onClick={handleClose}
                         className="absolute top-4 right-4 p-1.5 bg-gray-100/50 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-all z-10"
                     >
                         <X className="w-4 h-4" />
@@ -93,7 +107,7 @@ export default function AnnouncementPopup() {
                     {current.boton_texto && (
                         <Link
                             href={current.boton_link || '#'}
-                            onClick={() => setIsVisible(false)}
+                            onClick={handleClose}
                             className="inline-flex items-center justify-center gap-2 w-full bg-[#1a1a1a] hover:bg-[#bd8b33] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-[#bd8b33]/20 group/btn"
                         >
                             {current.boton_texto}

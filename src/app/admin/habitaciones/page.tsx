@@ -36,7 +36,32 @@ export default function AdminHabitacionesPage() {
                 throw new Error(`Error al cargar habitaciones (${response.status}): ${errData}`);
             }
             const data = await response.json();
-            setHabitaciones(data);
+
+            // Custom sort logic
+            const sortedData = [...data].sort((a, b) => {
+                const getOrder = (name: string) => {
+                    const n = name.toLowerCase();
+                    if (n.includes('matrimonial')) {
+                        if (n.includes('1')) return 1;
+                        if (n.includes('2')) return 2;
+                        return 1;
+                    }
+                    if (n.includes('doble') || n.includes('twin')) {
+                        if (n.includes('1')) return 3;
+                        if (n.includes('2')) return 4;
+                        return 3;
+                    }
+                    if (n.includes('triple')) {
+                        if (n.includes('1')) return 5;
+                        if (n.includes('2')) return 6;
+                        return 5;
+                    }
+                    return 100;
+                };
+                return getOrder(a.nombre) - getOrder(b.nombre);
+            });
+
+            setHabitaciones(sortedData);
             setError(null);
         } catch (err: any) {
             console.error('Admin Fetch Error:', err);
@@ -46,9 +71,9 @@ export default function AdminHabitacionesPage() {
         }
     };
 
-    const fetchConfigs = async () => {
+    const fetchConfigs = async (isSilent = false) => {
         try {
-            setIsLoadingConfigs(true);
+            if (!isSilent && roomConfigs.length === 0) setIsLoadingConfigs(true);
             const response = await fetch('/api/admin/room-configs');
             if (!response.ok) throw new Error('Error al cargar configuraciones');
             const data = await response.json();

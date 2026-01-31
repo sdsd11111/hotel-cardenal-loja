@@ -92,14 +92,14 @@ export default function TurismoPage() {
                         sizes="100vw"
                         quality={75}
                     />
-                    <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
+                    <div className="hidden"></div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20"></div>
 
-                    <div className="relative z-10 text-center text-white px-6 md:px-4 max-w-5xl mx-auto">
-                        <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-6 drop-shadow-2xl leading-tight">
-                            Turismo en Loja: Descubra la <span className="text-cardenal-gold">Centinela del Sur</span>
+                    <div className="relative z-10 text-center text-white px-6 md:px-12 max-w-5xl mx-auto">
+                        <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-6 drop-shadow-[0_2px_15px_rgba(0,0,0,0.8)] leading-tight">
+                            Descubre la <span className="text-cardenal-gold">Centinela del Sur</span>
                         </h1>
-                        <p className="text-lg md:text-2xl font-serif italic text-white/90 drop-shadow-md mb-10 max-w-3xl mx-auto">
+                        <p className="text-lg md:text-2xl font-serif italic text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] mb-10 max-w-3xl mx-auto font-bold">
                             Guía completa de lugares mágicos, cultura y naturaleza. Hospédese en el corazón de la tranquilidad.
                         </p>
                         <Link
@@ -145,7 +145,7 @@ export default function TurismoPage() {
                                     <p className="text-gray-600 mb-4">
                                         Es el pulmón verde más cercano al hotel. Ideal para quienes buscan turismo de naturaleza en Loja. Cuenta con senderos junto al río Malacatos, canchas deportivas, áreas de picnic y un orquideario. Es perfecto para una caminata matutina antes del <Link href="/restaurante" className="text-cardenal-gold font-bold hover:underline">desayuno tradicional</Link> en nuestro hotel.
                                     </p>
-                                    <a href="https://goo.gl/maps/example" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-cardenal-green font-bold text-sm hover:underline">
+                                    <a href="https://www.google.com/maps/dir/?api=1&origin=Hotel+El+Cardenal+Loja&destination=Parque+Lineal+La+Tebaida+Loja" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-cardenal-green font-bold text-sm hover:underline">
                                         <MapPin size={16} /> Cómo llegar desde el hotel
                                     </a>
                                 </div>
@@ -167,7 +167,7 @@ export default function TurismoPage() {
                                     <p className="text-gray-600 mb-4">
                                         Conocido como uno de los parques más bellos del Ecuador. Alberga réplicas arquitectónicas de las maravillas del mundo (como la Torre Eiffel y la Pagoda China). Es un destino obligado para familias y fotógrafos.
                                     </p>
-                                    <a href="https://goo.gl/maps/example" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-cardenal-green font-bold text-sm hover:underline">
+                                    <a href="https://www.google.com/maps/dir/?api=1&origin=Hotel+El+Cardenal+Loja&destination=Parque+Recreacional+Jipiro+Loja" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-cardenal-green font-bold text-sm hover:underline">
                                         <MapPin size={16} /> Cómo llegar desde el hotel
                                     </a>
                                 </div>

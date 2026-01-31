@@ -98,23 +98,48 @@ export default function GeneralSettingsForm({ onUpdate }: { onUpdate: () => void
                                         <p className="text-xs font-black text-gray-700 uppercase tracking-tight leading-relaxed">{setting.description}</p>
                                     </div>
                                     <div className="flex flex-col gap-3">
-                                        <div className="flex gap-4">
-                                            <Input
-                                                type={setting.setting_key === 'child_age_threshold' ? 'number' : 'text'}
-                                                value={setting.setting_value}
-                                                onChange={e => handleChange(setting.setting_key, e.target.value)}
-                                                className="max-w-[200px] border-2 border-gray-400 font-black text-lg h-12 bg-white"
-                                            />
+                                        <div className="flex gap-4 items-center">
+                                            {setting.setting_key === 'child_pricing_policy' ? (
+                                                <select
+                                                    value={setting.setting_value}
+                                                    onChange={e => handleChange(setting.setting_key, e.target.value)}
+                                                    className="w-full max-w-[300px] border-2 border-gray-400 font-black text-lg h-12 bg-white rounded-md px-3 outline-none focus:border-cardenal-green transition-all"
+                                                >
+                                                    <option value="free">Niños Gratis</option>
+                                                    <option value="fixed">Niños Valor Específico</option>
+                                                    <option value="adult">Niños valen igual que un adulto</option>
+                                                </select>
+                                            ) : (
+                                                <Input
+                                                    type={['child_age_threshold', 'child_fixed_price'].includes(setting.setting_key) ? 'number' : 'text'}
+                                                    value={setting.setting_value}
+                                                    onChange={e => handleChange(setting.setting_key, e.target.value)}
+                                                    className="max-w-[200px] border-2 border-gray-400 font-black text-lg h-12 bg-white"
+                                                />
+                                            )}
                                             {setting.setting_key === 'child_age_threshold' && (
                                                 <span className="self-center text-base font-black text-black">Años</span>
                                             )}
+                                            {setting.setting_key === 'child_fixed_price' && (
+                                                <span className="self-center text-base font-black text-black">USD</span>
+                                            )}
                                         </div>
-                                        <div className="flex items-start gap-3 p-4 bg-amber-100 rounded-xl border-2 border-amber-300 shadow-sm">
-                                            <Info className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
-                                            <p className="text-xs text-amber-900 font-black uppercase tracking-tight leading-snug">
-                                                Ejemplo: Si coloca "8", los niños de 8 años o más se cobrarán como adultos.
-                                            </p>
-                                        </div>
+                                        {setting.setting_key === 'child_age_threshold' && (
+                                            <div className="flex items-start gap-3 p-4 bg-amber-100 rounded-xl border-2 border-amber-300 shadow-sm">
+                                                <Info className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
+                                                <p className="text-xs text-amber-900 font-black uppercase tracking-tight leading-snug">
+                                                    Ejemplo: Si coloca "8", los niños de 8 años o más se cobrarán como adultos.
+                                                </p>
+                                            </div>
+                                        )}
+                                        {setting.setting_key === 'child_pricing_policy' && (
+                                            <div className="flex items-start gap-3 p-4 bg-blue-100 rounded-xl border-2 border-blue-300 shadow-sm">
+                                                <Info className="w-5 h-5 text-blue-700 mt-0.5 shrink-0" />
+                                                <p className="text-xs text-blue-900 font-black uppercase tracking-tight leading-snug">
+                                                    Esta configuración es global y afecta a todas las habitaciones.
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex justify-end md:justify-center">
                                         <Button

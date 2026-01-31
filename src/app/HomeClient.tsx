@@ -15,6 +15,13 @@ import { FAQ } from "@/components/FAQ";
 import { headerData } from "@/types";
 import { ChevronLeft, ChevronRight, Minus, Plus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import AnnouncementPopup from '@/components/AnnouncementPopup';
+
+declare global {
+    interface Window {
+        hasSeenAnnouncement?: boolean;
+    }
+}
 
 // Hero slides data
 const heroSlides = [
@@ -106,6 +113,8 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                     onReservarClick: handleBuscarHabitaciones
                 }}
             />
+
+            <AnnouncementPopup />
 
             <main className="flex-1 flex flex-col">
                 {/* Hero Slider - Fullscreen */}

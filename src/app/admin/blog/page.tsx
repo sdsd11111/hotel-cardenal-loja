@@ -395,6 +395,7 @@ export default function AdminBlogPage() {
                                             <option value="Qué comer en Loja">Qué comer en Loja</option>
                                             <option value="Eventos en Loja">Eventos en Loja</option>
                                             <option value="Tours de Loja">Tours de Loja</option>
+                                            <option value="Opiniones de Nuestro Clientes">Opiniones de Nuestro Clientes</option>
                                         </select>
                                     </div>
 

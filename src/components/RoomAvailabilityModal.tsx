@@ -77,6 +77,10 @@ interface RoomAvailabilityModalProps {
         cena: boolean;
     };
     inventoryCount: number;
+    childAgeThreshold?: number;
+    childPricingPolicy?: string;
+    childFixedPrice?: number;
+    ninosEdades?: number[];
 }
 
 // Opciones de precio basadas en número de personas
@@ -96,7 +100,11 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     onClose,
     onAddToCart,
     initialMeals,
-    inventoryCount
+    inventoryCount,
+    childAgeThreshold = 8,
+    childPricingPolicy = 'free',
+    childFixedPrice = 0,
+    ninosEdades = []
 }) => {
     const [config, setConfig] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -145,7 +153,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                     identifier = '303';
                 } else {
                     if (habitacion.capacidad.maxAdultos <= 2) identifier = '301';
-                    else if (habitacion.capacidad.maxAdultos === 3) identifier = '302';
+                    else if (habitacion.capacidad.maxAdultos === 3) identifier = '303';
                     else identifier = '303';
                 }
 
@@ -221,7 +229,11 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
             cantidad: cantidad,
             fechaEntrada,
             fechaSalida,
-            comidas: meals
+            comidas: meals,
+            childPricingPolicy,
+            childFixedPrice,
+            ninosEdades,
+            childAgeThreshold
         };
         localStorage.setItem('pendingCheckout', JSON.stringify(checkoutData));
 
@@ -469,7 +481,8 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
 
                                                     // Only add $1 if selected and NOT included
                                                     return total + (isSelected && !isIncluded ? 1 : 0);
-                                                }, 0))
+                                                }, 0)) +
+                                                (childPricingPolicy === 'fixed' ? ninosEdades.filter(age => age < childAgeThreshold).length * childFixedPrice : 0)
                                             ).toFixed(2)}
                                         </div>
                                         <div className="text-[10px] text-gray-500">
@@ -581,7 +594,8 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                                 meal === 'almuerzo' ? habitacion.incluyeAlmuerzo :
                                                                     habitacion.incluyeCena;
                                                             return v && !isIncluded;
-                                                        }).length * 1)) * cantidadSeleccionada * getNoches()}
+                                                        }).length * 1) +
+                                                        (childPricingPolicy === 'fixed' ? ninosEdades.filter(age => age < childAgeThreshold).length * childFixedPrice : 0)) * cantidadSeleccionada * getNoches()}
                                                 </div>
                                                 <div className="text-xs text-gray-500 mb-4">
                                                     Total por {getNoches()} {getNoches() === 1 ? 'noche' : 'noches'}

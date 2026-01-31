@@ -1,4 +1,4 @@
-'use client';
+'use client'; // Re-refresh 14:28
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Image from 'next/image';
@@ -11,11 +11,11 @@ import { RoomDetailBookingModal } from '@/components/RoomDetailBookingModal';
 import { RoomAvailabilityModal } from '@/components/RoomAvailabilityModal';
 import { headerData, Habitacion } from '@/types';
 import {
-    Bed, Coffee, Briefcase, Wifi, Users, Tv, Car, Bath, Wind,
-    ConciergeBell, Award, Eye, Droplets, Sofa, Sparkles,
-    ArrowRight, Plus, Minus, X, Check, Loader2, Clock, Calendar, Info
+    Bed, Eye, Briefcase, Coffee, Users, Tv, Bath, Car, Wind,
+    ConciergeBell, Sparkles, Droplets, Award, Sofa, Wifi,
+    Calendar, X, Minus, Plus, Info, Loader2, Clock, Check
 } from 'lucide-react';
-import AnnouncementPopup from '@/components/AnnouncementPopup';
+
 
 // Tipos de amenidades
 const amenidadesIconos: Record<string, React.ReactNode> = {
@@ -52,32 +52,51 @@ interface CartItem {
 }
 
 // Helper function to calculate dynamic price based on guest count
-const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninosEdades: number[], threshold: number): number => {
-    // Los niños mayores o iguales al threshold se cuentan como adultos
+const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninosEdades: number[], threshold: number, policy: string = 'free', fixedPrice: number = 0): number => {
+    // 1. Identificar niños que se cobran como adultos (>= threshold)
     const ninosCobradosComoAdultos = ninosEdades.filter(age => age >= threshold).length;
-    const totalGuestsCobrados = adultos + ninosCobradosComoAdultos;
 
-    // If no priceOptions or totalGuestsCobrados is 0, return base price
-    if (!habitacion.priceOptions || habitacion.priceOptions.length === 0 || totalGuestsCobrados <= 0) {
+    // 2. Identificar niños pequeños (< threshold)
+    const ninosPequeños = ninosEdades.filter(age => age < threshold);
+
+    // Total de personas que cuentan para los rangos de precios (Base + Niños adultos)
+    let totalGuestsForTier = adultos + ninosCobradosComoAdultos;
+
+    // POLÍTICA: Si la política es 'adult', TODOS los niños cuentan para el rango de precio
+    if (policy === 'adult') {
+        totalGuestsForTier = adultos + ninosEdades.length;
+    }
+
+    // Buscamos la mejor opción de precio en base a la ocupación efectiva
+    if (!habitacion.priceOptions || habitacion.priceOptions.length === 0 || (adultos <= 0 && ninosEdades.length <= 0)) {
         return habitacion.precioNumerico;
     }
 
-    // Sort priceOptions by personas ascending
     const sortedOptions = [...habitacion.priceOptions].sort((a, b) => a.personas - b.personas);
 
-    // Find the option that best matches the guest count
-    let bestOption = sortedOptions.find(opt => opt.personas >= totalGuestsCobrados);
+    // Encontrar la opción que mejor se adapte (o la superior)
+    let bestOption = sortedOptions.find(opt => opt.personas >= totalGuestsForTier);
+
+    // MEJORA: Si no hay personas seleccionadas (vista inicial), usar el precio más bajo disponible
+    if (totalGuestsForTier === 0 && sortedOptions.length > 0) {
+        bestOption = sortedOptions[0];
+    }
+
     if (!bestOption) {
-        // Use the highest tier if guest count exceeds all options
         bestOption = sortedOptions[sortedOptions.length - 1];
     }
 
-    // Use only precioBase - no impuestos in seasonal prices
+    // Si aún no tenemos opción válida, fallback al precio numérico estático
+    if (!bestOption) {
+        return habitacion.precioNumerico;
+    }
+
     let basicPrice = bestOption.precioBase;
 
-    // Si hay más niños de los que "caben" en la opción de precio (gratis o no), 
-    // podríamos cobrar el nino extra, pero el usuario dijo que los pequeños no pagan.
-    // Así que solo usamos el tier.
+    // POLÍTICA: Si la política es 'fixed', sumamos el valor fijo por cada niño pequeño
+    if (policy === 'fixed') {
+        basicPrice += ninosPequeños.length * fixedPrice;
+    }
 
     return basicPrice;
 };
@@ -119,6 +138,8 @@ function HabitacionesContent() {
     const [filtroNinos, setFiltroNinos] = useState(0);
     const [ninosEdades, setNinosEdades] = useState<number[]>([]);
     const [childAgeThreshold, setChildAgeThreshold] = useState(8);
+    const [childPricingPolicy, setChildPricingPolicy] = useState('free');
+    const [childFixedPrice, setChildFixedPrice] = useState(0);
     const [fechaEntrada, setFechaEntrada] = useState('');
     const [fechaSalida, setFechaSalida] = useState('');
 
@@ -156,6 +177,12 @@ function HabitacionesContent() {
                     const data = await settingsRes.json();
                     const threshold = data.find((s: any) => s.setting_key === 'child_age_threshold');
                     if (threshold) setChildAgeThreshold(parseInt(threshold.setting_value));
+
+                    const policy = data.find((s: any) => s.setting_key === 'child_pricing_policy');
+                    if (policy) setChildPricingPolicy(policy.setting_value);
+
+                    const fixedPrice = data.find((s: any) => s.setting_key === 'child_fixed_price');
+                    if (fixedPrice) setChildFixedPrice(parseFloat(fixedPrice.setting_value));
                 }
 
                 // 2. Fetch centralized room configurations (for pricing)
@@ -283,7 +310,7 @@ function HabitacionesContent() {
                 } else {
                     // Fallback based on capacity if name doesn't help
                     if (room.max_adultos <= 2) identifier = '301';
-                    else if (room.max_adultos === 3) identifier = '302';
+                    else if (room.max_adultos === 3) identifier = '303'; // Corregido: 3 personas es Triple (303)
                     else identifier = '303';
                 }
 
@@ -294,53 +321,67 @@ function HabitacionesContent() {
                     console.warn(`[Habitaciones] No se encontró config para identifier: ${identifier} (${room.nombre})`);
                 }
 
-                let priceOptions = [];
-                let effectiveJson = room.price_options_json; // Default fallback
+                let priceOptions: any[] = [];
+                let basePriceOptions: any[] = [];
+                let effectiveJson = room.price_options_json;
 
                 if (config) {
-                    effectiveJson = config.price_options_json;
-
-                    // Seasonal Pricing Logic
-                    if (config.seasonal_prices && Array.isArray(config.seasonal_prices) && config.seasonal_prices.length > 0) {
-                        const today = new Date();
-                        let checkStart = ent ? new Date(ent + 'T12:00:00') : today; // Use noon to avoid timezone shift issues on pure dates
-                        let checkEnd = sal ? new Date(sal + 'T12:00:00') : new Date(checkStart);
-
-                        // If invalid dates, fallback to today
-                        if (isNaN(checkStart.getTime())) checkStart = new Date();
-                        if (isNaN(checkEnd.getTime())) checkEnd = new Date();
-
-                        // Normalize to start of day for comparison
-                        checkStart.setHours(0, 0, 0, 0);
-                        checkEnd.setHours(0, 0, 0, 0);
-
-                        const matchedSeason = config.seasonal_prices.find((sp: any) => {
-                            // sp.start_date comes as string often
-                            const spStart = new Date(sp.start_date);
-                            const spEnd = new Date(sp.end_date);
-
-                            // Adjust if timezone offset is an issue, but usually date string parsing is UTC
-                            // Let's ensure we compare similarly
-                            spStart.setHours(0, 0, 0, 0);
-                            spEnd.setHours(23, 59, 59, 999);
-
-                            return checkStart <= spEnd && checkEnd >= spStart;
-                        });
-
-                        if (matchedSeason) {
-                            effectiveJson = matchedSeason.price_options_json;
-                            // console.log(`[Habitaciones] 📅 Temporada detectada para ${identifier}:`, matchedSeason);
-                        }
+                    // Start with room's own json, fallback to config if empty
+                    if (!effectiveJson || (typeof effectiveJson === 'string' && (effectiveJson === '[]' || effectiveJson === ''))) {
+                        effectiveJson = config.price_options_json;
                     }
                 }
 
                 try {
-                    priceOptions = typeof effectiveJson === 'string'
-                        ? JSON.parse(effectiveJson)
-                        : effectiveJson || [];
+                    basePriceOptions = typeof effectiveJson === 'string' ? JSON.parse(effectiveJson) : (effectiveJson || []);
                 } catch (e) {
-                    console.error('Error parsing price options', e);
-                    priceOptions = [];
+                    console.error('Error parsing base price options', e);
+                    basePriceOptions = [];
+                }
+
+                if (config && config.seasonal_prices && Array.isArray(config.seasonal_prices) && config.seasonal_prices.length > 0) {
+                    const today = new Date();
+                    let checkStart = ent ? new Date(ent + 'T12:00:00') : today;
+                    let checkEnd = sal ? new Date(sal + 'T12:00:00') : new Date(checkStart);
+
+                    if (isNaN(checkStart.getTime())) checkStart = new Date();
+                    if (isNaN(checkEnd.getTime())) checkEnd = new Date();
+
+                    checkStart.setHours(0, 0, 0, 0);
+                    checkEnd.setHours(0, 0, 0, 0);
+
+                    const matchedSeason = config.seasonal_prices.find((sp: any) => {
+                        const spStart = new Date(sp.start_date);
+                        const spEnd = new Date(sp.end_date);
+                        spStart.setHours(0, 0, 0, 0);
+                        spEnd.setHours(23, 59, 59, 999);
+                        return checkStart <= spEnd && checkEnd >= spStart;
+                    });
+
+                    if (matchedSeason) {
+                        let seasonalOptions: any[] = [];
+                        try {
+                            const seasonalJson = matchedSeason.price_options_json;
+                            seasonalOptions = typeof seasonalJson === 'string' ? JSON.parse(seasonalJson) : (seasonalJson || []);
+                        } catch (e) {
+                            console.error('Error parsing seasonal price options', e);
+                            seasonalOptions = [];
+                        }
+
+                        // MERGE: Seasonal overrides base by 'personas' count
+                        // Start with seasonal, add missing from base
+                        const merged = [...seasonalOptions];
+                        basePriceOptions.forEach((baseOpt: any) => {
+                            if (!merged.find((m: any) => m.personas === baseOpt.personas)) {
+                                merged.push(baseOpt);
+                            }
+                        });
+                        priceOptions = merged;
+                    } else {
+                        priceOptions = basePriceOptions;
+                    }
+                } else {
+                    priceOptions = basePriceOptions;
                 }
 
                 if (priceOptions.length === 0 && activeConfigs.length > 0) {
@@ -489,9 +530,20 @@ function HabitacionesContent() {
     const [showCart, setShowCart] = useState(false);
 
     const habitacionesFiltradas = habitaciones.filter(hab => {
-        const total = appliedFilters.adultos + appliedFilters.ninos;
-        const adultos = appliedFilters.adultos;
-        const ninos = appliedFilters.ninos;
+        // HIDE occupied rooms instead of showing them with a label
+        if (!hab.disponible) return false;
+
+        // Calcular conteos efectivos de adultos/niños según la política global
+        const ninosCobradosComoAdultos = appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
+        let adultos = appliedFilters.adultos + ninosCobradosComoAdultos;
+        let ninos = appliedFilters.ninosEdades.length - ninosCobradosComoAdultos;
+
+        if (childPricingPolicy === 'adult') {
+            adultos = appliedFilters.adultos + appliedFilters.ninosEdades.length;
+            ninos = 0;
+        }
+
+        const total = adultos + ninos;
 
         // Si no hay filtros aplicados (0 personas en total), mostrar todo
         if (total === 0) return true;
@@ -502,23 +554,21 @@ function HabitacionesContent() {
         if (total === 1) {
             return nombre.includes('matrimonial') || nombre.includes('301');
         }
-
-        // Reglas específicas por tipo de habitación
-        if (nombre.includes('triple') || nombre.includes('303')) {
-            // TRIPLE (303): Máximo de Personas = 4, Máximo adultos 4, Máximo niños 2
-            // O si excede los límites (más gente de la que podemos abarcar), mostrar 303 para reserva múltiple
-            const excedeLimites = total > 4 || adultos > 4 || ninos > 2;
-            return (total <= 4 && adultos <= 4 && ninos <= 2) || excedeLimites;
-        } else if (nombre.includes('2 camas') || nombre.includes('twin') || nombre.includes('302') || nombre.includes('doble')) {
-            // DOBLE (302): Máximo de Personas = 3, Máximo adultos 3, Máximo niños 1
-            return total <= 3 && adultos <= 3 && ninos <= 1;
-        } else if (nombre.includes('matrimonial') || nombre.includes('301')) {
-            // MATRIMONIAL (301): Máximo de Personas 2, Máximo adultos 2, Máximo niños 0
-            return total <= 2 && adultos <= 2 && ninos === 0;
+        // IMPORTANTE: Evaluar MATRIMONIAL primero, antes que DOBLE (porque "doble matrimonial" contiene ambas palabras)
+        else if (nombre.includes('matrimonial') || nombre.includes('301')) {
+            // MATRIMONIAL (301): Máximo 2 adultos (niños pequeños no cuentan para capacidad)
+            return adultos <= 2;
         }
-
-        // Para otras habitaciones (si las hay), aplicar criterio base de capacidad de la DB si está disponible
-        return true;
+        // Reglas específicas por tipo de habitación
+        else if (nombre.includes('triple') || nombre.includes('303')) {
+            // TRIPLE (303): Máximo 4 adultos (niños pequeños no cuentan para capacidad)
+            return adultos <= 4;
+        } else if (nombre.includes('2 camas') || nombre.includes('twin') || nombre.includes('302') || nombre.includes('doble')) {
+            // DOBLE (302): Máximo 3 adultos (niños pequeños no cuentan para capacidad)
+            return adultos <= 3;
+        } else {
+            return true;
+        }
     }).sort((a, b) => {
         // Ordenar: Matrimonial (301) primero, luego Doble Twin (302), luego Triple (303)
         const getRoomTypeOrder = (hab: Habitacion) => {
@@ -589,7 +639,7 @@ function HabitacionesContent() {
             if (item.comidas.cena && !item.habitacion.incluyeCena) mealsPrice += 1.0;
 
             // Calculate dynamic base price
-            const basePrice = getDynamicPrice(item.habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold);
+            const basePrice = getDynamicPrice(item.habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold, childPricingPolicy, childFixedPrice);
 
             return total + ((basePrice + mealsPrice) * item.cantidad * noches);
         }, 0);
@@ -699,17 +749,17 @@ function HabitacionesContent() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <div className="relative h-[60vh] min-h-[400px] bg-cardenal-green flex items-center justify-center overflow-hidden">
+                <div className="relative h-[60vh] min-h-[400px] bg-gray-900 flex items-center justify-center overflow-hidden">
                     <Image
                         src="/images/habitaciones/triple-main.webp"
                         alt="Habitaciones Hotel El Cardenal"
                         fill
                         sizes="100vw"
-                        className="object-cover opacity-50"
+                        className="object-cover opacity-70"
                         priority
                         quality={75}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-cardenal-green/60"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
                     <div className="relative z-10 text-center text-white px-4">
                         <h1 className="text-4xl md:text-7xl font-bold mb-6 font-serif uppercase tracking-tighter drop-shadow-2xl">Nuestras Habitaciones</h1>
                         <p className="text-xl md:text-2xl max-w-2xl mx-auto font-serif italic text-cardenal-gold drop-shadow-lg">
@@ -797,34 +847,66 @@ function HabitacionesContent() {
                             </div>
 
                             {/* Niños */}
-                            <div className="col-span-1">
+                            <div className="col-span-1 min-w-[120px]">
                                 <label className="hidden md:flex text-[10px] md:text-sm font-bold text-gray-700 mb-1 md:mb-2 items-center gap-1 md:gap-2">
                                     <Users className="w-3 h-3 md:w-4 md:h-4 text-amber-500" /> Ni.
                                 </label>
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={() => {
-                                            const newVal = Math.max(0, filtroNinos - 1);
-                                            setFiltroNinos(newVal);
-                                            setNinosEdades(prev => prev.slice(0, newVal));
-                                        }}
-                                        className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
-                                        type="button"
-                                    >
-                                        <Minus className="w-2.5 h-2.5 md:w-4 md:h-4" />
-                                    </button>
-                                    <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroNinos}</span>
-                                    <button
-                                        onClick={() => {
-                                            const newVal = filtroNinos + 1;
-                                            setFiltroNinos(newVal);
-                                            setNinosEdades(prev => [...prev, 5]); // Edad por defecto 5
-                                        }}
-                                        className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
-                                        type="button"
-                                    >
-                                        <Plus className="w-2.5 h-2.5 md:w-4 md:h-4" />
-                                    </button>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => {
+                                                const newVal = Math.max(0, filtroNinos - 1);
+                                                setFiltroNinos(newVal);
+                                                setNinosEdades(prev => prev.slice(0, newVal));
+                                            }}
+                                            className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
+                                            type="button"
+                                        >
+                                            <Minus className="w-2.5 h-2.5 md:w-4 md:h-4" />
+                                        </button>
+                                        <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroNinos}</span>
+                                        <button
+                                            onClick={() => {
+                                                const newVal = filtroNinos + 1;
+                                                setFiltroNinos(newVal);
+                                                setNinosEdades(prev => [...prev, 5]); // Edad por defecto 5
+                                            }}
+                                            className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
+                                            type="button"
+                                        >
+                                            <Plus className="w-2.5 h-2.5 md:w-4 md:h-4" />
+                                        </button>
+                                    </div>
+
+                                    {/* Inline Guest Ages Input */}
+                                    {filtroNinos > 0 && (
+                                        <div className="flex flex-col animate-slideDown">
+                                            <div className="flex flex-wrap gap-1">
+                                                {ninosEdades.map((edad, idx) => (
+                                                    <select
+                                                        key={idx}
+                                                        value={edad}
+                                                        onChange={(e) => {
+                                                            const newEdades = [...ninosEdades];
+                                                            newEdades[idx] = parseInt(e.target.value);
+                                                            setNinosEdades(newEdades);
+                                                        }}
+                                                        className="border border-gray-300 rounded px-1 py-0.5 text-[10px] focus:border-amber-500 outline-none bg-white"
+                                                    >
+                                                        {[...Array(18)].map((_, i) => (
+                                                            <option key={i} value={i}>{i} años</option>
+                                                        ))}
+                                                    </select>
+                                                ))}
+                                            </div>
+                                            <div className="mt-1 flex items-start gap-1 text-[8px] leading-tight text-gray-400 italic">
+                                                <Info className="w-2 h-2 mt-0.5 shrink-0" />
+                                                <p>
+                                                    {childAgeThreshold} años o más: <span className="text-amber-600 font-bold">Adulto</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -840,37 +922,6 @@ function HabitacionesContent() {
                             </div>
                         </div>
 
-                        {/* Guest Ages Input (Expandable) */}
-                        {filtroNinos > 0 && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 animate-slideDown">
-                                <p className="text-[10px] md:text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Edades de los niños:</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {ninosEdades.map((edad, idx) => (
-                                        <div key={idx} className="flex flex-col">
-                                            <select
-                                                value={edad}
-                                                onChange={(e) => {
-                                                    const newEdades = [...ninosEdades];
-                                                    newEdades[idx] = parseInt(e.target.value);
-                                                    setNinosEdades(newEdades);
-                                                }}
-                                                className="border border-gray-300 rounded px-2 py-1 text-sm focus:border-amber-500 outline-none"
-                                            >
-                                                {[...Array(18)].map((_, i) => (
-                                                    <option key={i} value={i}>{i} años</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-400 italic">
-                                    <Info className="w-3 h-3" />
-                                    <p>
-                                        Los niños de <span className="font-bold text-amber-600">{childAgeThreshold} años</span> o más se cobran como adultos.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -985,10 +1036,10 @@ function HabitacionesContent() {
                                                         {/* Price overlay - Dynamic pricing based on guest count */}
                                                         <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-4 shadow-2xl flex flex-col items-start leading-tight">
                                                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-cardenal-gold mb-1 not-italic">
-                                                                {appliedFilters.adultos > 0 ? `Tarifa para ${appliedFilters.adultos + appliedFilters.ninosEdades.length} ${appliedFilters.adultos + appliedFilters.ninosEdades.length === 1 ? 'persona' : 'personas'}` : 'Cotizar desde'}
+                                                                {appliedFilters.adultos > 0 || appliedFilters.ninosEdades.length > 0 ? `Tarifa para ${appliedFilters.adultos + appliedFilters.ninosEdades.length} ${appliedFilters.adultos + appliedFilters.ninosEdades.length === 1 ? 'persona' : 'personas'}` : 'Cotizar desde'}
                                                             </span>
                                                             <div className="flex items-baseline gap-1 font-serif font-bold italic text-3xl">
-                                                                ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold).toFixed(2)}
+                                                                ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold, childPricingPolicy, childFixedPrice).toFixed(2)}
                                                                 <span className="text-[10px] font-normal not-italic ml-1 opacity-80">/ noche</span>
                                                             </div>
                                                         </div>
@@ -1181,11 +1232,20 @@ function HabitacionesContent() {
                                 return hType === type && h.disponible;
                             }).length;
                         })()}
-                        initialOccupancy={appliedFilters.adultos + appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length}
+                        initialOccupancy={
+                            appliedFilters.adultos +
+                            (childPricingPolicy === 'adult'
+                                ? appliedFilters.ninosEdades.length
+                                : appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length)
+                        }
                         fechaEntrada={appliedFilters.entrada}
                         fechaSalida={appliedFilters.salida}
                         onClose={() => setAvailabilityRoom(null)}
                         initialMeals={pendingMeals[availabilityRoom.id]}
+                        childAgeThreshold={childAgeThreshold}
+                        childPricingPolicy={childPricingPolicy}
+                        childFixedPrice={childFixedPrice}
+                        ninosEdades={appliedFilters.ninosEdades}
                         onAddToCart={(hab, cantidad, opciones) => {
                             // Agregar al carrito con las opciones seleccionadas
                             for (let i = 0; i < cantidad; i++) {
@@ -1204,7 +1264,6 @@ function HabitacionesContent() {
                     />
                 )}
 
-                <AnnouncementPopup />
             </main>
 
             <Footer />

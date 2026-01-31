@@ -82,7 +82,7 @@ export default function HomePage() {
             "priceRange": "$$",
             "aggregateRating": {
               "@type": "AggregateRating",
-              "ratingValue": "9.2",
+              "ratingValue": "9.4",
               "bestRating": "10",
               "reviewCount": "104",
               "ratingExplanation": "Calificación basada en reseñas reales de Booking.com"

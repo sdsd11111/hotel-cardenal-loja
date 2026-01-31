@@ -213,18 +213,28 @@ export const RoomDetailBookingModal: React.FC<RoomDetailBookingModalProps> = ({
                                 <Scaling className="w-4 h-4" />
                                 {roomInfo.size} m²
                             </span>
-                            {roomInfo.quickAmenities.slice(0, 5).map((amenity, idx) => (
-                                <span key={idx} className="flex items-center gap-1">
-                                    {amenity.includes('montaña') && <Mountain className="w-4 h-4" />}
-                                    {amenity.includes('ciudad') && <Building className="w-4 h-4" />}
-                                    {amenity.includes('interés') && <MapPin className="w-4 h-4" />}
-                                    {amenity.includes('lago') && <Eye className="w-4 h-4" />}
-                                    {amenity.includes('Baño') && <Bath className="w-4 h-4" />}
-                                    {amenity.includes('TV') && <Tv className="w-4 h-4" />}
-                                    {amenity.includes('WiFi') && <Wifi className="w-4 h-4" />}
-                                    {amenity}
-                                </span>
-                            ))}
+                            {/* Prioritize specific amenities from DB if available, otherwise fallback to template */}
+                            {habitacion.amenidades && habitacion.amenidades.length > 0 ? (
+                                habitacion.amenidades.slice(0, 6).map((amenity, idx) => (
+                                    <span key={idx} className="flex items-center gap-1">
+                                        <Sparkles className="w-4 h-4 text-amber-500" />
+                                        {amenity}
+                                    </span>
+                                ))
+                            ) : (
+                                roomInfo.quickAmenities.slice(0, 5).map((amenity, idx) => (
+                                    <span key={idx} className="flex items-center gap-1">
+                                        {amenity.includes('montaña') && <Mountain className="w-4 h-4" />}
+                                        {amenity.includes('ciudad') && <Building className="w-4 h-4" />}
+                                        {amenity.includes('interés') && <MapPin className="w-4 h-4" />}
+                                        {amenity.includes('lago') && <Eye className="w-4 h-4" />}
+                                        {amenity.includes('Baño') && <Bath className="w-4 h-4" />}
+                                        {amenity.includes('TV') && <Tv className="w-4 h-4" />}
+                                        {amenity.includes('WiFi') && <Wifi className="w-4 h-4" />}
+                                        {amenity}
+                                    </span>
+                                ))
+                            )}
                         </div>
 
                         {/* Size & Bed */}
@@ -233,8 +243,8 @@ export const RoomDetailBookingModal: React.FC<RoomDetailBookingModalProps> = ({
                                 <span className="font-bold">Tamaño de la habitación</span> {roomInfo.size} m²
                             </p>
                             <p className="text-gray-700 flex items-center gap-2 mt-2">
-                                {roomInfo.beds}
-                                {Array.from({ length: roomInfo.bedIcons }).map((_, i) => (
+                                {habitacion.capacidad.camas > 0 ? `${habitacion.capacidad.camas} ${habitacion.capacidad.camas === 1 ? 'cama' : 'camas'}` : roomInfo.beds}
+                                {Array.from({ length: habitacion.capacidad.camas || roomInfo.bedIcons }).map((_, i) => (
                                     <Bed key={i} className="w-5 h-5 text-gray-600" />
                                 ))}
                             </p>
@@ -247,40 +257,14 @@ export const RoomDetailBookingModal: React.FC<RoomDetailBookingModalProps> = ({
 
                         {/* Description */}
                         <p className="text-gray-700 mb-6">
-                            {roomInfo.description}
+                            {habitacion.descripcion || roomInfo.description}
                         </p>
 
                         {/* Bathroom Amenities */}
                         <div className="mb-6">
-                            <h3 className="font-bold text-gray-900 mb-3">En el baño privado:</h3>
-                            <div className="grid grid-cols-2 gap-2">
-                                {roomInfo.bathAmenities.map((item, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
-                                        <Check className="w-4 h-4 text-green-600 shrink-0" />
-                                        <span>{item}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Views */}
-                        <div className="mb-6">
-                            <h3 className="font-bold text-gray-900 mb-3">Vista a:</h3>
-                            <div className="grid grid-cols-2 gap-2">
-                                {roomInfo.views.map((view, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
-                                        <Check className="w-4 h-4 text-green-600 shrink-0" />
-                                        <span>{view}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Services */}
-                        <div className="mb-6">
-                            <h3 className="font-bold text-gray-900 mb-3">Servicios:</h3>
-                            <div className="grid grid-cols-2 gap-2">
-                                {roomInfo.services.map((service, idx) => (
+                            <h3 className="font-bold text-gray-900 mb-3">Servicios y Equipamiento:</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {(habitacion.amenidades && habitacion.amenidades.length > 0 ? habitacion.amenidades : roomInfo.services).map((service, idx) => (
                                     <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
                                         <Check className="w-4 h-4 text-green-600 shrink-0" />
                                         <span>{service}</span>

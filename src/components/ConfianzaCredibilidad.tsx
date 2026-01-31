@@ -208,7 +208,7 @@ export const ConfianzaCredibilidad = () => {
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-3 mb-1">
                                     <div className="bg-[#003580] text-white font-bold text-2xl w-12 h-12 flex items-center justify-center rounded-sm shadow-sm ring-1 ring-white/20">
-                                        9,2
+                                        9,4
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-[#003580] font-extrabold text-xl leading-none">Fantástico</span>

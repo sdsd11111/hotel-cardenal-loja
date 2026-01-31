@@ -346,42 +346,89 @@ async function insertNewReserva(amount: number, reservaParam: string, id: any, c
 
 async function syncWithClientes(data: any, reservationNumber: string) {
     try {
+        console.log("--- Syncing with Clientes ---");
+        console.log("Data provided:", JSON.stringify(data));
+
         // Separar nombre y apellidos si es posible
         const fullNombre = data?.nombre_cliente || 'Cliente Web';
         const parts = fullNombre.split(' ');
         const nombre = parts[0];
         const apellidos = parts.slice(1).join(' ') || '';
+        const email = data?.email_cliente || null;
 
-        await query(
-            `INSERT INTO clientes (
-                nombre, apellidos, email, telefono, fecha_entrada, fecha_salida,
-                adultos, ninos, habitacion_preferida, motivo, pais, comentarios,
-                activo, created_at, como_nos_conocio
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE 
-                ultima_estadia = VALUES(fecha_entrada),
-                total_estadias = total_estadias + 1,
-                comentarios = VALUES(comentarios),
-                pais = VALUES(pais)`,
-            [
-                nombre,
-                apellidos,
-                data?.email_cliente || null,
-                data?.whatsapp || null,
-                data?.fecha_entrada || null,
-                data?.fecha_salida || null,
-                data?.adultos || 1,
-                data?.ninos || 0,
-                data?.habitacion_nombre || data?.habitacion_id || null,
-                data?.reserva_para === 'otro' ? `Reserva para Tercero #${reservationNumber}` : `Reserva Online #${reservationNumber}`,
-                data?.pais || null,
-                data?.peticiones || null,
-                1,
-                new Date(),
-                'Web PayPhone'
-            ]
-        );
-        console.log("Cliente sincronizado en 'Lista de Clientes'");
+        // 1. Verificar si existe por email (si tiene email)
+        let existingId = null;
+        if (email) {
+            const existing: any = await query(`SELECT id FROM clientes WHERE email = ? LIMIT 1`, [email]);
+            if (existing && existing.length > 0) {
+                existingId = existing[0].id;
+                console.log(`Cliente encontrado por email: ${email} -> ID: ${existingId}`);
+            }
+        }
+
+        // 2. Si no existe por email, intentar buscar por nombre exacto (fallback)
+        if (!existingId) {
+            const existingByName: any = await query(`SELECT id FROM clientes WHERE nombre = ? AND apellidos = ? LIMIT 1`, [nombre, apellidos]);
+            if (existingByName && existingByName.length > 0) {
+                existingId = existingByName[0].id;
+                console.log(`Cliente encontrado por nombre: ${fullNombre} -> ID: ${existingId}`);
+            }
+        }
+
+        let dbRes;
+
+        if (existingId) {
+            // UPDATE
+            dbRes = await query(
+                `UPDATE clientes SET
+                    telefono = COALESCE(?, telefono),
+                    ultima_estadia = ?,
+                    total_estadias = total_estadias + 1,
+                    habitacion_preferida = ?,
+                    pais = COALESCE(?, pais),
+                    comentarios = ?
+                WHERE id = ?`,
+                [
+                    data?.whatsapp || null,
+                    data?.fecha_entrada || new Date(),
+                    data?.habitacion_nombre || data?.habitacion_id || null,
+                    data?.pais || null,
+                    data?.peticiones || null,
+                    existingId
+                ]
+            );
+            console.log("Cliente actualizado.");
+        } else {
+            // INSERT
+            dbRes = await query(
+                `INSERT INTO clientes (
+                    nombre, apellidos, email, telefono, fecha_entrada, fecha_salida,
+                    adultos, ninos, habitacion_preferida, motivo, pais, comentarios,
+                    activo, created_at, como_nos_conocio
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    nombre,
+                    apellidos,
+                    email,
+                    data?.whatsapp || null,
+                    data?.fecha_entrada || null,
+                    data?.fecha_salida || null,
+                    data?.adultos || 1,
+                    data?.ninos || 0,
+                    data?.habitacion_nombre || data?.habitacion_id || null,
+                    data?.reserva_para === 'otro' ? `Reserva para Tercero #${reservationNumber}` : `Reserva Online #${reservationNumber}`,
+                    data?.pais || null,
+                    data?.peticiones || null,
+                    1,
+                    new Date(),
+                    'Web PayPhone'
+                ]
+            );
+            console.log("Cliente nuevo insertado.");
+        }
+
+        return dbRes;
+
     } catch (err) {
         console.error("Error syncing with clientes table:", err);
     }

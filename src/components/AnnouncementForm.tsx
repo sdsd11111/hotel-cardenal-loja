@@ -32,7 +32,9 @@ export default function AnnouncementForm({ announcement, onSuccess, onCancel }: 
         boton_link: announcement?.boton_link || '',
         activo: announcement?.activo === 1 || announcement?.activo === true,
         posicion: announcement?.posicion || 'bottom-right',
-        estilo: announcement?.estilo ? (typeof announcement.estilo === 'string' ? JSON.parse(announcement.estilo) : announcement.estilo) : {}
+        estilo: announcement?.estilo ? (typeof announcement.estilo === 'string' ? JSON.parse(announcement.estilo) : announcement.estilo) : {},
+        fecha_inicio: announcement?.fecha_inicio ? new Date(announcement.fecha_inicio).toISOString().split('T')[0] : '',
+        fecha_fin: announcement?.fecha_fin ? new Date(announcement.fecha_fin).toISOString().split('T')[0] : ''
     });
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +90,8 @@ export default function AnnouncementForm({ announcement, onSuccess, onCancel }: 
             submitData.append('activo', formData.activo.toString());
             submitData.append('posicion', formData.posicion);
             submitData.append('estilo', JSON.stringify(formData.estilo));
+            submitData.append('fecha_inicio', formData.fecha_inicio);
+            submitData.append('fecha_fin', formData.fecha_fin);
 
             if (fileToUpload) {
                 submitData.append('imagen', fileToUpload);
@@ -134,6 +138,31 @@ export default function AnnouncementForm({ announcement, onSuccess, onCancel }: 
                             value={formData.llamativo}
                             onChange={(e) => setFormData({ ...formData, llamativo: e.target.value })}
                             placeholder="Ej: -20% DESCUENTO"
+                            className="border-2 border-gray-400 font-bold h-12"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label htmlFor="fecha_inicio" className="text-sm font-black text-black uppercase tracking-widest">Fecha Inicio *</label>
+                        <Input
+                            id="fecha_inicio"
+                            type="date"
+                            value={formData.fecha_inicio}
+                            onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
+                            required
+                            className="border-2 border-gray-400 font-bold h-12"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="fecha_fin" className="text-sm font-black text-black uppercase tracking-widest">Fecha Fin *</label>
+                        <Input
+                            id="fecha_fin"
+                            type="date"
+                            value={formData.fecha_fin}
+                            onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
+                            required
                             className="border-2 border-gray-400 font-bold h-12"
                         />
                     </div>

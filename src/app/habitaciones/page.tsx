@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import HabitacionesPageClient from './HabitacionesClient';
+import HabitacionesPageClient from './RoomsClient';
 
 export const metadata: Metadata = {
     title: 'Habitaciones | Hotel El Cardenal Loja - Confort y Descanso',

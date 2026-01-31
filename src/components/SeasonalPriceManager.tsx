@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, Trash2, Save, Plus, AlertCircle, Copy } from 'lucide-react';
+import { Calendar, Trash2, Save, Plus, AlertCircle, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Reuse interface from RoomConfigForm
@@ -40,6 +40,7 @@ export default function SeasonalPriceManager({ roomConfigId, initialSeasonalPric
     const [newStartDate, setNewStartDate] = useState('');
     const [newEndDate, setNewEndDate] = useState('');
     const [checkError, setCheckError] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
 
     // Should start with base prices to make it easier
     const [newPriceOptions, setNewPriceOptions] = useState<PriceOption[]>([]);
@@ -179,7 +180,9 @@ export default function SeasonalPriceManager({ roomConfigId, initialSeasonalPric
             await fetchSeasons();
             setIsCreating(false);
             setEditId(null);
-            onUpdate();
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+            (onUpdate as any)(true); // Call refresh in silent mode
         } catch (error: any) {
             setCheckError(error.message);
         } finally {
@@ -220,6 +223,12 @@ export default function SeasonalPriceManager({ roomConfigId, initialSeasonalPric
                     </Button>
                 )}
             </div>
+
+            {showSuccess && (
+                <div className="bg-green-100 border-2 border-green-500 text-green-700 p-4 rounded-xl flex items-center gap-2 font-bold animate-fadeIn">
+                    <Check className="w-5 h-5" /> ¡Temporada guardada correctamente!
+                </div>
+            )}
 
             {isCreating && (
                 <div className="bg-white p-6 rounded-xl border-2 border-cardenal-gold/50 shadow-lg space-y-6 animate-fadeIn">

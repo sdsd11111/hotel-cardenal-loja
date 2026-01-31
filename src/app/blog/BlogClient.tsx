@@ -25,7 +25,7 @@ export default function BlogClient({ initialArticles, initialCategory = 'Todas' 
     const [currentSlide, setCurrentSlide] = useState(0);
 
     // Categories (Static as requested)
-    const categories = ['Todas', 'Nuestro Hotel', 'Qué comer en Loja', 'Eventos en Loja', 'Tours de Loja'];
+    const categories = ['Todas', 'Nuestro Hotel', 'Qué comer en Loja', 'Eventos en Loja', 'Tours de Loja', 'Opiniones de Nuestro Clientes'];
 
     // Filter articles
     const filteredArticles = useMemo(() => {
@@ -77,7 +77,7 @@ export default function BlogClient({ initialArticles, initialCategory = 'Todas' 
                 />
 
                 {/* Overlay */}
-                <div className="absolute inset-0 bg-black/40 z-0"></div>
+                {/* <div className="absolute inset-0 bg-black/40 z-0"></div> */}
 
                 <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20">
                     <span className="text-cardenal-gold font-bold tracking-[0.2em] text-sm md:text-base uppercase mb-6 block drop-shadow-md">

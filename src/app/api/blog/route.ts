@@ -94,7 +94,7 @@ export async function POST(request: Request) {
 
         // Si subimos imagen, actualizamos la imagen_url con el ID asignado
         if (imagen_blob && insertId) {
-            const newUrl = `/api/images/blog/${insertId}`;
+            const newUrl = `/api/images/blog/${insertId}?t=${Date.now()}`;
             await query('UPDATE blog_articles SET imagen_url = ? WHERE id = ?', [newUrl, insertId]);
         }
 
@@ -150,7 +150,7 @@ export async function PUT(request: Request) {
                 const arrayBuffer = await imagenFile.arrayBuffer();
                 imagen_blob = Buffer.from(arrayBuffer);
                 imagen_mime = imagenFile.type;
-                imagen_url = `/api/images/blog/${id}`;
+                imagen_url = `/api/images/blog/${id}?t=${Date.now()}`;
             }
         }
 

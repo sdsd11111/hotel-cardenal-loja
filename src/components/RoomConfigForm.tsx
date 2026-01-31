@@ -199,7 +199,7 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
                         </div>
                     </div>
 
-                    <div className="hidden bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
+                    <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
                         <div className="flex justify-between items-center border-b-2 border-gray-200 pb-3">
                             <h3 className="text-xl font-black text-cardenal-green flex items-center gap-2">
                                 <Plus className="w-6 h-6" /> Amenidades
@@ -226,7 +226,7 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
                 </div>
 
                 {/* Right Column: Price Options */}
-                <div className="space-y-6 hidden">
+                <div className="space-y-6">
                     <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-8">
                         <div className="flex justify-between items-center border-b-2 border-gray-200 pb-4">
                             <h3 className="text-xl font-black text-cardenal-green flex items-center gap-2">

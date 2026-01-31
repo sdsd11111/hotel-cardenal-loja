@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronLeft, Megaphone, Edit2, Trash2, Eye, EyeOff, X } from 'lucide-react';
+import { Plus, ChevronLeft, Megaphone, Edit2, Trash2, Eye, EyeOff, X, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AnnouncementForm from '@/components/AnnouncementForm';
 
@@ -27,6 +27,100 @@ export default function AdminAnunciosPage() {
             setIsLoading(false);
         }
     };
+
+    // Grouping Logic
+    // Grouping Logic - Using local date string
+    const getLocalDate = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    const now = getLocalDate();
+
+    const normalizeDate = (d: any) => {
+        if (!d) return '';
+        if (typeof d === 'string') return d.slice(0, 10);
+        return new Date(d).toISOString().slice(0, 10);
+    };
+
+    const activeAnuncios = anuncios.filter(a => {
+        const start = normalizeDate(a.fecha_inicio);
+        const end = normalizeDate(a.fecha_fin);
+        return a.activo && start <= now && end >= now;
+    });
+    const scheduledAnuncios = anuncios.filter(a => {
+        const start = normalizeDate(a.fecha_inicio);
+        return a.activo && start > now;
+    });
+    const pastAnuncios = anuncios.filter(a => {
+        const end = normalizeDate(a.fecha_fin);
+        return !a.activo || (end && end < now);
+    });
+
+    const AnuncioTable = ({ items, title, icon: Icon, colorClass }: any) => (
+        <div className="bg-white rounded-3xl border-2 border-gray-300 shadow-xl overflow-hidden mb-8">
+            <div className={`p-8 border-b-2 border-gray-100 flex items-center gap-4 ${colorClass}`}>
+                <div className="p-3 bg-white/50 rounded-xl">
+                    <Icon className="w-7 h-7 text-gray-800" />
+                </div>
+                <div>
+                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">{title}</h2>
+                    <p className="text-sm font-bold text-gray-600 uppercase tracking-tighter">{items.length} anuncios</p>
+                </div>
+            </div>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-100 border-b-2 border-gray-200">
+                        <tr>
+                            <th className="px-8 py-4 text-xs font-black text-black uppercase tracking-widest">Anuncio</th>
+                            <th className="px-8 py-4 text-xs font-black text-black uppercase tracking-widest">Fechas</th>
+                            <th className="px-8 py-4 text-xs font-black text-black uppercase tracking-widest">Estado</th>
+                            <th className="px-8 py-4 text-right text-xs font-black text-black uppercase tracking-widest">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {items.length === 0 ? (
+                            <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-400 font-bold uppercase">No hay anuncios en esta sección</td></tr>
+                        ) : items.map((anuncio: any) => (
+                            <tr key={anuncio.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-8 py-6">
+                                    <div className="font-black text-black text-lg uppercase tracking-tight">{anuncio.titulo}</div>
+                                    <div className="text-sm font-bold text-gray-500">{anuncio.descripcion}</div>
+                                </td>
+                                <td className="px-8 py-6">
+                                    <div className="text-xs font-black text-gray-600 uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-lg inline-block">
+                                        {anuncio.fecha_inicio} <span className="text-gray-400">→</span> {anuncio.fecha_fin}
+                                    </div>
+                                </td>
+                                <td className="px-8 py-6">
+                                    <button
+                                        onClick={() => handleToggleStatus(anuncio)}
+                                        className={cn(
+                                            "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border-2",
+                                            anuncio.activo
+                                                ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
+                                                : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                                        )}
+                                    >
+                                        {anuncio.activo ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                                        {anuncio.activo ? 'Visible' : 'Oculto'}
+                                    </button>
+                                </td>
+                                <td className="px-8 py-6 text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <button onClick={() => { setSelectedAnuncio(anuncio); setShowForm(true); }} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><Edit2 className="w-4 h-4" /></button>
+                                        <button onClick={() => handleDelete(anuncio.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><Trash2 className="w-4 h-4" /></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
 
     useEffect(() => {
         fetchAnuncios();
@@ -54,6 +148,8 @@ export default function AdminAnunciosPage() {
             formData.append('activo', String(!anuncio.activo));
             formData.append('posicion', anuncio.posicion || 'bottom-right');
             formData.append('estilo', anuncio.estilo || '{}');
+            formData.append('fecha_inicio', anuncio.fecha_inicio || '');
+            formData.append('fecha_fin', anuncio.fecha_fin || '');
             // If there's an existing image_url, we keep it
             if (anuncio.imagen_url) {
                 formData.append('imagen_url', anuncio.imagen_url);
@@ -109,89 +205,25 @@ export default function AdminAnunciosPage() {
                     </div>
                 )}
 
-                <div className="bg-white rounded-3xl border-2 border-gray-300 shadow-xl overflow-hidden">
-                    <div className="p-8 border-b-2 border-gray-100 flex items-center gap-4 bg-gray-50/50">
-                        <div className="p-3 bg-cardenal-gold/20 rounded-xl">
-                            <Megaphone className="w-7 h-7 text-cardenal-gold" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-black text-cardenal-green uppercase tracking-tight">Anuncios Configurados</h2>
-                            <p className="text-sm font-black text-gray-700 uppercase tracking-tighter">Administra las promociones que aparecen en la página de habitaciones.</p>
-                        </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-gray-200 border-b-2 border-gray-300">
-                                <tr>
-                                    <th className="px-8 py-4 text-xs font-black text-black uppercase tracking-widest">Título / Descripción</th>
-                                    <th className="px-8 py-4 text-xs font-black text-black uppercase tracking-widest">Estado</th>
-                                    <th className="px-8 py-4 text-xs font-black text-black uppercase tracking-widest">Llamativo</th>
-                                    <th className="px-8 py-4 text-right text-xs font-black text-black uppercase tracking-widest">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {isLoading ? (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">Cargando...</td>
-                                    </tr>
-                                ) : anuncios.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-24 text-center">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <Megaphone className="w-16 h-16 text-gray-300 stroke-[1px]" />
-                                                <p className="text-xl font-black text-gray-500 uppercase tracking-widest">No hay anuncios configurados.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : anuncios.map((anuncio) => (
-                                    <tr key={anuncio.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-8 py-6">
-                                            <div className="font-black text-black text-lg uppercase tracking-tight">{anuncio.titulo}</div>
-                                            <div className="text-sm font-bold text-gray-700 line-clamp-2 mt-1">{anuncio.descripcion}</div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <button
-                                                onClick={() => handleToggleStatus(anuncio)}
-                                                className={cn(
-                                                    "inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm border-2",
-                                                    anuncio.activo
-                                                        ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
-                                                        : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                                                )}
-                                            >
-                                                {anuncio.activo ? <Eye className="w-4 h-4 stroke-[3px]" /> : <EyeOff className="w-4 h-4 stroke-[3px]" />}
-                                                {anuncio.activo ? 'Visible' : 'Oculto'}
-                                            </button>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            {anuncio.llamativo && (
-                                                <span className="bg-cardenal-gold text-white px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm">
-                                                    {anuncio.llamativo}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end gap-3">
-                                                <button
-                                                    onClick={() => { setSelectedAnuncio(anuncio); setShowForm(true); }}
-                                                    className="p-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-cardenal-gold hover:text-white transition-all border-2 border-transparent hover:border-cardenal-gold shadow-sm"
-                                                >
-                                                    <Edit2 className="w-5 h-5 stroke-[2.5px]" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(anuncio.id)}
-                                                    className="p-2.5 bg-gray-100 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border-2 border-transparent hover:border-red-500 shadow-sm"
-                                                >
-                                                    <Trash2 className="w-5 h-5 stroke-[2.5px]" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="space-y-8">
+                    <AnuncioTable
+                        items={activeAnuncios}
+                        title="En Curso (Activos Hoy)"
+                        icon={Megaphone}
+                        colorClass="bg-green-50"
+                    />
+                    <AnuncioTable
+                        items={scheduledAnuncios}
+                        title="Programados (Futuro)"
+                        icon={Calendar}
+                        colorClass="bg-blue-50"
+                    />
+                    <AnuncioTable
+                        items={pastAnuncios}
+                        title="Historial / Inactivos"
+                        icon={Trash2}
+                        colorClass="bg-gray-50"
+                    />
                 </div>
             </main>
         </div>

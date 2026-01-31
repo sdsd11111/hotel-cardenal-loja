@@ -208,6 +208,27 @@ export default function RecepcionPage() {
         setShowBookingModal(true);
     };
 
+    const handleNewBooking = () => {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        setSelectedDate(dateStr);
+        setEditingReserva(null);
+        setFormData({
+            nombre: '',
+            email: '',
+            whatsapp: '',
+            entrada: dateStr,
+            salida: new Date(today.getTime() + 86400000).toISOString().split('T')[0],
+            adultos: 2,
+            ninos: 0,
+            pais: 'Ecuador',
+            peticiones: '',
+            precio: 0,
+            estado: 'OK'
+        });
+        setShowBookingModal(true);
+    };
+
     const handleSaveManualReserva = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -425,7 +446,7 @@ export default function RecepcionPage() {
                                     </Button>
                                 </div>
                                 <Button className="bg-cardenal-green hover:bg-cardenal-green/90 text-white rounded-xl font-black text-sm py-2 px-4 shadow-md flex gap-2 transform active:scale-95 transition-all"
-                                    onClick={() => handleDayClick(new Date())}>
+                                    onClick={handleNewBooking}>
                                     <Plus className="w-5 h-5 stroke-[3px]" />
                                     NUEVA RESERVA
                                 </Button>
@@ -523,9 +544,14 @@ export default function RecepcionPage() {
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                         <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
                             <div className={cn("p-8 flex items-center justify-between text-white", editingReserva ? "bg-cardenal-gold" : "bg-cardenal-green")}>
-                                <div>
+                                <div className="flex flex-col">
                                     <h3 className="text-2xl font-serif font-bold">{editingReserva ? 'Editar Estado' : 'Reserva Manual'}</h3>
                                     <p className="text-sm text-white/70">Habitación: <span className="font-bold">{selectedRoom.name}</span></p>
+                                    {editingReserva && (
+                                        <Link href="/admin/clientes" target="_blank" className="mt-2 inline-flex items-center gap-1 text-xs font-black bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg w-fit transition-colors">
+                                            <User className="w-3 h-3" /> Ir a Gestión del Cliente
+                                        </Link>
+                                    )}
                                 </div>
                                 <button onClick={() => setShowBookingModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                                     <X className="w-6 h-6" />
@@ -536,11 +562,37 @@ export default function RecepcionPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5 col-span-2">
                                         <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Nombre del Huésped</label>
-                                        <Input required value={formData.nombre} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, nombre: e.target.value })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black focus:border-cardenal-green transition-all" />
+                                        <Input required value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black focus:border-cardenal-green transition-all" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Email</label>
+                                        <Input
+                                            type="email"
+                                            value={formData.email || ''}
+                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                            className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black"
+                                            placeholder="ejemplo@email.com"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">WhatsApp / Teléfono</label>
+                                        <Input
+                                            value={formData.whatsapp || ''}
+                                            onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
+                                            className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black"
+                                            placeholder="099..."
+                                        />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Precio Total ($)</label>
-                                        <Input type="number" step="0.01" required value={formData.precio} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, precio: parseFloat(e.target.value) })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            required
+                                            value={formData.precio || ''}
+                                            onChange={e => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
+                                            className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black"
+                                        />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Estado de Pago</label>
@@ -563,11 +615,11 @@ export default function RecepcionPage() {
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Adultos</label>
-                                        <Input type="number" min="1" max={selectedRoom.capacity} readOnly={!!editingReserva} value={formData.adultos} onChange={e => setFormData({ ...formData, adultos: parseInt(e.target.value) })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                        <Input type="number" min="1" max={selectedRoom.capacity} value={formData.adultos || 1} onChange={e => setFormData({ ...formData, adultos: parseInt(e.target.value) || 1 })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Niños</label>
-                                        <Input type="number" min="0" value={formData.ninos} readOnly={!!editingReserva} onChange={e => setFormData({ ...formData, ninos: parseInt(e.target.value) })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                        <Input type="number" min="0" value={formData.ninos || 0} onChange={e => setFormData({ ...formData, ninos: parseInt(e.target.value) || 0 })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
                                     </div>
                                 </div>
 

@@ -286,12 +286,12 @@ export default function HeroPlatos() {
           <div className="absolute inset-0 bg-black/50"></div>
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 w-full max-w-6xl px-6 text-center text-white">
-          <div className="max-w-3xl mx-auto">
+        {/* Content - Moved to the right */}
+        <div className="relative z-10 w-full max-w-7xl px-6 text-center text-white flex justify-end">
+          <div className="max-w-3xl mr-0 md:mr-12 lg:mr-20">
             <div className="mb-6 md:mb-8">
               <p className="text-xl md:text-2xl text-cardenal-gold font-script mb-2 italic">
-                Un descanso con aroma a café y río
+                Un descanso con aroma a café y sabor
               </p>
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-2 leading-tight font-serif text-white">
                 Hotel Cardenal Loja

@@ -44,12 +44,12 @@ const habitacionesItems = [
   { label: 'Doble Twin', href: '/doble-twin' },
 ];
 
-// Experiencia dropdown items (no main page)
-const experienciaItems = [
-  { label: 'Gastronomía y Desayunos', href: '/restaurante', description: 'Sabores lojanos auténticos' },
+// Servicios dropdown items 
+const serviciosItems = [
+  { label: 'Experiencias', href: '/servicios', description: 'Descubre nuestros servicios exclusivos' },
+  { label: 'Restaurante', href: '/restaurante', description: 'Sabores lojanos auténticos' },
   { label: 'Galería de Momentos', href: '/galeria', description: 'Explore nuestras instalaciones' },
   { label: 'Eventos y Reuniones', href: '/eventos', description: 'Espacios para su celebración' },
-  { label: 'Servicios Exclusivos', href: '/servicios', description: 'Parking, WiFi y más' },
   { label: 'Turismo en Loja', href: '/turismo-en-loja', description: 'Guía de lugares mágicos' },
 ];
 
@@ -313,20 +313,20 @@ export const Header = ({
                         </div>
                       </div>
 
-                      {/* Experiencia with Dropdown (no main page) */}
+                      {/* Servicios with Dropdown */}
                       <div className="relative group">
                         <button
                           className={cn("flex items-center px-4 py-2 text-xs font-black hover:text-cardenal-gold transition-colors uppercase tracking-widest font-serif", textColor)}
                           style={{ textShadow }}
                         >
-                          Experiencia
+                          Servicios
                           <ChevronDown className={cn("h-3 w-3 ml-1 group-hover:text-cardenal-gold transition-colors", textColor)} style={{ filter: iconShadow }} />
                         </button>
 
-                        {/* Experiencia Dropdown */}
+                        {/* Servicios Dropdown */}
                         <div className="absolute top-full left-0 mt-2 w-72 bg-white shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[70] border-t-4 border-cardenal-gold">
                           <div className="py-2">
-                            {experienciaItems.map((item) => (
+                            {serviciosItems.map((item) => (
                               <Link
                                 key={item.href}
                                 href={item.href}
@@ -453,22 +453,22 @@ export const Header = ({
                             )}
                           </div>
 
-                          {/* Experiencia Accordion */}
+                          {/* Servicios Accordion */}
                           <div>
                             <button
-                              onClick={() => toggleCategory('mobile-experiencia')}
+                              onClick={() => toggleCategory('mobile-servicios')}
                               className="w-full flex items-center justify-between text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide"
                             >
-                              Experiencia
-                              {openCategories['mobile-experiencia'] ? (
+                              Servicios
+                              {openCategories['mobile-servicios'] ? (
                                 <ChevronUp className="h-4 w-4" />
                               ) : (
                                 <ChevronDown className="h-4 w-4" />
                               )}
                             </button>
-                            {openCategories['mobile-experiencia'] && (
+                            {openCategories['mobile-servicios'] && (
                               <div className="pl-4 mt-2 space-y-2 border-l-2 border-cardenal-gold/20 ml-1">
-                                {experienciaItems.map((item) => (
+                                {serviciosItems.map((item) => (
                                   <Link
                                     key={item.href}
                                     href={item.href}
@@ -647,22 +647,22 @@ export const Header = ({
                               )}
                             </div>
 
-                            {/* Experiencia Accordion */}
+                            {/* Servicios Accordion (Mobile) */}
                             <div>
                               <button
-                                onClick={() => toggleCategory('mobile-experiencia')}
+                                onClick={() => toggleCategory('mobile-servicios')}
                                 className="w-full flex items-center justify-between text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide"
                               >
-                                Experiencia
-                                {openCategories['mobile-experiencia'] ? (
+                                Servicios
+                                {openCategories['mobile-servicios'] ? (
                                   <ChevronUp className="h-4 w-4" />
                                 ) : (
                                   <ChevronDown className="h-4 w-4" />
                                 )}
                               </button>
-                              {openCategories['mobile-experiencia'] && (
+                              {openCategories['mobile-servicios'] && (
                                 <div className="pl-4 mt-2 space-y-2 border-l-2 border-cardenal-gold/20 ml-1">
-                                  {experienciaItems.map((item) => (
+                                  {serviciosItems.map((item) => (
                                     <Link
                                       key={item.href}
                                       href={item.href}
