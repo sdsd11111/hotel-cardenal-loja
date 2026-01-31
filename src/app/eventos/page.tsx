@@ -8,6 +8,8 @@ import { Wifi, Coffee, Car, MapPin, Users, Monitor, CalendarCheck, Lightbulb, Us
 import { ImageLightbox } from '@/components/ImageLightbox';
 import { EventForm } from '@/components/EventForm';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Eventos Corporativos y Reuniones en Loja | Hotel El Cardenal',
     description: 'El mejor espacio para eventos íntimos y reuniones de negocios en Loja. Privacidad, WiFi de alta velocidad, café lojano y parqueadero privado. ¡Reserve hoy!',
@@ -18,6 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default function EventosPage() {
+    const t = Date.now();
     return (
         <div className="flex flex-col min-h-screen bg-white">
             {/* 🤖 LLM & SEO Hidden Content */}
@@ -69,7 +72,7 @@ export default function EventosPage() {
                 {/* Fullscreen Hero Section */}
                 <div className="relative h-screen w-full flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/eventos/hero.webp"
+                        src={`/images/eventos/hero.webp?t=${t}`}
                         alt="Salón de Eventos y Reuniones Hotel El Cardenal Loja"
                         fill
                         className="object-cover"
@@ -143,7 +146,7 @@ export default function EventosPage() {
                         <div className="grid lg:grid-cols-2">
                             <div className="relative min-h-[400px] lg:min-h-full">
                                 <Image
-                                    src="/images/eventos/servicios-para-eventos.webp"
+                                    src={`/images/eventos/servicios-para-eventos.webp?t=${t}`}
                                     alt="Reunión Corporativa Hotel Cardenal"
                                     fill
                                     className="object-cover"
@@ -204,7 +207,7 @@ export default function EventosPage() {
                             {[1, 2, 3, 4, 5].map((i) => (
                                 <ImageLightbox
                                     key={i}
-                                    src={`/images/eventos/galeria-${i}.webp`}
+                                    src={`/images/eventos/galeria-${i}.webp?t=${t}`}
                                     alt={`Evento en Hotel El Cardenal Loja ${i}`}
                                     className={`rounded-xl shadow-lg ${i === 4 ? 'md:hidden lg:block' : ''} ${i === 5 ? 'hidden lg:block' : ''}`}
                                 />
