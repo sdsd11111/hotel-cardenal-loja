@@ -27,12 +27,12 @@ import Link from 'next/link';
 
 // Configuración de las 6 habitaciones reales sincronizadas con IDs de DB
 const ROOMS_CONFIG = [
-    { id: 4, name: 'Matrimonial 1', num: '301', type: 'matrimonial', capacity: 2, color: 'border-pink-200 bg-pink-50' },
-    { id: 1, name: 'Matrimonial 2', num: '301', type: 'matrimonial', capacity: 2, color: 'border-pink-200 bg-pink-50' },
-    { id: 3, name: 'Doble 1', num: '302', type: 'doble', capacity: 3, color: 'border-blue-200 bg-blue-50' },
-    { id: 5, name: 'Doble 2', num: '302', type: 'doble', capacity: 3, color: 'border-blue-200 bg-blue-50' },
-    { id: 2, name: 'Triple 1', num: '303', type: 'triple', capacity: 4, color: 'border-green-200 bg-green-50' },
-    { id: 6, name: 'Triple 2', num: '303', type: 'triple', capacity: 4, color: 'border-green-200 bg-green-50' },
+    { id: 1, name: 'Habitación Matrimonial', num: '301', type: 'matrimonial', capacity: 2, color: 'border-pink-200 bg-pink-50' },
+    { id: 2, name: 'Habitación Doble', num: '301', type: 'matrimonial', capacity: 2, color: 'border-pink-200 bg-pink-50' },
+    { id: 3, name: 'Habitación Triple', num: '302', type: 'doble', capacity: 3, color: 'border-blue-200 bg-blue-50' },
+    { id: 4, name: 'Habitación Cuádruple', num: '302', type: 'doble', capacity: 3, color: 'border-blue-200 bg-blue-50' },
+    { id: 5, name: 'Habitación Familiar', num: '303', type: 'triple', capacity: 4, color: 'border-green-200 bg-green-50' },
+    { id: 6, name: 'Habitación Suite', num: '303', type: 'triple', capacity: 4, color: 'border-green-200 bg-green-50' },
 ];
 
 interface Reserva {
@@ -129,31 +129,34 @@ export default function RecepcionPage() {
     };
 
     const getReservaForDate = (date: Date) => {
+        if (!date) return undefined;
         const dateStr = date.toISOString().split('T')[0];
         return reservas.find(r => {
-            if (r.habitacion_id !== selectedRoom.id) return false;
+            if (Number(r.habitacion_id) !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
-            const checkIn = r.fecha_entrada.split('T')[0];
-            const checkOut = r.fecha_salida.split('T')[0];
+            const checkIn = String(r.fecha_entrada).split('T')[0];
+            const checkOut = String(r.fecha_salida).split('T')[0];
             return dateStr >= checkIn && dateStr < checkOut;
         });
     };
 
     const getCheckInForDate = (date: Date) => {
+        if (!date) return undefined;
         const dateStr = date.toISOString().split('T')[0];
         return reservas.find(r => {
-            if (r.habitacion_id !== selectedRoom.id) return false;
+            if (Number(r.habitacion_id) !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
-            return r.fecha_entrada.split('T')[0] === dateStr;
+            return String(r.fecha_entrada).split('T')[0] === dateStr;
         });
     };
 
     const getCheckOutForDate = (date: Date) => {
+        if (!date) return undefined;
         const dateStr = date.toISOString().split('T')[0];
         return reservas.find(r => {
-            if (r.habitacion_id !== selectedRoom.id) return false;
+            if (Number(r.habitacion_id) !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
-            return r.fecha_salida.split('T')[0] === dateStr;
+            return String(r.fecha_salida).split('T')[0] === dateStr;
         });
     };
 
