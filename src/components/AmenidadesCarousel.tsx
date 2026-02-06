@@ -79,6 +79,7 @@ export const AmenidadesCarousel = () => {
                                 <Link
                                     href={servicio.href}
                                     className="inline-flex items-center gap-2 bg-cardenal-gold hover:bg-cardenal-green text-white font-bold py-2.5 px-5 transition-all duration-300 text-xs uppercase tracking-widest shadow-lg group-hover:gap-3"
+                                    aria-label={`Ver más información sobre ${servicio.title}`}
                                 >
                                     Ver más
                                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

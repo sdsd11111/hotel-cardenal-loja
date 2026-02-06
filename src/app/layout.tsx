@@ -3,6 +3,7 @@ import { Playfair_Display, Inter, Cinzel, Allura, Libre_Baskerville, Montserrat,
 import "./globals.css";
 import { FontAwesomeProvider } from "./providers";
 import GoogleTranslateWrapper from "@/components/GoogleTranslateWrapper";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: 'swap' });
 const montserrat = Montserrat({
@@ -104,12 +105,15 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://translate.googleapis.com" />
+        <link rel="preconnect" href="https://www.gstatic.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
       </head>
       <body className={`${cormorantGaramond.variable} ${lato.variable} ${playfairDisplay.variable} ${outfit.variable} ${inter.variable} ${cinzel.variable} ${allura.variable} ${libre.variable} ${montserrat.variable} antialiased bg-cardenal-cream text-text-main flex flex-col min-h-screen font-sans`}>
         <FontAwesomeProvider>
+          <LoadingScreen />
           <div className="flex flex-col flex-1">
             {children}
             <GoogleTranslateWrapper />

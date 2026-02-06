@@ -141,11 +141,14 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                             <Image
                                 src={slide.image}
                                 alt={HERO_CONTENT.title}
-                                fill
-                                className="object-cover"
+                                width={1920}
+                                height={1080}
+                                className="w-full h-full object-cover"
                                 priority={index === 0}
-                                quality={50}
-                                sizes="(max-width: 640px) 100vw, (max-width: 1200px) 100vw, 1600px"
+                                unoptimized={index === 0}
+                                quality={index === 0 ? undefined : 50}
+                                sizes={index === 0 ? undefined : "(max-width: 640px) 100vw, (max-width: 1200px) 100vw, 1600px"}
+                                {...(index === 0 ? { fetchPriority: "high" } : {})}
                             />
                             {/* Overlay 10% Dark per user request */}
                             <div className="absolute inset-0 bg-black/10 z-10" />

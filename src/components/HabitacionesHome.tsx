@@ -112,7 +112,7 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
 
                         {/* Content */}
                         <div className="space-y-6 order-1 lg:order-2">
-                            <div className="inline-block px-4 py-1.5 bg-cardenal-gold/10 text-cardenal-gold-dark text-xs font-bold uppercase tracking-widest border-l-4 border-cardenal-gold-dark">
+                            <div className="inline-block px-4 py-1.5 bg-cardenal-green/10 text-cardenal-green-dark text-xs font-bold uppercase tracking-widest border-l-4 border-cardenal-gold-dark">
                                 {activeHabitacion.tagline}
                             </div>
 

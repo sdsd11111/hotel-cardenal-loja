@@ -34,6 +34,8 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
   const initialized = useRef(false);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const loadScript = () => {
       if ((window as any).__googleTranslateInitializedScript) return;
       (window as any).__googleTranslateInitializedScript = true;
@@ -58,25 +60,31 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
       }
     };
 
-    // Load only on main instance or if header is the only one
-    if (!inHeader || !document.getElementById('google_translate_element')) {
-      // Extreme delay to avoid blocking initial render and LCP
-      const timeoutId = setTimeout(() => {
-        const initLoad = () => {
-          if (typeof window.requestIdleCallback === 'function') {
-            window.requestIdleCallback(() => loadScript());
-          } else {
-            loadScript();
-          }
-        };
+    const handleInteraction = () => {
+      loadScript();
+      cleanup();
+    };
 
-        if (document.readyState === 'complete') {
-          initLoad();
-        } else {
-          window.addEventListener('load', initLoad, { once: true });
-        }
-      }, 4000);
-      return () => clearTimeout(timeoutId);
+    const cleanup = () => {
+      window.removeEventListener('scroll', handleInteraction);
+      window.removeEventListener('mousemove', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      clearTimeout(timeoutId);
+    };
+
+    // Load only on main instance
+    if (!inHeader || !document.getElementById('google_translate_element')) {
+      // Listen for any interaction
+      window.addEventListener('scroll', handleInteraction, { once: true, passive: true });
+      window.addEventListener('mousemove', handleInteraction, { once: true, passive: true });
+      window.addEventListener('touchstart', handleInteraction, { once: true, passive: true });
+
+      // Fallback delay (extreme) - prioritize user interaction or 15s idle
+      timeoutId = setTimeout(() => {
+        handleInteraction();
+      }, 15000);
+
+      return cleanup;
     }
   }, [inHeader]);
 
@@ -151,17 +159,32 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
       {!hideUI && (
         <div className="relative">
           <button
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => {
+              if (!(window as any).__googleTranslateInitializedScript) {
+                const loadScript = () => {
+                  if ((window as any).__googleTranslateInitializedScript) return;
+                  (window as any).__googleTranslateInitializedScript = true;
+                  const script = document.createElement('script');
+                  script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+                  script.async = true;
+                  document.body.appendChild(script);
+                };
+                loadScript();
+              }
+              setIsOpen(!isOpen);
+            }}
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200 text-xs font-bold uppercase tracking-wide",
-              textColor ? textColor : (inHeader ? 'text-white hover:text-yellow-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100')
+              textColor ? textColor : (inHeader ? 'text-white hover:text-yellow-400 hover:bg-white/20' : 'text-gray-700 hover:bg-gray-100')
             )}
             style={inHeader && !textColor ? { textShadow: '0 2px 4px rgba(0,0,0,0.8)' } : {}}
-            aria-label="Seleccionar idioma"
+            aria-label={`Idioma actual: ${currentLang.name}. Haz clic para cambiar idioma.`}
+            aria-expanded={isOpen}
+            aria-haspopup="listbox"
           >
-            <span className="text-base">{currentLang.flag}</span>
+            <span role="img" aria-label={currentLang.name} className="text-base">{currentLang.flag}</span>
             <span className="hidden sm:inline">{currentLang.code.toUpperCase()}</span>
-            <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
 
           {/* Dropdown Menu */}
@@ -174,24 +197,31 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
               />
 
               {/* Dropdown */}
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => changeLanguage(lang)}
-                    className={`
-                      w-full px-4 py-2.5 text-left flex items-center gap-3
-                      transition-colors duration-150
-                      ${currentLang.code === lang.code
-                        ? 'bg-amber-50 text-amber-900 font-bold'
-                        : 'text-gray-700 hover:bg-gray-50'
-                      }
-                    `}
-                  >
-                    <span className="text-lg">{lang.flag}</span>
-                    <span className="text-sm font-medium">{lang.name}</span>
-                  </button>
-                ))}
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div
+                  className="py-1 max-h-[70vh] overflow-y-auto"
+                  role="listbox"
+                  aria-label="Lista de idiomas"
+                >
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => changeLanguage(lang)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-gray-50",
+                        currentLang.code === lang.code ? "bg-cardenal-gold/10 text-cardenal-gold-dark font-bold" : "text-gray-700"
+                      )}
+                      role="option"
+                      aria-selected={currentLang.code === lang.code}
+                    >
+                      <span role="img" aria-label={lang.name} className="text-lg">{lang.flag}</span>
+                      <span className="flex-1 text-left">{lang.name}</span>
+                      {currentLang.code === lang.code && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-cardenal-gold" aria-hidden="true" />
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             </>
           )}
