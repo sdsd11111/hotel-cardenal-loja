@@ -159,14 +159,14 @@ export const GaleriaPreview = () => {
                 {/* Section Header */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <div className="inline-block mb-6">
-                        <span className="text-cardenal-gold font-bold text-xs uppercase tracking-[0.3em] bg-cardenal-gold/10 px-6 py-3 font-serif">
+                        <span className="text-cardenal-gold-dark font-bold text-xs uppercase tracking-[0.3em] bg-cardenal-gold/10 px-6 py-3 font-serif">
                             Galería de Experiencias
                         </span>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif leading-tight">
                         Tu Refugio Familiar en el Corazón de Loja
                     </h2>
-                    <h3 className="text-xl md:text-2xl text-cardenal-gold font-script italic leading-relaxed">
+                    <h3 className="text-xl md:text-2xl text-cardenal-gold-dark font-script italic leading-relaxed">
                         Un entorno de paz, historia y naturaleza diseñado para su descanso.
                     </h3>
                     <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
@@ -195,9 +195,9 @@ export const GaleriaPreview = () => {
                                             alt={imagen.alt}
                                             fill
                                             loading="lazy"
-                                            sizes="33vw"
+                                            sizes="(max-width: 768px) 100vw, 33vw"
                                             className="object-cover transition-transform duration-1000 group-hover:scale-125"
-                                            quality={75}
+                                            quality={70}
                                         />
                                         {/* Gradient Overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -249,6 +249,7 @@ export const GaleriaPreview = () => {
                     <Link
                         href="/galeria"
                         className="inline-flex items-center gap-3 bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-5 px-10 transition-all duration-500 shadow-xl font-serif tracking-widest text-sm group"
+                        aria-label="Ver galería completa de fotos del hotel"
                     >
                         VER GALERÍA COMPLETA
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />

@@ -15,6 +15,8 @@
   /* Colores de Acento y Contraste */
   --cardenal-gold: #C9A86A;
   /* Dorado (Elegancia y Calidez) */
+  --cardenal-gold-dark: #8C6F3D;
+  /* Dorado Oscuro para mejor contraste en texto */
   --cardenal-brown: #4A3324;
   /* Café/Bronce del logo (Texto HOTEL) */
   --cardenal-cream: #FDFCF7;
@@ -80,6 +82,7 @@
   --color-cardenal-green-dark: var(--cardenal-green-dark);
   --color-cardenal-green-light: var(--cardenal-green-light);
   --color-cardenal-gold: var(--cardenal-gold);
+  --color-cardenal-gold-dark: var(--cardenal-gold-dark);
   --color-cardenal-brown: var(--cardenal-brown);
   --color-cardenal-cream: var(--cardenal-cream);
   --color-cardenal-sand: var(--cardenal-sand);

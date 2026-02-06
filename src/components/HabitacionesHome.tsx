@@ -64,7 +64,7 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
                 {/* Section Title */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <h2 className={cn("text-3xl md:text-5xl font-bold mb-6 font-serif", isTheme2 ? "text-white" : "text-cardenal-green")}>
-                        Habitaciones y Alojamiento en Loja: <span className="text-cardenal-gold italic">Descanso Íntimo junto a la Naturaleza</span>
+                        Habitaciones y Alojamiento en Loja: <span className="text-cardenal-gold-dark italic">Descanso Íntimo junto a la Naturaleza</span>
                     </h2>
                     <p className={cn("text-lg md:text-xl font-medium leading-relaxed", isTheme2 ? "text-white/90" : "text-text-main")}>
                         Descubra la armonía entre el diseño neoclásico y el descanso moderno en nuestras 6 exclusivas habitaciones.
@@ -105,12 +105,14 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
                                 alt={activeHabitacion.nombre}
                                 fill
                                 className="object-cover transition-opacity duration-500"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+                                quality={70}
                             />
                         </div>
 
                         {/* Content */}
                         <div className="space-y-6 order-1 lg:order-2">
-                            <div className="inline-block px-4 py-1.5 bg-cardenal-gold/10 text-cardenal-gold text-xs font-bold uppercase tracking-widest border-l-4 border-cardenal-gold">
+                            <div className="inline-block px-4 py-1.5 bg-cardenal-gold/10 text-cardenal-gold-dark text-xs font-bold uppercase tracking-widest border-l-4 border-cardenal-gold-dark">
                                 {activeHabitacion.tagline}
                             </div>
 
@@ -143,6 +145,7 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
                             <Link
                                 href={activeHabitacion.href}
                                 className="inline-flex items-center gap-2 bg-cardenal-gold hover:bg-cardenal-green text-white font-bold py-3 px-8 transition-all duration-300 text-sm uppercase tracking-widest shadow-lg group"
+                                aria-label={`Ver detalles de ${activeHabitacion.nombre}`}
                             >
                                 Ver detalles
                                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

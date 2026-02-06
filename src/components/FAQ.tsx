@@ -87,13 +87,13 @@ export const FAQ = () => {
                 {/* Section Header */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <div className="inline-flex items-center gap-2 mb-6">
-                        <HelpCircle className="w-6 h-6 text-cardenal-gold" />
-                        <span className="text-cardenal-gold font-bold text-xs uppercase tracking-[0.3em] font-serif">
+                        <HelpCircle className="w-6 h-6 text-cardenal-gold-dark" />
+                        <span className="text-cardenal-gold-dark font-bold text-xs uppercase tracking-[0.3em] font-serif">
                             FAQ
                         </span>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif leading-tight">
-                        Experiencia del Huésped: <span className="text-cardenal-gold italic">Preguntas Frecuentes</span> sobre su Estancia
+                        Experiencia del Huésped: <span className="text-cardenal-gold-dark italic">Preguntas Frecuentes</span> sobre su Estancia
                     </h2>
                     <h3 className="text-lg md:text-xl text-text-muted font-medium leading-relaxed">
                         Resolvemos sus dudas para que su visita al Hotel El Cardenal sea perfecta.
@@ -112,6 +112,7 @@ export const FAQ = () => {
                                 onClick={() => toggleFAQ(faq.id)}
                                 className="w-full flex items-center justify-between p-6 md:p-8 text-left group"
                                 aria-expanded={openId === faq.id}
+                                aria-label={`${openId === faq.id ? 'Cerrar' : 'Abrir'} respuesta a: ${faq.pregunta}`}
                             >
                                 <h4 className={`text-lg md:text-xl font-black font-serif pr-4 transition-colors ${openId === faq.id ? 'text-cardenal-green' : 'text-cardenal-green/80 group-hover:text-cardenal-green'}`}>
                                     {faq.pregunta}

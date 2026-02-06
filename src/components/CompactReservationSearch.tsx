@@ -33,11 +33,13 @@ export default function CompactReservationSearch({
             {/* Check-in */}
             <div className="flex-shrink-0">
                 <input
+                    id="check-in-header"
                     type="date"
                     value={fechaEntrada}
                     onChange={(e) => onFechaEntradaChange(e.target.value)}
                     min={today}
                     className="w-28 px-2 py-1 text-xs border border-cardenal-sand focus:border-cardenal-gold focus:outline-none font-sans font-bold text-cardenal-green"
+                    aria-label="Fecha de entrada"
                 />
             </div>
 
@@ -47,11 +49,13 @@ export default function CompactReservationSearch({
             {/* Check-out */}
             <div className="flex-shrink-0">
                 <input
+                    id="check-out-header"
                     type="date"
                     value={fechaSalida}
                     onChange={(e) => onFechaSalidaChange(e.target.value)}
                     min={fechaEntrada || today}
                     className="w-28 px-2 py-1 text-xs border border-cardenal-sand rounded focus:border-cardenal-gold focus:outline-none font-sans font-bold text-cardenal-green"
+                    aria-label="Fecha de salida"
                 />
             </div>
 
@@ -61,9 +65,10 @@ export default function CompactReservationSearch({
             {/* Adults */}
             <div className="flex items-center gap-1 bg-cardenal-cream px-2 py-1 rounded border border-cardenal-sand flex-shrink-0">
                 <button
-                    onClick={() => onAdultosChange(Math.max(0, adultos - 1))}
+                    onClick={() => onAdultosChange(Math.max(1, adultos - 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                     type="button"
+                    aria-label="Disminuir número de adultos"
                 >
                     <Minus className="w-2.5 h-2.5" />
                 </button>
@@ -73,6 +78,7 @@ export default function CompactReservationSearch({
                     onClick={() => onAdultosChange(Math.min(10, adultos + 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                     type="button"
+                    aria-label="Aumentar número de adultos"
                 >
                     <Plus className="w-2.5 h-2.5" />
                 </button>
@@ -84,6 +90,7 @@ export default function CompactReservationSearch({
                     onClick={() => onNinosChange(Math.max(0, ninos - 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                     type="button"
+                    aria-label="Disminuir número de niños"
                 >
                     <Minus className="w-2.5 h-2.5" />
                 </button>
@@ -93,6 +100,7 @@ export default function CompactReservationSearch({
                     onClick={() => onNinosChange(Math.min(10, ninos + 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                     type="button"
+                    aria-label="Aumentar número de niños"
                 >
                     <Plus className="w-2.5 h-2.5" />
                 </button>

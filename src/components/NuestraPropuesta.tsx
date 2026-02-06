@@ -48,7 +48,7 @@ export const NuestraPropuesta = () => {
                 {/* Header Section */}
                 <div className="max-w-4xl mx-auto text-center mb-16">
                     <h2 className="text-3xl md:text-6xl font-bold text-cardenal-green mb-6 leading-tight font-serif drop-shadow-sm">
-                        El encanto de un hotel <span className="text-cardenal-gold italic">con alma</span>
+                        El encanto de un hotel <span className="text-cardenal-gold-dark italic">con alma</span>
                     </h2>
                     <p className="text-lg md:text-xl text-gray-600 font-medium">Historia, tradición y naturaleza en el rincón más exclusivo de Loja.</p>
                 </div>
@@ -81,7 +81,7 @@ export const NuestraPropuesta = () => {
                             {proposalContent.map((tab) => (
                                 activeTab === tab.id && (
                                     <div key={tab.id} className="animate-fadeInRight space-y-6">
-                                        <div className="inline-block px-4 py-1.5 bg-cardenal-gold/10 text-cardenal-gold text-xs font-bold uppercase tracking-widest mb-4 border-l-4 border-cardenal-gold">
+                                        <div className="inline-block px-4 py-1.5 bg-cardenal-gold/10 text-cardenal-gold-dark text-xs font-bold uppercase tracking-widest mb-4 border-l-4 border-cardenal-gold-dark">
                                             {tab.highlight}
                                         </div>
                                         <h3 className="text-3xl md:text-4xl font-bold text-cardenal-green font-serif">
@@ -93,7 +93,7 @@ export const NuestraPropuesta = () => {
                                             </p>
                                             <button
                                                 onClick={() => setIsExpanded(!isExpanded)}
-                                                className="text-cardenal-gold font-bold text-sm mt-4 hover:text-cardenal-green transition-colors uppercase tracking-widest border-b border-cardenal-gold inline-block"
+                                                className="text-cardenal-gold-dark font-bold text-sm mt-4 hover:text-cardenal-green transition-colors uppercase tracking-widest border-b border-cardenal-gold-dark inline-block"
                                             >
                                                 {isExpanded ? 'Ocultar' : 'Seguir leyendo'}
                                             </button>

@@ -150,9 +150,9 @@ export const ConfianzaCredibilidad = () => {
                 {/* COMPONENTE 1: Headline Magnético */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif leading-tight">
-                        4.7 Estrellas de Calidez: <span className="text-cardenal-gold italic">Lo que nos hace únicos en Loja</span>
+                        4.7 Estrellas de Calidez: <span className="text-cardenal-gold-dark italic">Lo que nos hace únicos en Loja</span>
                     </h2>
-                    <h3 className="text-xl md:text-2xl text-cardenal-gold font-script italic leading-relaxed">
+                    <h3 className="text-xl md:text-2xl text-cardenal-gold-dark font-script italic leading-relaxed">
                         "No somos un hotel más, somos su familia en el sur del Ecuador."
                     </h3>
                     <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
@@ -311,7 +311,7 @@ export const ConfianzaCredibilidad = () => {
                             </div>
                             <div>
                                 <p className="font-bold text-cardenal-green font-serif">{testimonios[0].autor}</p>
-                                <p className="text-xs text-cardenal-gold uppercase tracking-widest">{testimonios[0].tipo}</p>
+                                <p className="text-xs text-cardenal-gold-dark uppercase tracking-widest">{testimonios[0].tipo}</p>
                             </div>
                         </div>
                         <blockquote className="text-lg md:text-xl text-text-main leading-relaxed italic">
@@ -346,7 +346,7 @@ export const ConfianzaCredibilidad = () => {
                             </div>
                             <div>
                                 <p className="font-bold text-cardenal-green font-serif text-sm">{testimonios[1].autor}</p>
-                                <p className="text-[10px] text-cardenal-gold uppercase tracking-widest">{testimonios[1].tipo}</p>
+                                <p className="text-[10px] text-cardenal-gold-dark uppercase tracking-widest">{testimonios[1].tipo}</p>
                             </div>
                         </div>
                         <blockquote className="text-sm text-text-main leading-relaxed italic">

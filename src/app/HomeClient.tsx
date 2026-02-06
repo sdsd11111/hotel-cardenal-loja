@@ -5,13 +5,14 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { NuestraPropuesta } from "@/components/NuestraPropuesta";
-import { AmenidadesCarousel } from "@/components/AmenidadesCarousel";
-import { HabitacionesHome } from "@/components/HabitacionesHome";
-import { GaleriaPreview } from "@/components/GaleriaPreview";
-import { ConfianzaCredibilidad } from "@/components/ConfianzaCredibilidad";
-import { RestauranteHome } from "@/components/RestauranteHome";
-import { FAQ } from "@/components/FAQ";
+import dynamic from 'next/dynamic';
+const NuestraPropuesta = dynamic(() => import("@/components/NuestraPropuesta").then(m => m.NuestraPropuesta), { ssr: false });
+const AmenidadesCarousel = dynamic(() => import("@/components/AmenidadesCarousel").then(m => m.AmenidadesCarousel), { ssr: false });
+const HabitacionesHome = dynamic(() => import("@/components/HabitacionesHome").then(m => m.HabitacionesHome), { ssr: false });
+const GaleriaPreview = dynamic(() => import("@/components/GaleriaPreview").then(m => m.GaleriaPreview), { ssr: false });
+const ConfianzaCredibilidad = dynamic(() => import("@/components/ConfianzaCredibilidad").then(m => m.ConfianzaCredibilidad), { ssr: false });
+const RestauranteHome = dynamic(() => import("@/components/RestauranteHome").then(m => m.RestauranteHome), { ssr: false });
+const FAQ = dynamic(() => import("@/components/FAQ").then(m => m.FAQ), { ssr: false });
 import { headerData } from "@/types";
 import { ChevronLeft, ChevronRight, Minus, Plus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -141,8 +142,8 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                 fill
                                 className="object-cover"
                                 priority={index === 0}
-                                quality={75}
-                                sizes="100vw"
+                                quality={70}
+                                sizes="(max-width: 768px) 100vw, (max-width: 1920px) 100vw, 1920px"
                             />
                             {/* Overlay 10% Dark per user request */}
                             <div className="absolute inset-0 bg-black/10 z-10" />
@@ -168,7 +169,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                     </p>
                                     <button
                                         onClick={() => setExpanded(!expanded)}
-                                        className="hidden md:inline-block mt-3 md:mt-4 text-cardenal-gold font-bold hover:text-white transition-colors uppercase text-xs md:text-sm tracking-widest border-b border-cardenal-gold"
+                                        className="hidden md:inline-block mt-3 md:mt-4 text-cardenal-gold-dark font-bold hover:text-white transition-colors uppercase text-xs md:text-sm tracking-widest border-b border-cardenal-gold-dark"
                                     >
                                         {expanded ? 'Ocultar' : 'Seguir leyendo'}
                                     </button>
@@ -192,7 +193,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                     <button
                         onClick={goToPrevSlide}
                         className="absolute left-0 top-0 bottom-0 z-20 group w-16 md:w-20 bg-gradient-to-r from-black/30 to-transparent hover:from-black/50 transition-all duration-300"
-                        aria-label="Slide anterior"
+                        aria-label="Ver imagen anterior"
                     >
                         <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 flex items-center">
                             <div className="w-8 h-16 border-l-2 border-white/60 group-hover:border-cardenal-gold transition-all duration-300"></div>
@@ -203,7 +204,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                     <button
                         onClick={goToNextSlide}
                         className="absolute right-0 top-0 bottom-0 z-20 group w-16 md:w-20 bg-gradient-to-l from-black/30 to-transparent hover:from-black/50 transition-all duration-300"
-                        aria-label="Siguiente slide"
+                        aria-label="Ver imagen siguiente"
                     >
                         <div className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
                             <ChevronRight className="w-6 h-6 md:w-7 md:h-7 text-white/80 group-hover:text-cardenal-gold -mr-3 transition-all duration-300 group-hover:scale-125" />
@@ -235,10 +236,11 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                 <div className="flex flex-wrap items-end justify-center gap-3">
                                     {/* Check-in */}
                                     <div className="flex-shrink-0">
-                                        <label className="block text-xs font-bold text-cardenal-green mb-1 text-center font-serif tracking-widest">
+                                        <label htmlFor="check-in-home" className="block text-xs font-bold text-cardenal-green mb-1 text-center font-serif tracking-widest">
                                             ENTRADA
                                         </label>
                                         <input
+                                            id="check-in-home"
                                             type="date"
                                             value={fechaEntrada}
                                             onChange={(e) => setFechaEntrada(e.target.value)}
@@ -254,10 +256,11 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
 
                                     {/* Check-out */}
                                     <div className="flex-shrink-0">
-                                        <label className="block text-xs font-bold text-cardenal-green mb-1 text-center font-serif tracking-widest">
+                                        <label htmlFor="check-out-home" className="block text-xs font-bold text-cardenal-green mb-1 text-center font-serif tracking-widest">
                                             SALIDA
                                         </label>
                                         <input
+                                            id="check-out-home"
                                             type="date"
                                             value={fechaSalida}
                                             onChange={(e) => setFechaSalida(e.target.value)}
@@ -276,9 +279,10 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                         </label>
                                         <div className="flex items-center gap-2 bg-cardenal-cream px-3 py-2 rounded-lg border-2 border-cardenal-sand">
                                             <button
-                                                onClick={() => setAdultos(Math.max(0, adultos - 1))}
+                                                onClick={() => setAdultos(Math.max(1, adultos - 1))}
                                                 className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                                                 type="button"
+                                                aria-label="Disminuir número de adultos"
                                             >
                                                 <Minus className="w-3 h-3" />
                                             </button>
@@ -290,6 +294,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                                 onClick={() => setAdultos(Math.min(10, adultos + 1))}
                                                 className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                                                 type="button"
+                                                aria-label="Aumentar número de adultos"
                                             >
                                                 <Plus className="w-3 h-3" />
                                             </button>
@@ -306,6 +311,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                                 onClick={() => setNinos(Math.max(0, ninos - 1))}
                                                 className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                                                 type="button"
+                                                aria-label="Disminuir número de niños"
                                             >
                                                 <Minus className="w-3 h-3" />
                                             </button>
@@ -317,6 +323,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                                 onClick={() => setNinos(Math.min(10, ninos + 1))}
                                                 className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                                                 type="button"
+                                                aria-label="Aumentar número de niños"
                                             >
                                                 <Plus className="w-3 h-3" />
                                             </button>

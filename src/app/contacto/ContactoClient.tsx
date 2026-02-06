@@ -306,8 +306,8 @@ function ContactoContent() {
                         fill
                         className="object-cover"
                         priority
-                        sizes="100vw"
-                        quality={75}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                        quality={70}
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
 
@@ -554,6 +554,7 @@ function ContactoContent() {
                                                         type="button"
                                                         onClick={() => handleDecrement('adultos')}
                                                         className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center transition-colors"
+                                                        aria-label="Disminuir número de adultos"
                                                     >
                                                         <Minus className="w-4 h-4" />
                                                     </button>
@@ -562,6 +563,7 @@ function ContactoContent() {
                                                         type="button"
                                                         onClick={() => handleIncrement('adultos')}
                                                         className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center transition-colors"
+                                                        aria-label="Aumentar número de adultos"
                                                     >
                                                         <Plus className="w-4 h-4" />
                                                     </button>
@@ -578,6 +580,7 @@ function ContactoContent() {
                                                         type="button"
                                                         onClick={() => handleDecrement('ninos')}
                                                         className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center transition-colors"
+                                                        aria-label="Disminuir número de niños"
                                                     >
                                                         <Minus className="w-4 h-4" />
                                                     </button>
@@ -586,6 +589,7 @@ function ContactoContent() {
                                                         type="button"
                                                         onClick={() => handleIncrement('ninos')}
                                                         className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center transition-colors"
+                                                        aria-label="Aumentar número de niños"
                                                     >
                                                         <Plus className="w-4 h-4" />
                                                     </button>
@@ -623,10 +627,11 @@ function ContactoContent() {
                                                         { id: 'almuerzo', label: 'Almuerzo', sub: 'Opcional' },
                                                         { id: 'cena', label: 'Cena', sub: 'Opcional' }
                                                     ].map((item) => (
-                                                        <label key={item.id} className="flex items-center gap-3 p-4 bg-white border-2 border-gray-200 rounded-none cursor-pointer hover:border-cardenal-gold transition-all group">
+                                                        <label key={item.id} htmlFor={`checkbox-${item.id}`} className="flex items-center gap-3 p-4 bg-white border-2 border-gray-200 rounded-none cursor-pointer hover:border-cardenal-gold transition-all group">
                                                             <div className={`w-6 h-6 rounded-none flex items-center justify-center border-2 transition-all ${(formData as any)[item.id] ? 'bg-cardenal-gold border-cardenal-gold text-white' : 'border-gray-200 group-hover:border-cardenal-gold'}`}>
                                                                 {(formData as any)[item.id] && <CheckCircle className="w-4 h-4" />}
                                                                 <input
+                                                                    id={`checkbox-${item.id}`}
                                                                     type="checkbox"
                                                                     name={item.id}
                                                                     checked={(formData as any)[item.id]}
@@ -666,8 +671,9 @@ function ContactoContent() {
 
                                     {/* Política de Privacidad */}
                                     <div className="md:col-span-2">
-                                        <label className="flex items-start gap-3 cursor-pointer">
+                                        <label htmlFor="aceptaPrivacidad" className="flex items-start gap-3 cursor-pointer">
                                             <input
+                                                id="aceptaPrivacidad"
                                                 type="checkbox"
                                                 name="aceptaPrivacidad"
                                                 checked={formData.aceptaPrivacidad}

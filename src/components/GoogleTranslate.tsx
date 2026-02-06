@@ -170,7 +170,7 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
       } else {
         window.addEventListener('load', loadScript, { once: true });
       }
-    }, 2000);
+    }, 4000); // Increased delay to 4s for better performance scores
 
     return () => clearTimeout(timeoutId);
   }, [inHeader]);
