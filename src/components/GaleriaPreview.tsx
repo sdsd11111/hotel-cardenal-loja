@@ -5,9 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 
-// SEO Optimized Gallery Images - 9 images in 3x3 grid
+// Gallery Images
 const galeriaImagenes = [
-    // I. Habitaciones (3 Imágenes) - Row 1
     {
         id: 2,
         categoria: 'HABITACIONES',
@@ -29,7 +28,6 @@ const galeriaImagenes = [
         titulo: 'Doble Twin',
         alt: 'Doble Twin - Funcionalidad neoclásica ideal para viajeros de negocios y turismo en Loja'
     },
-    // II. Espacios y Detalles (2 Imágenes) - Part of Row 2
     {
         id: 5,
         categoria: 'ESPACIOS',
@@ -44,7 +42,6 @@ const galeriaImagenes = [
         titulo: 'Salón de la Romería',
         alt: 'Salón de la Romería - Un espacio de arte y cultura con muebles Zuleta y esencia lojana'
     },
-    // III. Restaurante y Sabores (2 Imágenes) - Row 3
     {
         id: 7,
         categoria: 'RESTAURANTE',
@@ -59,7 +56,6 @@ const galeriaImagenes = [
         titulo: 'Nuestro Comedor',
         alt: 'Nuestro Comedor - Calidez familiar y atención personalizada en cada detalle gastronómico'
     },
-    // IV. Eventos y Reuniones (1 Imagen) - Row 3
     {
         id: 9,
         categoria: 'EVENTOS',
@@ -71,8 +67,51 @@ const galeriaImagenes = [
 
 export const GaleriaPreview = () => {
     const [imagenSeleccionada, setImagenSeleccionada] = useState<number | null>(null);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [isAutoRotating, setIsAutoRotating] = useState(true);
 
-    // Navegación del lightbox
+    const [visibleItems, setVisibleItems] = useState(3);
+
+    // Resize listener to adjust visible items
+    useEffect(() => {
+        const handleResize = () => {
+            setVisibleItems(window.innerWidth < 768 ? 1 : 3);
+        };
+
+        // Initial check triggers only on client
+        handleResize();
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Duplicate images for infinite effect
+    const duplicatedImages = [...galeriaImagenes, ...galeriaImagenes, ...galeriaImagenes];
+
+    // Auto-rotation every 5 seconds
+    useEffect(() => {
+        if (!isAutoRotating) return;
+
+        const interval = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % galeriaImagenes.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [isAutoRotating]);
+
+    // Manual navigation handlers
+    const handlePrevSlide = () => {
+        setCurrentSlide((prev) => (prev - 1 + galeriaImagenes.length) % galeriaImagenes.length);
+        setIsAutoRotating(false);
+        setTimeout(() => setIsAutoRotating(true), 10000);
+    };
+
+    const handleNextSlide = () => {
+        setCurrentSlide((prev) => (prev + 1) % galeriaImagenes.length);
+        setIsAutoRotating(false);
+        setTimeout(() => setIsAutoRotating(true), 10000);
+    };
+
+    // Lightbox navigation
     const handlePrevImage = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (imagenSeleccionada !== null) {
@@ -117,7 +156,7 @@ export const GaleriaPreview = () => {
             <div className="absolute bottom-0 right-0 w-96 h-96 bg-cardenal-green/5 translate-x-1/2 translate-y-1/2"></div>
 
             <div className="container mx-auto px-4 relative z-10">
-                {/* Section Header - SEO Optimized */}
+                {/* Section Header */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <div className="inline-block mb-6">
                         <span className="text-cardenal-gold font-bold text-xs uppercase tracking-[0.3em] bg-cardenal-gold/10 px-6 py-3 font-serif">
@@ -133,50 +172,80 @@ export const GaleriaPreview = () => {
                     <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
                 </div>
 
-                {/* 3x3 Image Grid */}
-                <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                        {galeriaImagenes.map((imagen) => (
-                            <button
-                                key={imagen.id}
-                                onClick={() => setImagenSeleccionada(imagen.id)}
-                                className="group relative overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 focus:outline-none focus:ring-4 focus:ring-cardenal-gold/50"
+                {/* Infinite Carousel - Shows 1 image (mobile) or 3 images (desktop) */}
+                <div className="relative overflow-hidden max-w-6xl mx-auto mb-12">
+                    <div
+                        className="flex transition-transform duration-1000 ease-in-out"
+                        style={{
+                            transform: `translateX(-${(currentSlide * 100) / visibleItems}%)`
+                        }}
+                    >
+                        {duplicatedImages.map((imagen, index) => (
+                            <div
+                                key={`${imagen.id}-${index}`}
+                                className="flex-shrink-0 w-full md:w-1/3 px-3"
                             >
-                                <div className="relative aspect-square">
-                                    <Image
-                                        src={imagen.url}
-                                        alt={imagen.alt}
-                                        fill
-                                        loading="lazy"
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        className="object-cover transition-transform duration-1000 group-hover:scale-125"
-                                        quality={75}
-                                    />
-                                    {/* Gradient Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                                <button
+                                    onClick={() => setImagenSeleccionada(imagen.id)}
+                                    className="group relative overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 focus:outline-none focus:ring-4 focus:ring-cardenal-gold/50 w-full"
+                                >
+                                    <div className="relative aspect-square">
+                                        <Image
+                                            src={imagen.url}
+                                            alt={imagen.alt}
+                                            fill
+                                            loading="lazy"
+                                            sizes="33vw"
+                                            className="object-cover transition-transform duration-1000 group-hover:scale-125"
+                                            quality={75}
+                                        />
+                                        {/* Gradient Overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
-                                    {/* Zoom Icon */}
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-                                        <div className="bg-cardenal-green/80 backdrop-blur-md p-4 transform scale-75 group-hover:scale-100 transition-transform duration-500">
-                                            <ZoomIn className="w-8 h-8 text-white" />
+                                        {/* Zoom Icon */}
+                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+                                            <div className="bg-cardenal-green/80 backdrop-blur-md p-4 transform scale-75 group-hover:scale-100 transition-transform duration-500">
+                                                <ZoomIn className="w-8 h-8 text-white" />
+                                            </div>
+                                        </div>
+
+                                        {/* Title and Category Badge */}
+                                        <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                                            <p className="text-white font-bold text-sm md:text-base font-serif mb-1">{imagen.titulo}</p>
+                                            <span className="inline-block bg-cardenal-gold text-white font-bold text-[10px] px-3 py-1 uppercase tracking-widest">
+                                                {imagen.categoria}
+                                            </span>
                                         </div>
                                     </div>
-
-                                    {/* Title and Category Badge */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                                        <p className="text-white font-bold text-sm md:text-base font-serif mb-1">{imagen.titulo}</p>
-                                        <span className="inline-block bg-cardenal-gold text-white font-bold text-[10px] px-3 py-1 uppercase tracking-widest">
-                                            {imagen.categoria}
-                                        </span>
-                                    </div>
-                                </div>
-                            </button>
+                                </button>
+                            </div>
                         ))}
                     </div>
+
+                    {/* Navigation Arrows */}
+                    <button
+                        onClick={handlePrevSlide}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-cardenal-green/80 hover:bg-cardenal-gold text-white p-3 transition-all duration-300 shadow-xl hover:scale-110"
+                        aria-label="Anterior"
+                    >
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+
+                    <button
+                        onClick={handleNextSlide}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-cardenal-green/80 hover:bg-cardenal-gold text-white p-3 transition-all duration-300 shadow-xl hover:scale-110"
+                        aria-label="Siguiente"
+                    >
+                        <ChevronRight className="w-6 h-6" />
+                    </button>
+
+                    {/* Gradient overlays for smooth edges */}
+                    <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-cardenal-cream/50 to-transparent z-10 pointer-events-none"></div>
+                    <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-cardenal-cream/50 to-transparent z-10 pointer-events-none"></div>
                 </div>
 
                 {/* CTA Button */}
-                <div className="text-center mt-16">
+                <div className="text-center">
                     <Link
                         href="/galeria"
                         className="inline-flex items-center gap-3 bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-5 px-10 transition-all duration-500 shadow-xl font-serif tracking-widest text-sm group"

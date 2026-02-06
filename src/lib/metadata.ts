@@ -26,7 +26,7 @@ export function generatePageMetadata({
             siteName: 'Hotel El Cardenal Loja',
             images: [
                 {
-                    url: image === '/Logo.png' ? '/logo.jpg' : image,
+                    url: image === '/Logo.png' ? '/logo.png' : image,
                     width: 1200,
                     height: 630,
                     alt: title,
@@ -39,7 +39,7 @@ export function generatePageMetadata({
             card: 'summary_large_image',
             title: `${title} | Hotel El Cardenal Loja`,
             description,
-            images: [image === '/Logo.png' ? '/logo.jpg' : image],
+            images: [image === '/Logo.png' ? '/logo.png' : image],
         },
     };
 }

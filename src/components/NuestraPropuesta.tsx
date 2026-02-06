@@ -10,7 +10,7 @@ const proposalContent = [
         label: 'Historia y Tradición',
         icon: <Zap className="w-5 h-5" />,
         title: 'La Esencia de Antaño',
-        text: 'Somos un hotel familiar en Loja que conserva la esencia de antaño en un entorno privilegiado. Al cruzar nuestro zaguán coronado por el escudo familiar, te recibirá un ambiente íntimo donde la piedra volcánica del siglo XVIII y las techumbres de madera cuentan la historia de nuestra ciudad. A diferencia de los grandes hoteles, aquí ofrecemos un alojamiento auténtico.',
+        text: 'Somos un hotel familiar en Loja que conserva la esencia de antaño en un entorno privilegiado. Al cruzar nuestro zaguán coronado por el escudo familiar, te recibirá un ambiente íntimo donde la piedra volcánica del siglo XVIII y las techumbres de madera cuentan la historia de nuestra ciudad. \nA diferencia de los grandes hoteles, aquí ofrecemos un alojamiento auténtico.',
         highlight: 'Arquitectura del Siglo XVIII'
     },
     {
@@ -18,7 +18,7 @@ const proposalContent = [
         label: 'Hospitalidad Única',
         icon: <ShieldCheck className="w-5 h-5" />,
         title: 'Mucho más que un Servicio',
-        text: 'En Hotel El Cardenal, la hospitalidad no es solo un servicio, es una leyenda que compartimos con cada huésped. Si buscas dónde hospedarse en Loja rodeado de paz y vegetación, nuestra casa te espera junto a las orillas del río Malacatos. Ofrecemos solo 6 exclusivas habitaciones diseñadas para capturar el aire fresco y la luz del sol.',
+        text: 'En El Cardenal, la hospitalidad es el alma del hotel, es la leyenda que compartimos con cada huésped. Si buscas dónde hospedarse en Loja rodeado de paz y naturaleza, nuestro hotel te espera a orillas del río Malacatos con aire fresco y la luz del sol.',
         highlight: 'Trato Humano y Cercano'
     },
     {
@@ -26,7 +26,7 @@ const proposalContent = [
         label: 'Entorno y Cultura',
         icon: <MapPin className="w-5 h-5" />,
         title: 'Equilibrio Perfecto',
-        text: 'Nuestra ubicación es estratégica: estamos a solo 10 minutos de la Iglesia Catedral y el centro histórico, pero lo suficientemente cerca de la naturaleza para disfrutar del sonido del río. En nuestro salón neoclásico, rodeado de piezas de arte como el cuadro de la "Romería de El Cisne" y muebles Zuleta, descubrirás el descanso que valoras.',
+        text: 'Nuestra ubicación es estratégica: estamos a solo 10 minutos de la Iglesia Catedral y el centro histórico, pero lo suficientemente cerca de la naturaleza como para disfrutar del sonido del río Malacatos. En nuestro salón neoclásico, rodeado de piezas de arte como la pintura de la "Romería de El Cisne" y muebles Zuleta, descubrirás el descanso que valoras.',
         highlight: 'Cerca de lo que amas'
     }
 ];
@@ -57,7 +57,7 @@ export const NuestraPropuesta = () => {
                     {/* Left Column: Interactive Tabs */}
                     <div className="lg:col-span-6 space-y-8 order-2 lg:order-1">
                         {/* Tabs Navigation */}
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex flex-wrap md:flex-nowrap gap-4">
                             {proposalContent.map((tab) => (
                                 <button
                                     key={tab.id}

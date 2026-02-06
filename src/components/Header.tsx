@@ -46,10 +46,14 @@ const habitacionesItems = [
 
 // Servicios dropdown items 
 const serviciosItems = [
-  { label: 'Experiencias', href: '/servicios', description: 'Descubre nuestros servicios exclusivos' },
   { label: 'Restaurante', href: '/restaurante', description: 'Sabores lojanos auténticos' },
-  { label: 'Galería de Momentos', href: '/galeria', description: 'Explore nuestras instalaciones' },
   { label: 'Eventos y Reuniones', href: '/eventos', description: 'Espacios para su celebración' },
+];
+
+// Guia dropdown items
+const guiaItems = [
+  { label: 'Experiencias', href: '/servicios', description: 'Descubre nuestros servicios exclusivos' },
+  { label: 'Galería de Momentos', href: '/galeria', description: 'Explore nuestras instalaciones' },
   { label: 'Turismo en Loja', href: '/turismo-en-loja', description: 'Guía de lugares mágicos' },
 ];
 
@@ -142,9 +146,10 @@ export const Header = ({
   // Color logic for transparent state
 
   // Color logic for transparent state
-  const textColor = forceDarkText ? "text-cardenal-green" : "text-white";
-  const textShadow = forceDarkText ? "none" : "0 2px 4px rgba(0,0,0,0.8)";
-  const iconShadow = forceDarkText ? "none" : "drop-shadow(0 2px 4px rgba(0,0,0,0.8))";
+  const isActuallyDark = themeClass?.includes('text-white') || (forceDarkText === false && !isScrolled);
+  const textColor = isActuallyDark ? "text-white" : "text-cardenal-brown";
+  const textShadow = isActuallyDark ? "0 2px 4px rgba(0,0,0,0.5)" : "none";
+  const iconShadow = isActuallyDark ? "drop-shadow(0 2px 4px rgba(0,0,0,0.5))" : "none";
 
   return (
     <>
@@ -223,508 +228,315 @@ export const Header = ({
               </div>
             </div>
 
-            {/* Transparent Header - Fixed during hero scroll */}
-            <header className={cn("w-full fixed top-10 z-50 backdrop-blur-[2px] bg-black/5", className)}>
+            <header className={cn("w-full fixed top-10 z-50 bg-transparent transition-all duration-300", className)}>
               <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center h-20">
-                  <div className="flex items-center flex-shrink-0">
-                    <Link href="/" className="flex items-center gap-2">
+                <div className="flex justify-between items-center h-20 relative px-4">
+                  {/* Left Side Group: Logo + Title (on desktop) */}
+                  <div className="contents md:flex md:items-center md:gap-6 z-20">
+                    <Link href="/" className="flex items-center flex-shrink-0">
                       <div className={cn(
-                        "p-1 transition-all duration-300 bg-transparent shadow-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                        "p-2 md:p-3 transition-all duration-300 scale-110 md:scale-125 filter rounded-full flex-shrink-0",
+                        "bg-[radial-gradient(circle,_rgba(255,255,255,0.3)_0%,_transparent_70%)]",
+                        "drop-shadow-[0_0_2px_rgba(255,255,255,1)]",
+                        "drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]"
                       )}>
                         <Image
-                          src={logo || "/logo.jpg"}
+                          src={logo || "/logo.png"}
                           alt="Hotel El Cardenal Loja Logo"
-                          width={themeClass ? 55 : 40}
-                          height={themeClass ? 55 : 40}
+                          width={themeClass ? 80 : 65}
+                          height={themeClass ? 80 : 65}
                           className="object-contain"
                         />
                       </div>
-                      <span className={cn(
-                        "text-2xl font-black tracking-tight drop-shadow-lg font-serif",
-                        themeClass ? "tracking-[0.05em] scale-105" : "",
-                        textColor
-                      )}>
-                        Hotel El Cardenal
-                      </span>
                     </Link>
+
+                    {/* Title: Absolutely Centered on Mobile, Next to Logo on Desktop */}
+                    <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start pointer-events-none z-10 w-full md:w-auto">
+                      <Link href="/" className="pointer-events-auto">
+                        <span className={cn(
+                          "text-xl md:text-3xl lg:text-5xl font-black tracking-tight drop-shadow-xl font-serif whitespace-nowrap",
+                          "text-center md:text-left",
+                          themeClass ? "tracking-[0.05em] scale-105" : "",
+                          textColor
+                        )}>
+                          Hotel El Cardenal
+                        </span>
+                      </Link>
+                    </div>
                   </div>
 
-                  {/* Right Side - Desktop Navigation + Reserva + Language */}
-                  <div className="flex items-center gap-4">
-                    {/* Desktop Navigation Links */}
-                    <nav className="hidden lg:flex items-center gap-1">
-                      {/* Inicio - Only show if NOT on homepage */}
-                      {pathname !== '/' && (
-                        <Link
-                          href="/"
-                          className={cn("px-4 py-2 text-xs font-black hover:text-cardenal-gold transition-colors uppercase tracking-widest font-serif", textColor)}
-                          style={{ textShadow }}
-                        >
-                          Inicio
-                        </Link>
-                      )}
-
-                      {/* Sobre Nosotros */}
-                      <Link
-                        href="/sobre-hotel-cardenal"
-                        className={cn(
-                          "px-4 py-2 text-xs font-black hover:text-cardenal-gold transition-colors uppercase font-serif",
-                          themeClass ? "tracking-[0.2em]" : "tracking-widest",
-                          textColor,
-                          pathname === '/sobre-hotel-cardenal' && "text-cardenal-gold"
-                        )}
-                        style={{ textShadow }}
-                      >
-                        Sobre Nosotros
-                      </Link>
-
-                      {/* Habitaciones with Dropdown */}
-                      <div className="relative group">
-                        <div className="flex items-center">
-                          <Link
-                            href="/habitaciones"
-                            className={cn(
-                              "px-4 py-2 text-xs font-black hover:text-cardenal-gold transition-colors uppercase font-serif",
-                              themeClass ? "tracking-[0.2em]" : "tracking-widest",
-                              textColor,
-                              pathname?.startsWith('/habitaciones') && "text-cardenal-gold"
-                            )}
-                            style={{ textShadow }}
-                          >
-                            Habitaciones
-                          </Link>
-                          <ChevronDown className={cn("h-3 w-3 group-hover:text-cardenal-gold transition-colors", textColor)} style={{ filter: iconShadow }} />
-                        </div>
-
-                        {/* Habitaciones Dropdown */}
-                        <div className="absolute top-full left-0 mt-2 w-56 bg-white shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[70] border-t-4 border-cardenal-gold">
-                          <div className="py-2">
-                            {habitacionesItems.map((item) => (
-                              <Link
-                                key={item.href}
-                                href={item.href}
-                                className="block px-5 py-3 text-sm text-cardenal-green hover:bg-cardenal-cream hover:text-cardenal-gold font-serif font-bold transition-colors border-l-4 border-transparent hover:border-cardenal-gold"
-                              >
-                                {item.label}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Servicios with Dropdown */}
-                      <div className="relative group">
-                        <button
-                          className={cn("flex items-center px-4 py-2 text-xs font-black hover:text-cardenal-gold transition-colors uppercase tracking-widest font-serif", textColor)}
-                          style={{ textShadow }}
-                        >
-                          Servicios
-                          <ChevronDown className={cn("h-3 w-3 ml-1 group-hover:text-cardenal-gold transition-colors", textColor)} style={{ filter: iconShadow }} />
-                        </button>
-
-                        {/* Servicios Dropdown */}
-                        <div className="absolute top-full left-0 mt-2 w-72 bg-white shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[70] border-t-4 border-cardenal-gold">
-                          <div className="py-2">
-                            {serviciosItems.map((item) => (
-                              <Link
-                                key={item.href}
-                                href={item.href}
-                                className="block px-5 py-4 hover:bg-cardenal-cream transition-colors border-l-4 border-transparent hover:border-cardenal-gold group/item"
-                              >
-                                <span className="block text-sm text-cardenal-green font-serif font-bold group-hover/item:text-cardenal-gold transition-colors">
-                                  {item.label}
-                                </span>
-                                <span className="block text-xs text-text-muted mt-1">
-                                  {item.description}
-                                </span>
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Blog */}
-                      <Link
-                        href="/blog"
-                        className={cn(
-                          "px-4 py-2 text-xs font-black hover:text-cardenal-gold transition-colors uppercase font-serif",
-                          themeClass ? "tracking-[0.2em]" : "tracking-widest",
-                          textColor,
-                          pathname === '/blog' && "text-cardenal-gold"
-                        )}
-                        style={{ textShadow }}
-                      >
-                        Blog
-                      </Link>
-                    </nav>
-
-                    {/* Reserva Button */}
-                    <Link
-                      href="/contacto"
-                      className="hidden md:inline-flex bg-cardenal-gold hover:bg-white text-white hover:text-cardenal-green font-bold py-2 px-6 transition-all duration-300 text-xs uppercase tracking-widest font-serif shadow-lg"
-                    >
-                      Reserva
-                    </Link>
-
+                  {/* Right Side: Hamburger + Language */}
+                  <div className="flex items-center gap-4 md:gap-8 z-20">
                     {/* Language Selector */}
                     <div className={cn("hidden md:flex items-center gap-1", textColor)}>
-                      <Globe className="h-4 w-4" />
-                      <GoogleTranslate inHeader={true} />
+                      <Globe className="h-5 w-5" />
+                      <GoogleTranslate inHeader={true} textColor={textColor} />
                     </div>
 
-                    {/* Mobile Menu Button */}
                     <button
-                      onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                      className={cn("lg:hidden p-2 hover:text-cardenal-gold transition-colors", textColor)}
-                      aria-label="Toggle menu"
+                      onClick={() => setMobileMenuOpen(true)}
+                      className={cn("p-2 hover:text-cardenal-gold transition-colors flex items-center group", textColor)}
+                      aria-label="Abrir menú"
                     >
-                      {mobileMenuOpen ? (
-                        <X className="h-6 w-6" />
-                      ) : (
-                        <Menu className="h-6 w-6" />
-                      )}
+                      <Menu className="h-8 w-8 md:h-10 md:w-10" strokeWidth={1.5} />
                     </button>
                   </div>
-
-                  {/* Hamburger Menu Dropdown */}
-                  {mobileMenuOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-72 bg-white shadow-xl border border-gray-200 overflow-hidden">
-                      <nav className="px-3 py-3 max-h-[80vh] overflow-y-auto">
-                        <div className="space-y-4">
-                          {/* Inicio */}
-                          <Link
-                            href="/"
-                            className={cn(
-                              "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
-                              pathname === '/' && "text-cardenal-gold"
-                            )}
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Inicio
-                          </Link>
-
-                          {/* Sobre Nosotros */}
-                          <Link
-                            href="/sobre-hotel-cardenal"
-                            className={cn(
-                              "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
-                              pathname === '/sobre-hotel-cardenal' && "text-cardenal-gold"
-                            )}
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Sobre Nosotros
-                          </Link>
-
-                          {/* Habitaciones Accordion - Split Link and Toggle */}
-                          <div>
-                            <div className="flex items-center justify-between w-full">
-                              <Link
-                                href="/habitaciones"
-                                className="text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide flex-grow"
-                                onClick={() => setMobileMenuOpen(false)}
-                              >
-                                Habitaciones
-                              </Link>
-                              <button
-                                onClick={() => toggleCategory('mobile-habitaciones')}
-                                className="p-2 text-cardenal-green hover:text-cardenal-gold"
-                              >
-                                {openCategories['mobile-habitaciones'] ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )}
-                              </button>
-                            </div>
-                            {openCategories['mobile-habitaciones'] && (
-                              <div className="pl-4 mt-2 space-y-2 border-l-2 border-cardenal-gold/20 ml-1">
-                                {habitacionesItems.map((item) => (
-                                  <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="block text-gray-600 hover:text-cardenal-gold text-xs font-serif font-bold py-1"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                  >
-                                    {item.label}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Servicios Accordion */}
-                          <div>
-                            <button
-                              onClick={() => toggleCategory('mobile-servicios')}
-                              className="w-full flex items-center justify-between text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide"
-                            >
-                              Servicios
-                              {openCategories['mobile-servicios'] ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </button>
-                            {openCategories['mobile-servicios'] && (
-                              <div className="pl-4 mt-2 space-y-2 border-l-2 border-cardenal-gold/20 ml-1">
-                                {serviciosItems.map((item) => (
-                                  <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="block py-1 group"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                  >
-                                    <span className="block text-gray-600 group-hover:text-cardenal-gold text-xs font-serif font-bold">
-                                      {item.label}
-                                    </span>
-                                    {item.description && (
-                                      <span className="block text-[10px] text-gray-400">
-                                        {item.description}
-                                      </span>
-                                    )}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Blog */}
-                          <Link
-                            href="/blog"
-                            className={cn(
-                              "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
-                              pathname === '/blog' && "text-cardenal-gold"
-                            )}
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Blog
-                          </Link>
-
-                          {/* Reserva Button (Highlighted) */}
-                          <Link
-                            href="/contacto"
-                            className={cn(
-                              "block text-center border-2 border-cardenal-gold text-cardenal-gold hover:bg-cardenal-gold hover:text-white font-bold transition-all duration-300 text-sm uppercase tracking-widest py-2",
-                              pathname === '/contacto' && "bg-cardenal-gold text-white"
-                            )}
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Reserva
-                          </Link>
-                        </div>
-
-                        {/* Mobile Language Selector */}
-                        <div className="mt-6 pt-4 border-t border-gray-100">
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Globe className="h-4 w-4" />
-                            <GoogleTranslate inHeader={true} />
-                          </div>
-                        </div>
-                      </nav>
-                    </div>
-                  )}
                 </div>
               </div>
             </header>
           </>
         )}
 
-        {/* White Solid Header - Shows when scrolled */}
-        {isScrolled && !disableSticky && (
-          <header className={cn("w-full fixed top-0 z-50 shadow-md transition-colors duration-300", themeClass ? "bg-cardenal-green text-white" : "bg-white")}>
-            <div className="container mx-auto px-4">
-              <div className="flex justify-between items-center h-20 gap-4">
-                {/* Logo - Left */}
-                <div className="flex items-center flex-shrink-0">
-                  <Link href="/" className="flex items-center gap-2">
-                    <Image
-                      src={logo || "/logo.jpg"}
-                      alt="Hotel El Cardenal Loja Logo"
-                      width={60}
-                      height={60}
-                      className="object-contain"
-                    />
-                    <span className={cn("hidden md:block text-xl font-black tracking-tight font-serif", themeClass ? "text-white" : "text-cardenal-green")}>
-                      Hotel El Cardenal
-                    </span>
-                  </Link>
+        {/* Global Right-Side Drawer Overlay */}
+        {
+          mobileMenuOpen && (
+            <div className="fixed inset-0 z-[100] flex justify-end">
+              {/* Black Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+
+              {/* Drawer Content */}
+              <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col transition-transform duration-300 transform translate-x-0">
+                <div className="p-6 flex items-center justify-end border-b border-gray-100">
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 text-cardenal-brown hover:text-cardenal-gold transition-colors"
+                  >
+                    <X className="h-8 w-8" />
+                  </button>
                 </div>
 
-                {/* Center - Compact Reservation Search (if enabled) */}
-                {showReservationSearch && effectiveReservationProps && (
-                  <div className="hidden lg:flex flex-1 justify-center">
-                    <CompactReservationSearch {...effectiveReservationProps} />
-                  </div>
-                )}
+                <nav className="flex-1 overflow-y-auto p-8">
+                  <div className="space-y-8">
+                    {/* Primary Links */}
+                    <div className="space-y-4">
+                      <Link
+                        href="/"
+                        className={cn(
+                          "block text-2xl text-cardenal-brown hover:text-cardenal-gold font-serif font-bold transition-colors uppercase tracking-widest",
+                          pathname === '/' && "text-cardenal-gold"
+                        )}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Inicio
+                      </Link>
 
-                {/* Right Side - Hamburger Menu Only */}
-                <div className="flex items-center gap-3">
-                  {/* Mobile Reservation Button */}
-                  <Link
-                    href="/contacto?motivo=Reserva+de+Habitación#formulario-contacto"
-                    className={cn("md:hidden text-white text-xs font-bold py-2 px-4 shadow-md transition-colors uppercase tracking-wider", themeClass ? "bg-cardenal-gold" : "bg-cardenal-green hover:bg-cardenal-gold")}
-                  >
-                    Reserva
-                  </Link>
+                      <Link
+                        href="/sobre-hotel-cardenal"
+                        className={cn(
+                          "block text-2xl text-cardenal-brown hover:text-cardenal-gold font-serif font-bold transition-colors uppercase tracking-widest",
+                          pathname === '/sobre-hotel-cardenal' && "text-cardenal-gold"
+                        )}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Sobre Nosotros
+                      </Link>
+                    </div>
 
-                  <div className="relative">
-                    <button
-                      onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                      className={cn("p-4 transition-colors", themeClass ? "text-white" : "text-cardenal-green hover:text-cardenal-gold")}
-                      aria-label="Toggle menu"
-                    >
-                      {mobileMenuOpen ? (
-                        <X className="h-12 w-12" strokeWidth={2.5} />
-                      ) : (
-                        <Menu className="h-12 w-12" strokeWidth={2.5} />
-                      )}
-                    </button>
+                    <hr className="border-gray-100" />
 
-                    {/* Hamburger Menu Dropdown - All Navigation */}
-                    {mobileMenuOpen && (
-                      <div className="absolute top-full right-0 mt-2 w-72 bg-white shadow-xl border border-gray-200 z-[80] overflow-hidden">
-                        <nav className="px-4 py-4 max-h-[80vh] overflow-y-auto">
-                          <div className="space-y-4">
-                            {/* Inicio */}
-                            <Link
-                              href="/"
-                              className={cn(
-                                "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
-                                pathname === '/' && "text-cardenal-gold"
-                              )}
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              Inicio
-                            </Link>
-
-                            {/* Sobre Nosotros */}
-                            <Link
-                              href="/sobre-hotel-cardenal"
-                              className={cn(
-                                "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
-                                pathname === '/sobre-hotel-cardenal' && "text-cardenal-gold"
-                              )}
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              Sobre Nosotros
-                            </Link>
-
-                            {/* Habitaciones Accordion - Split Link and Toggle */}
-                            <div>
-                              <div className="flex items-center justify-between w-full">
-                                <Link
-                                  href="/habitaciones"
-                                  className="text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide flex-grow"
-                                  onClick={() => setMobileMenuOpen(false)}
-                                >
-                                  Habitaciones
-                                </Link>
-                                <button
-                                  onClick={() => toggleCategory('mobile-habitaciones')}
-                                  className="p-2 text-cardenal-green hover:text-cardenal-gold"
-                                >
-                                  {openCategories['mobile-habitaciones'] ? (
-                                    <ChevronUp className="h-4 w-4" />
-                                  ) : (
-                                    <ChevronDown className="h-4 w-4" />
-                                  )}
-                                </button>
-                              </div>
-                              {openCategories['mobile-habitaciones'] && (
-                                <div className="pl-4 mt-2 space-y-2 border-l-2 border-cardenal-gold/20 ml-1">
-                                  {habitacionesItems.map((item) => (
-                                    <Link
-                                      key={item.href}
-                                      href={item.href}
-                                      className="block text-gray-600 hover:text-cardenal-gold text-xs font-serif font-bold py-1"
-                                      onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                      {item.label}
-                                    </Link>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Servicios Accordion (Mobile) */}
-                            <div>
-                              <button
-                                onClick={() => toggleCategory('mobile-servicios')}
-                                className="w-full flex items-center justify-between text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide"
+                    {/* Dropdowns / Sections */}
+                    <div className="space-y-6">
+                      {/* Habitaciones Accordion */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Link
+                            href="/habitaciones"
+                            className={cn(
+                              "text-lg text-cardenal-brown hover:text-cardenal-gold font-bold transition-colors uppercase tracking-widest",
+                              pathname === '/habitaciones' && "text-cardenal-gold"
+                            )}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Habitaciones
+                          </Link>
+                          <button
+                            onClick={() => toggleCategory('drawer-habitaciones')}
+                            className="p-2 text-cardenal-brown hover:text-cardenal-gold transition-colors"
+                          >
+                            {openCategories['drawer-habitaciones'] ? (
+                              <ChevronUp className="h-5 w-5" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5" />
+                            )}
+                          </button>
+                        </div>
+                        {openCategories['drawer-habitaciones'] && (
+                          <div className="pl-4 space-y-3 border-l-2 border-cardenal-gold/30 ml-1">
+                            {habitacionesItems.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block text-gray-600 hover:text-cardenal-gold text-base font-serif py-1"
+                                onClick={() => setMobileMenuOpen(false)}
                               >
-                                Servicios
-                                {openCategories['mobile-servicios'] ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )}
-                              </button>
-                              {openCategories['mobile-servicios'] && (
-                                <div className="pl-4 mt-2 space-y-2 border-l-2 border-cardenal-gold/20 ml-1">
-                                  {serviciosItems.map((item) => (
-                                    <Link
-                                      key={item.href}
-                                      href={item.href}
-                                      className="block py-1 group"
-                                      onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                      <span className="block text-gray-600 group-hover:text-cardenal-gold text-xs font-serif font-bold">
-                                        {item.label}
-                                      </span>
-                                      {item.description && (
-                                        <span className="block text-[10px] text-gray-400">
-                                          {item.description}
-                                        </span>
-                                      )}
-                                    </Link>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Blog */}
-                            <Link
-                              href="/blog"
-                              className={cn(
-                                "block text-cardenal-green hover:text-cardenal-gold font-bold transition-colors text-sm uppercase tracking-wide",
-                                pathname === '/blog' && "text-cardenal-gold"
-                              )}
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              Blog
-                            </Link>
-
-                            {/* Reserva Button (Highlighted) */}
-                            <Link
-                              href="/contacto"
-                              className={cn(
-                                "block text-center border-2 border-cardenal-gold text-cardenal-gold hover:bg-cardenal-gold hover:text-white font-bold transition-all duration-300 text-sm uppercase tracking-widest py-2",
-                                pathname === '/contacto' && "bg-cardenal-gold text-white"
-                              )}
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              Reserva
-                            </Link>
+                                {item.label}
+                              </Link>
+                            ))}
                           </div>
-
-                          {/* Mobile Language Selector */}
-                          <div className="mt-6 pt-4 border-t border-gray-100">
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <Globe className="h-4 w-4" />
-                              <GoogleTranslate inHeader={true} />
-                            </div>
-                          </div>
-                        </nav>
+                        )}
                       </div>
-                    )}
+
+                      {/* Guia Accordion (NEW) */}
+                      <div className="space-y-4">
+                        <button
+                          onClick={() => toggleCategory('drawer-guia')}
+                          className="w-full flex items-center justify-between text-lg text-cardenal-brown hover:text-cardenal-gold font-bold transition-colors uppercase tracking-widest"
+                        >
+                          Guia
+                          {openCategories['drawer-guia'] ? (
+                            <ChevronUp className="h-5 w-5" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5" />
+                          )}
+                        </button>
+                        {openCategories['drawer-guia'] && (
+                          <div className="pl-4 space-y-3 border-l-2 border-cardenal-gold/30 ml-1">
+                            {guiaItems.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block text-gray-600 hover:text-cardenal-gold text-base font-serif py-1"
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Servicios Accordion */}
+                      <div className="space-y-4">
+                        <button
+                          onClick={() => toggleCategory('drawer-servicios')}
+                          className="w-full flex items-center justify-between text-lg text-cardenal-brown hover:text-cardenal-gold font-bold transition-colors uppercase tracking-widest"
+                        >
+                          Servicios
+                          {openCategories['drawer-servicios'] ? (
+                            <ChevronUp className="h-5 w-5" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5" />
+                          )}
+                        </button>
+                        {openCategories['drawer-servicios'] && (
+                          <div className="pl-4 space-y-3 border-l-2 border-cardenal-gold/30 ml-1">
+                            {serviciosItems.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block text-gray-600 hover:text-cardenal-gold text-base font-serif py-1"
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <hr className="border-gray-100" />
+
+                    {/* Secondary Links */}
+                    <div className="space-y-4">
+                      <Link
+                        href="/blog"
+                        className={cn(
+                          "block text-lg text-cardenal-brown hover:text-cardenal-gold font-bold transition-colors uppercase tracking-widest",
+                          pathname === '/blog' && "text-cardenal-gold"
+                        )}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Blog
+                      </Link>
+                      <Link
+                        href="/contacto"
+                        className={cn(
+                          "block text-lg text-cardenal-brown hover:text-cardenal-gold font-bold transition-colors uppercase tracking-widest",
+                          pathname === '/contacto' && "text-cardenal-gold"
+                        )}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Contacto
+                      </Link>
+                    </div>
                   </div>
+                </nav>
+
+                {/* Drawer Footer */}
+                <div className="p-8 bg-cardenal-green text-white">
+                  <Link
+                    href="/habitaciones"
+                    className="block w-full text-center bg-cardenal-gold py-4 text-sm font-bold uppercase tracking-widest font-serif"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Reserva Ahora
+                  </Link>
                 </div>
               </div>
             </div>
-          </header>
-        )}
-      </div>
+          )
+        }
+
+        {/* White Solid Header - Shows when scrolled */}
+        {
+          isScrolled && !disableSticky && (
+            <header className={cn("w-full fixed top-0 z-50 shadow-md transition-colors duration-300", themeClass ? "bg-cardenal-green text-white" : "bg-white")}>
+              <div className="container mx-auto px-4">
+                <div className="flex justify-between items-center h-20 relative px-4">
+                  {/* Left Side Group: Logo + Title (on desktop) */}
+                  <div className="contents md:flex md:items-center md:gap-4 z-20">
+                    <Link href="/" className="flex items-center flex-shrink-0">
+                      <Image
+                        src={logo || "/logo.png"}
+                        alt="Hotel El Cardenal Loja Logo"
+                        width={65}
+                        height={65}
+                        className="object-contain flex-shrink-0"
+                      />
+                    </Link>
+
+                    {/* Title: Absolutely Centered on Mobile, Next to Logo on Desktop */}
+                    <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start pointer-events-none z-10 w-full md:w-auto">
+                      <Link href="/" className="pointer-events-auto">
+                        <span className={cn(
+                          "text-xl md:text-2xl font-black tracking-tight font-serif whitespace-nowrap",
+                          "text-center md:text-left",
+                          themeClass ? "text-white" : "text-cardenal-brown"
+                        )}>
+                          Hotel El Cardenal
+                        </span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Center - Compact Reservation Search (Desktop Only) */}
+                  {showReservationSearch && effectiveReservationProps && (
+                    <div className="hidden lg:flex flex-1 justify-center px-4">
+                      <CompactReservationSearch {...effectiveReservationProps} />
+                    </div>
+                  )}
+
+                  {/* Right Side - Hamburger Menu Only */}
+                  <div className="flex items-center gap-3 z-20">
+                    {/* Global Menu Button (Hamburger) */}
+                    <button
+                      onClick={() => setMobileMenuOpen(true)}
+                      className={cn("p-4 transition-colors", themeClass ? "text-white" : "text-cardenal-brown hover:text-cardenal-gold")}
+                      aria-label="Abrir menú"
+                    >
+                      <Menu className="h-10 w-10" strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </header>
+          )
+        }
+      </div >
     </>
   );
 };

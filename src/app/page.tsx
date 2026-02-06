@@ -75,7 +75,7 @@ export default function HomePage() {
             "@context": "https://schema.org",
             "@type": "Hotel",
             "name": "Hotel El Cardenal Loja",
-            "image": "https://hotelelcardenalloja.com/logo.jpg",
+            "image": "https://hotelelcardenalloja.com/logo.png",
             "@id": "https://hotelelcardenalloja.com",
             "url": "https://hotelelcardenalloja.com",
             "telephone": "+593996616878",

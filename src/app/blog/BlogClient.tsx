@@ -67,7 +67,7 @@ export default function BlogClient({ initialArticles, initialCategory = 'Todas' 
             <section className="relative h-screen w-full flex items-center justify-center overflow-hidden p-0 m-0">
                 {/* Background Image */}
                 <Image
-                    src="/images/contacto/blog-hero.webp"
+                    src="/images/contacto/blog-hero.webp?v=2"
                     alt="Blog y Novedades de Loja - Hotel El Cardenal"
                     fill
                     className="object-cover"

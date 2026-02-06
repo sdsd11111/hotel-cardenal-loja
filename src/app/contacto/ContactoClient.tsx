@@ -19,8 +19,17 @@ import {
     Users,
     Bed,
     Plus,
-    Minus
+    Minus,
+    ArrowRight as ArrowRightIcon
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const Map = dynamic(() => import('@/components/Map'), {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-cardenal-cream animate-pulse flex items-center justify-center font-serif text-cardenal-green">Cargando mapa...</div>
+});
+
+const GOOGLE_MAPS_EXTERNAL = 'https://maps.app.goo.gl/K3wFHBL5ouhw9ivE6';
 
 // Links de navegación a servicios
 const serviciosLinks = [
@@ -300,7 +309,7 @@ function ContactoContent() {
                         sizes="100vw"
                         quality={75}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
 
                     <div className="relative z-10 container mx-auto px-4 text-center text-white">
                         <h1 className="text-4xl md:text-6xl font-bold mb-4">
@@ -703,43 +712,56 @@ function ContactoContent() {
                 </section>
 
                 {/* Map Section */}
-                <section className="py-16 bg-gray-50">
-                    <div className="container mx-auto px-4">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                Nuestra Ubicación
+                <section className="py-24 bg-white relative overflow-hidden">
+                    {/* Background decorative elements */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-cardenal-green/5 -translate-y-1/2 translate-x-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-cardenal-gold/5 translate-y-1/2 -translate-x-1/2"></div>
+
+                    <div className="container mx-auto px-4 relative z-10">
+                        <div className="text-center mb-12 max-w-4xl mx-auto">
+                            <div className="inline-flex items-center gap-2 mb-6">
+                                <MapPin className="w-6 h-6 text-cardenal-gold" />
+                                <span className="text-cardenal-gold font-bold text-xs uppercase tracking-[0.3em] font-serif">
+                                    Nuestra Ubicación
+                                </span>
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green font-serif leading-tight">
+                                Encuéntrenos en el <span className="text-cardenal-gold italic">Corazón de Loja</span>
                             </h2>
-                            <p className="text-lg text-gray-600">
-                                Encuéntrenos en el corazón de Loja
-                            </p>
+                        </div>
+                    </div>
+
+                    {/* Leaflet Map - Full Width Section */}
+                    <div className="w-full mb-12 relative shadow-2xl">
+                        <div className="w-full aspect-[16/9] md:aspect-[32/9] relative overflow-hidden grayscale-[50%] hover:grayscale-0 transition-all duration-700">
+                            <Map />
+                            {/* Overlay Gradient for integration */}
+                            <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_50px_rgba(0,0,0,0.1)] z-10"></div>
                         </div>
 
-                        <div className="max-w-5xl mx-auto">
-                            <div className="relative bg-cardenal-cream p-2 shadow-xl">
-                                <div className="aspect-[16/9] md:aspect-[21/9] relative overflow-hidden">
-                                    <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3985.1234567890123!2d-79.2123456!3d-4.0012345!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91cb378ae364a807%3A0x114d0a002380a815!2sHotel%20Cardenal!5e0!3m2!1ses!2sec!4v1234567890123"
-                                        width="100%"
-                                        height="100%"
-                                        style={{ border: 0 }}
-                                        allowFullScreen
-                                        loading="lazy"
-                                        referrerPolicy="no-referrer-when-downgrade"
-                                        title="Ubicación Hotel El Cardenal Loja"
-                                        className="absolute inset-0 w-full h-full"
-                                    ></iframe>
+                        {/* Info Bar Strip */}
+                        <div className="bg-cardenal-cream border-t border-cardenal-gold/30">
+                            <div className="container mx-auto px-4">
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 py-6 max-w-5xl mx-auto">
+                                    <div className="flex items-center gap-4 text-center md:text-left">
+                                        <div className="bg-white p-3 rounded-full shadow-md">
+                                            <MapPin className="w-6 h-6 text-cardenal-gold" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-lg text-cardenal-green font-serif">Hotel El Cardenal</p>
+                                            <p className="text-sm text-text-muted">Gladiolos 154-42 y Av. 18 de Noviembre, Loja, Ecuador</p>
+                                        </div>
+                                    </div>
+                                    <a
+                                        href={GOOGLE_MAPS_EXTERNAL}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-3 px-8 transition-all duration-500 text-sm font-serif tracking-widest shadow-lg hover:-translate-y-1"
+                                    >
+                                        CÓMO LLEGAR
+                                        <ArrowRightIcon className="w-4 h-4" />
+                                    </a>
                                 </div>
-                            </div>
-                            <div className="text-center mt-6">
-                                <a
-                                    href="https://maps.app.goo.gl/wKxH8UvFp7VvFm7S8"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 text-cardenal-gold hover:text-cardenal-gold-dark font-bold transition-colors uppercase tracking-widest text-sm"
-                                >
-                                    <MapPin className="w-5 h-5" />
-                                    Ver ubicación exacta en Google Maps
-                                </a>
                             </div>
                         </div>
                     </div>

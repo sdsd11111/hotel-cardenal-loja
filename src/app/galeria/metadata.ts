@@ -10,7 +10,7 @@ export const metadata: Metadata = {
         siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/logo.jpg',
+                url: '/logo.png',
                 width: 1200,
                 height: 630,
                 alt: 'Galería Hotel El Cardenal Loja',
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Galería | Hotel El Cardenal Loja',
-        description: 'Explore nuestra galería de imágenes. Descubra las habitaciones, restaurante, spa y eventos.',
-        images: ['/logo.jpg'],
+        title: 'Galería de Fotos | Hotel El Cardenal Loja',
+        description: 'Explore nuestras instalaciones: habitaciones, restaurante y áreas sociales.',
+        images: ['/logo.png'],
     },
 };

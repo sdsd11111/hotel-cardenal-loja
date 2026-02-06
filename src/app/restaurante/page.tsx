@@ -7,6 +7,7 @@ import { headerData } from '@/types';
 import HeroPlatos from '@/components/HeroPlatos';
 import { Coffee, Utensils, Clock, MapPin, ChevronRight, Image as ImageIcon, Phone, Mail, Sun, Info, Users, Heart, CheckCircle, Wifi, Car, Home } from 'lucide-react';
 import { EventForm } from '@/components/EventForm';
+import { ImageLightbox } from '@/components/ImageLightbox';
 
 export const metadata: Metadata = {
     title: 'Restaurante y Desayuno Tradicional en Loja | Hotel El Cardenal',
@@ -204,6 +205,29 @@ export default function RestaurantePage() {
                                 <h4 className="font-bold text-xl text-gray-900 mb-3">Vistas al Entorno</h4>
                                 <p className="text-gray-600">Ventanales que permiten disfrutar de la luz natural matutina mientras planifica su día.</p>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* H2 Section: Galería */}
+                    <section className="mb-20">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-serif font-bold text-cardenal-green mb-4">Nuestra Galería</h2>
+                            <p className="text-gray-600 max-w-2xl mx-auto italic font-serif text-lg">
+                                Una muestra de nuestro acogedor salón y los detalles que hacen de su desayuno un momento especial.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                            {[1, 2, 3, 4, 5, 6].map((num) => (
+                                <div key={num} className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500">
+                                    <ImageLightbox
+                                        src={`/images/restaurante/${num}.webp`}
+                                        alt={`Restaurante Hotel El Cardenal - Vista ${num}`}
+                                        className="w-full h-full transform transition-transform duration-700 group-hover:scale-110"
+                                        aspectRatio="h-48 md:h-64"
+                                    />
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500 pointer-events-none"></div>
+                                </div>
+                            ))}
                         </div>
                     </section>
 

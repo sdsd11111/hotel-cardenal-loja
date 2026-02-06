@@ -35,43 +35,22 @@ export default function SobreNosotrosPage() {
                 }}
                 aria-hidden="true"
             >
-                <h1>Orígenes de El Cardenal - Historia del Hotel El Cardenal Loja</h1>
+                <h1>Sobre Nosotros - Historia del Hotel El Cardenal Loja</h1>
                 <p>
-                    Desde la aparición de la Virgen de El Cisne el 12 de octubre de 1594, da inicio a las caminatas a la población de El Cisne, los peregrinos marcados por la fe y devoción a la Santísima Virgen hacen peregrinaciones a este lugar.
-                </p>
-                <p>
-                    En 1829 después de haber visitado El Cisne, Simón Bolívar promulgó desde Guayaquil el Decreto que oficializaba el desarrollo de la feria de Loja y la romería del Cisne a la Loja, autorizando que cada año se traslade a la Imagen de la Santísima Virgen de El Cisne a Loja.
+                    Descubra los orígenes de una tradición familiar que nació de la fe, la música y el comercio en San Pedro de la Bendita.
                 </p>
 
-                <h2>Ramón Agustín Ojeda Alvarado - "El Cardenal"</h2>
+                <h2>Tradición y Vocación</h2>
                 <p>
-                    Nacido en San Pedro de la Bendita el 18 de diciembre de 1902, Ramón Agustín Ojeda Alvarado fue un hombre autodidacta con profunda labor musical y un hombre público. Su fe en la Santísima Virgen María en la Advocación de El Cisne marcó su vida y obra.
-                </p>
-                <p>
-                    Fue apodado "El Cardenal" por todos sus esfuerzos en mantener viva la fe en la Santísima Virgen María. Su legado musical y empresarial trascendió en su familia de generación en generación.
+                    Desde 1917, Ramón Agustín Ojeda Alvarado inició una destacada labor comercial y tecnológica, fundando fábricas textiles, procesadoras de cabuya y construyendo la Primera Planta de Luz Eléctrica en el sur del país (1950-1973).
                 </p>
 
-                <h3>Obra Musical y Legado</h3>
+                <h2>"El Cardenal" - Fe y Música</h2>
                 <p>
-                    Entre sus composiciones musicales están el "Himno a San Pedro de la Bendita", valses como "Melodías Nativas", pasillos como "Corazón Nostálgico", y varios pasodobles, chilenas y villancicos.
+                    Su apodo "El Cardenal" nació del fervor popular por su inquebrantable fe en la Virgen de El Cisne y su labor como Maestro de Capilla. Su legado musical incluye himnos, pasillos y valses que perduran hasta hoy.
                 </p>
                 <p>
-                    Además de su labor musical, desarrolló una intensa actividad en los negocios e infraestructura local, como la instalación de la primera planta de luz eléctrica en San Pedro de la Bendita.
-                </p>
-
-                <h2>Lo que hace diferente al Hotel El Cardenal</h2>
-                <p>
-                    En el Cardenal en Loja, encuentras una fusión única de historia, naturaleza, modernidad y buen servicio personalizado. Destacamos nuestros jardines y senderos junto al rio Malacatos, nuestra ubicación cerca a centros comerciales y la distinción de nuestras habitaciones clásicas y modernas en un ambiente histórico restaurado con elegancia.
-                </p>
-                <ul>
-                    <li><strong>Historia Viva:</strong> Antigua residencia del siglo XVIII que conserva muebles originales.</li>
-                    <li><strong>Jardines y Parques:</strong> Oasis interior con vegetación, fuentes y terraza chill-out.</li>
-                    <li><strong>Ubicación Privilegiada:</strong> Dentro del parque La Tebaida, cerca al Parque Podocarpus y al C.C. La Pradera.</li>
-                    <li><strong>Habitaciones con Carácter:</strong> Decoración con encanto clásico en un edificio restaurado.</li>
-                    <li><strong>Atmósfera Única:</strong> Ambiente relajado y tradicional que contrasta con el bullicio de la ciudad.</li>
-                </ul>
-                <p>
-                    En resumen, hotel El Cardenal le ofrece una estancia histórica en un entorno único que combina jardines y arquitectura tradicional, todo dentro del parque La Tebaida.
+                    Actualmente, el Hotel El Cardenal es dirigido por la tercera generación de la familia, manteniendo vivos los valores de excelencia y tradición.
                 </p>
             </div>
         </>

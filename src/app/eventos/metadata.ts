@@ -10,7 +10,7 @@ export const metadata: Metadata = {
         siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/logo.jpg',
+                url: '/logo.png',
                 width: 1200,
                 height: 630,
                 alt: 'Eventos Hotel El Cardenal Loja',
@@ -23,6 +23,6 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Salas de Eventos y Convenciones | Hotel El Cardenal Loja',
         description: 'Eventos corporativos, conferencias y celebraciones con tecnología de punta.',
-        images: ['/logo.jpg'],
+        images: ['/logo.png'],
     },
 };

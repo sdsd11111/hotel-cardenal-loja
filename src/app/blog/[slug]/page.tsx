@@ -257,7 +257,7 @@ export default async function ArticlePage({ params }: Props) {
                             "name": "Hotel El Cardenal Loja",
                             "logo": {
                                 "@type": "ImageObject",
-                                "url": "https://hotelelcardenalloja.com/logo.jpg"
+                                "url": "https://hotelelcardenalloja.com/logo.png"
                             }
                         },
                         "mainEntityOfPage": {

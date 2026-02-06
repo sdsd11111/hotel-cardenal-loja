@@ -52,11 +52,12 @@ export default function AnnouncementPopup() {
     return (
         <div
             className={cn(
-                "fixed bottom-6 right-6 z-[100] transition-all duration-700 transform",
+                "fixed bottom-4 left-4 md:bottom-6 md:left-6 z-[100] transition-all duration-700 transform",
+                "max-w-[280px] md:max-w-[400px]", // Ultra compact on mobile
                 isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-90 pointer-events-none"
             )}
         >
-            <div className="relative group overflow-hidden bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 w-full max-w-[340px] md:max-w-[400px]">
+            <div className="relative group overflow-hidden bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 w-full max-h-[80vh] flex flex-col">
                 {/* Decorative particles or backgrounds */}
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                     <Sparkles className="w-16 h-16 text-cardenal-gold" />
@@ -64,15 +65,15 @@ export default function AnnouncementPopup() {
 
                 {/* Image if exists */}
                 {current.imagen_url && (
-                    <div className="h-40 overflow-hidden relative">
+                    <div className="h-20 md:h-40 overflow-hidden relative flex-shrink-0">
                         <img
                             src={current.imagen_url}
                             alt={current.titulo}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                         {current.llamativo && (
-                            <div className="absolute top-4 left-4">
-                                <span className="bg-[#bd8b33] text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg">
+                            <div className="absolute top-2.5 left-2.5">
+                                <span className="bg-[#bd8b33] text-white px-2 py-0.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider shadow-lg">
                                     {current.llamativo}
                                 </span>
                             </div>
@@ -80,27 +81,27 @@ export default function AnnouncementPopup() {
                     </div>
                 )}
 
-                <div className="p-6">
+                <div className="p-3 md:p-6 overflow-y-auto">
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 right-4 p-1.5 bg-gray-100/50 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-all z-10"
+                        className="absolute top-2.5 right-2.5 p-1 bg-gray-100/50 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-all z-10"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-3 h-3" />
                     </button>
 
                     {!current.imagen_url && current.llamativo && (
-                        <div className="mb-3">
-                            <span className="bg-[#bd8b33]/10 text-[#bd8b33] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5">
-                                <Megaphone className="w-3 h-3" />
+                        <div className="mb-1.5 md:mb-2 text-center md:text-left">
+                            <span className="bg-[#bd8b33]/10 text-[#bd8b33] px-2 py-0.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1">
+                                <Megaphone className="w-2.5 h-2.5" />
                                 {current.llamativo}
                             </span>
                         </div>
                     )}
 
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight pr-6">
+                    <h3 className="text-xs md:text-xl font-bold text-gray-900 mb-0.5 md:mb-2 leading-tight pr-6">
                         {current.titulo}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-6 line-clamp-3 leading-relaxed">
+                    <p className="text-[11px] md:text-sm text-gray-600 mb-2.5 md:mb-6 line-clamp-2 md:line-clamp-3 leading-tight md:leading-relaxed">
                         {current.descripcion}
                     </p>
 
@@ -108,10 +109,10 @@ export default function AnnouncementPopup() {
                         <Link
                             href={current.boton_link || '#'}
                             onClick={handleClose}
-                            className="inline-flex items-center justify-center gap-2 w-full bg-[#1a1a1a] hover:bg-[#bd8b33] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-[#bd8b33]/20 group/btn"
+                            className="inline-flex items-center justify-center gap-2 w-full bg-[#1a1a1a] hover:bg-[#bd8b33] text-white font-bold py-1.5 md:py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-[#bd8b33]/20 group/btn text-[11px] md:text-base"
                         >
                             {current.boton_texto}
-                            <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                            <ArrowRight className="w-2.5 h-2.5 transition-transform group-hover/btn:translate-x-1" />
                         </Link>
                     )}
                 </div>

@@ -18,11 +18,10 @@ export const metadata: Metadata = {
 };
 
 const galleryImages = [
-    '/images/habitaciones/triple/triple-main.webp',
-    '/images/habitaciones/triple/triple-thumb.webp',
-    '/images/habitaciones/triple/doble-twin-main.webp',
-    '/images/habitaciones/triple/familiar-loft-main.webp',
-    '/images/habitaciones/triple/matrimonial-main.webp'
+    '/images/habitaciones/triple/triple-main.webp?v=2',
+    '/images/habitaciones/triple/triple-thumb.webp?v=2',
+    '/images/habitaciones/triple/detalle-1.webp?v=2',
+    '/images/habitaciones/triple/detalle-2.webp?v=2'
 ];
 
 export default function TriplePage() {
@@ -74,7 +73,7 @@ export default function TriplePage() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <div className="relative h-screen flex items-center justify-center overflow-hidden">
+                <div className="relative h-screen flex items-end justify-center overflow-hidden pb-12 md:pb-24">
                     <Image
                         src="/images/habitaciones/triple/triple-main.webp"
                         alt="Habitación Triple - Hotel El Cardenal Loja"
@@ -84,7 +83,7 @@ export default function TriplePage() {
                         sizes="100vw"
                         quality={75}
                     />
-                    <div className="absolute inset-0 bg-black/40"></div>
+                    <div className="absolute inset-0 bg-black/20"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
                         <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 drop-shadow-md leading-tight">
                             Habitación Triple en Loja: Espacio y Confort para Grupos

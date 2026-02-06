@@ -10,7 +10,7 @@ export const metadata: Metadata = {
         siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/logo.jpg',
+                url: '/logo.png',
                 width: 1200,
                 height: 630,
                 alt: 'Restaurante Hotel El Cardenal Loja',
@@ -23,6 +23,6 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Restaurante Gourmet | Hotel El Cardenal Loja',
         description: 'Cocina fusión de autor, menú ejecutivo y desayuno buffet premium.',
-        images: ['/logo.jpg'],
+        images: ['/logo.png'],
     },
 };

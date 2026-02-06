@@ -3,61 +3,58 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ArrowRight, BedDouble, Users, Maximize, Wind } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// New Habitaciones data based on user request
+// Room data
 const habitaciones = [
     {
-        id: 2,
-        nombre: 'Triple',
-        tagline: 'Versatilidad y comodidad compartida.',
-        descripcion: 'Tres camas individuales con lencería de alta calidad en un ambiente iluminado.',
+        id: 'matrimonial',
+        nombre: 'Habitación Matrimonial',
+        tagline: 'Intimidad y elegancia para dos',
+        descripcion: 'Cama matrimonial de lujo con detalles neoclásicos y ventanales de aire puro. El rincón de paz ideal tras recorrer la ciudad de Loja.',
         detalles: [
-            'Tres camas individuales con lencería de alta calidad.',
-            'Ambiente iluminado con ventilación natural.',
-            'Acceso directo a áreas comunes y senderos ecológicos.',
-            'Ideal para grupos de amigos o viajes de trabajo en equipo.'
+            'Cama matrimonial de lujo con detalles neoclásicos',
+            'Ventanales que capturan la luz natural y el aire puro',
+            'Ambiente cálido y privado para una estancia romántica',
+            'Perfecto para parejas que buscan tranquilidad'
         ],
-        imagenPrincipal: '/images/habitaciones/triple/triple-main.webp',
-        imagenMiniatura: '/images/habitaciones/triple/triple-thumb.webp',
-        icon: <BedDouble className="w-5 h-5" />
+        imagen: '/images/habitaciones/matrimonial/matrimonial-main.webp?v=2',
+        href: '/habitaciones/matrimonial'
     },
     {
-        id: 3,
-        nombre: 'Doble Twin',
-        tagline: 'Descanso independiente y profesional.',
-        descripcion: 'Espacio funcional con escritorio y WiFi de alta velocidad para un sueño reparador.',
+        id: 'doble-twin',
+        nombre: 'Habitación Doble Twin',
+        tagline: 'Descanso independiente y profesional',
+        descripcion: 'Espacio funcional con escritorio y WiFi de alta velocidad para un sueño reparador. La opción preferida por viajeros de negocios y turistas.',
         detalles: [
-            'Dos camas individuales de gran confort.',
-            'Espacio funcional con escritorio y WiFi de alta velocidad.',
-            'Ambiente libre de ruidos, perfecto para un sueño reparador.',
-            'La opción preferida por viajeros de negocios y turistas.'
+            'Dos camas individuales de gran confort',
+            'Espacio funcional con escritorio y WiFi de alta velocidad',
+            'Ambiente libre de ruidos, perfecto para un sueño reparador',
+            'Ideal para compañeros de viaje o viajes de negocios'
         ],
-        imagenPrincipal: '/images/habitaciones/doble/doble-twin-main.webp',
-        imagenMiniatura: '/images/habitaciones/doble/doble-twin-thumb.webp',
-        icon: <Maximize className="w-5 h-5" />
+        imagen: '/images/habitaciones/doble/doble-twin-main.webp?v=2',
+        href: '/doble-twin'
     },
     {
-        id: 4,
-        nombre: 'Matrimonial',
-        tagline: 'Intimidad y elegancia para dos.',
-        descripcion: 'Cama matrimonial de lujo con detalles neoclásicos y ventanales de aire puro.',
+        id: 'triple',
+        nombre: 'Habitación Triple',
+        tagline: 'Versatilidad y comodidad compartida',
+        descripcion: 'Tres camas individuales con lencería de alta calidad en un ambiente iluminado. Ideal para grupos de amigos o viajes de trabajo en equipo.',
         detalles: [
-            'Cama matrimonial de lujo con detalles neoclásicos.',
-            'Ventanales que capturan la luz natural y el aire puro.',
-            'Ambiente cálido y privado para una estancia romántica.',
-            'El rincón de paz ideal tras recorrer la ciudad de Loja.'
+            'Tres camas individuales con lencería de alta calidad',
+            'Ambiente iluminado con ventilación natural',
+            'Acceso directo a áreas comunes y senderos ecológicos',
+            'Perfecta para familias o grupos pequeños'
         ],
-        imagenPrincipal: '/images/habitaciones/matrimonial/matrimonial-main.webp',
-        imagenMiniatura: '/images/habitaciones/matrimonial/matrimonial-thumb.webp',
-        icon: <Wind className="w-5 h-5" />
+        imagen: '/images/habitaciones/triple/triple-main.webp?v=2',
+        href: '/habitaciones/triple'
     }
 ];
 
 export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
-    const [activeId, setActiveId] = useState(habitaciones[0].id);
-    const activeHabitacion = habitaciones.find(h => h.id === activeId) || habitaciones[0];
+    const [activeTab, setActiveTab] = useState('matrimonial');
+    const activeHabitacion = habitaciones.find(h => h.id === activeTab) || habitaciones[0];
 
     const isTheme2 = themeClass === 'theme-home-2';
 
@@ -75,146 +72,85 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
                     <div className="w-24 h-1.5 bg-cardenal-gold mx-auto mt-8"></div>
                 </div>
 
-                {/* Main Interactive Layout */}
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+                {/* Tabs Navigation - Text Only */}
+                <div className="flex justify-center gap-4 mb-12 flex-wrap">
+                    {habitaciones.map((hab) => (
+                        <button
+                            key={hab.id}
+                            onClick={() => setActiveTab(hab.id)}
+                            className={cn(
+                                "px-8 py-4 font-serif font-bold text-sm md:text-base transition-all duration-300 border-b-4",
+                                activeTab === hab.id
+                                    ? "border-cardenal-gold text-cardenal-gold scale-105"
+                                    : isTheme2
+                                        ? "border-transparent text-white/70 hover:text-white hover:border-cardenal-gold/50"
+                                        : "border-transparent text-cardenal-green/70 hover:text-cardenal-green hover:border-cardenal-gold/50"
+                            )}
+                        >
+                            {hab.nombre}
+                        </button>
+                    ))}
+                </div>
 
-                        {/* 1. Sidebar Grid Selection (Left - 2x2 items) */}
-                        <div className="lg:col-span-5 order-1 lg:order-1 flex flex-col">
-                            <h3 className={cn("text-xs font-bold uppercase tracking-[0.2em] mb-6 font-serif", isTheme2 ? "text-white/60" : "text-cardenal-green/60")}>
-                                Categorías Disponibles
-                            </h3>
-                            <div className="grid grid-cols-2 gap-3 md:gap-4 flex-grow">
-                                {habitaciones.map((h) => (
-                                    <button
-                                        key={h.id}
-                                        onClick={() => setActiveId(h.id)}
-                                        className={`group relative flex flex-col p-1 transition-all duration-500 border ${activeId === h.id
-                                            ? (isTheme2 ? 'border-cardenal-gold bg-white/10 shadow-xl scale-[1.02] z-10' : 'border-cardenal-gold bg-white shadow-xl scale-[1.02] z-10')
-                                            : (isTheme2 ? 'border-transparent bg-white/5 hover:border-cardenal-gold/30 hover:bg-white/10' : 'border-transparent bg-white/40 hover:border-cardenal-gold/30 hover:bg-white/60')
-                                            }`}
-                                    >
-                                        <div className="relative aspect-square overflow-hidden mb-0">
-                                            <Image
-                                                src={h.imagenMiniatura}
-                                                alt={h.nombre}
-                                                fill
-                                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
-                                                className={`object-cover transition-transform duration-1000 ${activeId === h.id ? 'scale-110' : 'group-hover:scale-110'}`}
-                                                quality={75}
-                                            />
-                                            {activeId === h.id && (
-                                                <div className="absolute inset-0 bg-cardenal-green/10 ring-2 ring-inset ring-cardenal-gold"></div>
-                                            )}
-                                        </div>
-                                        <div className="p-3 text-center">
-                                            <p className={`text-[11px] md:text-xs font-bold font-serif uppercase tracking-widest transition-colors ${activeId === h.id ? (isTheme2 ? 'text-white' : 'text-cardenal-green') : (isTheme2 ? 'text-white/40' : 'text-gray-500')}`}>
-                                                {h.nombre}
-                                            </p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
+                {/* Tab Content */}
+                <div className="max-w-6xl mx-auto">
+                    <div className={cn(
+                        "grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 transition-all duration-500",
+                        isTheme2 ? "bg-white/5" : "bg-white shadow-xl"
+                    )}>
+                        {/* Image */}
+                        <div className="relative aspect-[4/3] overflow-hidden order-2 lg:order-1">
+                            <Image
+                                src={activeHabitacion.imagen}
+                                alt={activeHabitacion.nombre}
+                                fill
+                                className="object-cover transition-opacity duration-500"
+                            />
                         </div>
 
-                        {/* 2. Main Content Detail Area (Right) */}
-                        <div className="lg:col-span-7 order-2 lg:order-2">
-                            <div className={cn("shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border overflow-hidden h-full flex flex-col", isTheme2 ? "bg-[#112a11] border-white/10" : "bg-white border-cardenal-gold/10")}>
-
-                                {/* Image Column */}
-                                <div className="w-full relative aspect-[16/9] overflow-hidden">
-                                    <Image
-                                        src={activeHabitacion.imagenPrincipal}
-                                        alt={activeHabitacion.nombre}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
-                                        className="object-cover animate-fadeIn"
-                                        priority
-                                        quality={80}
-                                    />
-                                    <div className={cn("absolute top-6 left-6 p-3 shadow-lg flex items-center gap-2", isTheme2 ? "bg-cardenal-gold text-white" : "bg-cardenal-green text-white")}>
-                                        {activeHabitacion.icon}
-                                        <span className="text-xs font-bold uppercase tracking-widest">Premium</span>
-                                    </div>
-                                </div>
-
-                                {/* Text content Column */}
-                                <div className="w-full p-8 md:p-12 flex flex-col animate-fadeInRight">
-                                    <div className="mb-6">
-                                        <h3 className={cn("text-3xl md:text-4xl font-bold font-serif mb-2", isTheme2 ? "text-white" : "text-[#1B5E5E]")}>
-                                            {activeHabitacion.nombre}
-                                        </h3>
-                                        <p className="text-cardenal-gold font-serif italic text-lg">
-                                            {activeHabitacion.tagline}
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-4 mb-8 flex-grow">
-                                        {activeHabitacion.detalles.map((detalle, idx) => (
-                                            <div key={idx} className="flex items-start gap-3 group">
-                                                <div className="mt-1.5 flex-shrink-0">
-                                                    <Check className="w-4 h-4 text-[#C9A86A]" />
-                                                </div>
-                                                <p className={cn("font-body leading-relaxed text-base md:text-lg", isTheme2 ? "text-white/90" : "text-[#2D3436]")}>
-                                                    {detalle}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="pt-8 border-t border-gray-100 mt-auto">
-                                        <Link
-                                            href="/habitaciones"
-                                            className="inline-flex items-center justify-center gap-3 bg-cardenal-green hover:bg-cardenal-green-dark text-white font-bold py-4 px-10 transition-all duration-500 shadow-lg font-serif tracking-widest w-full md:w-auto"
-                                        >
-                                            RESERVAR AHORA
-                                            <ArrowRight className="w-5 h-5" />
-                                        </Link>
-                                    </div>
-                                </div>
+                        {/* Content */}
+                        <div className="space-y-6 order-1 lg:order-2">
+                            <div className="inline-block px-4 py-1.5 bg-cardenal-gold/10 text-cardenal-gold text-xs font-bold uppercase tracking-widest border-l-4 border-cardenal-gold">
+                                {activeHabitacion.tagline}
                             </div>
+
+                            <h3 className={cn(
+                                "text-3xl md:text-4xl font-bold font-serif",
+                                isTheme2 ? "text-white" : "text-cardenal-green"
+                            )}>
+                                {activeHabitacion.nombre}
+                            </h3>
+
+                            <p className={cn(
+                                "text-lg leading-relaxed",
+                                isTheme2 ? "text-white/80" : "text-gray-700"
+                            )}>
+                                {activeHabitacion.descripcion}
+                            </p>
+
+                            <ul className="space-y-3">
+                                {activeHabitacion.detalles.map((detalle, index) => (
+                                    <li key={index} className={cn(
+                                        "flex items-start gap-3",
+                                        isTheme2 ? "text-white/70" : "text-gray-600"
+                                    )}>
+                                        <span className="text-cardenal-gold mt-1">✓</span>
+                                        <span>{detalle}</span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <Link
+                                href={activeHabitacion.href}
+                                className="inline-flex items-center gap-2 bg-cardenal-gold hover:bg-cardenal-green text-white font-bold py-3 px-8 transition-all duration-300 text-sm uppercase tracking-widest shadow-lg group"
+                            >
+                                Ver detalles
+                                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                            </Link>
                         </div>
                     </div>
                 </div>
-
-                {/* Final Section CTA */}
-                <div className="mt-20 text-center">
-                    <Link
-                        href="/habitaciones"
-                        className={cn(
-                            "group inline-flex flex-col items-center gap-4 py-8 px-12 border-2 transition-all duration-700 backdrop-blur-sm",
-                            isTheme2
-                                ? "border-cardenal-gold/40 hover:border-cardenal-gold bg-white/5"
-                                : "border-cardenal-gold/20 hover:border-cardenal-gold bg-white/50"
-                        )}
-                    >
-                        <span className={cn("font-serif text-xl md:text-2xl font-bold", isTheme2 ? "text-white" : "text-cardenal-green")}>
-                            Consultar disponibilidad de habitaciones
-                        </span>
-                        <div className="flex items-center gap-2 text-cardenal-gold font-bold uppercase tracking-[0.3em] text-xs">
-                            <span>Ver todas</span>
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-                        </div>
-                    </Link>
-                </div>
             </div>
-
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes fadeInRight {
-                    from { opacity: 0; transform: translateX(30px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.8s ease-out forwards;
-                }
-                .animate-fadeInRight {
-                    animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                }
-            `}</style>
         </section>
     );
 };

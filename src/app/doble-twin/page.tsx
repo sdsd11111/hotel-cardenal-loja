@@ -18,11 +18,10 @@ export const metadata: Metadata = {
 };
 
 const galleryImages = [
-    '/images/habitaciones/doble/doble-twin-main.webp',
-    '/images/habitaciones/doble/doble-twin-thumb.webp',
-    '/images/habitaciones/doble/familiar-loft-main.webp',
-    '/images/habitaciones/doble/matrimonial-main.webp',
-    '/images/habitaciones/doble/triple-main.webp'
+    '/images/habitaciones/doble/doble-twin-main.webp?v=2',
+    '/images/habitaciones/doble/doble-twin-thumb.webp?v=2',
+    '/images/habitaciones/doble/detalle-1.webp?v=2',
+    '/images/habitaciones/doble/detalle-2.webp?v=2'
 ];
 
 export default function DobleTwinPage() {
@@ -84,7 +83,6 @@ export default function DobleTwinPage() {
                         sizes="100vw"
                         quality={75}
                     />
-                    <div className="absolute inset-0 bg-black/40"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
                         <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 drop-shadow-md leading-tight">
                             Habitación Doble Twin en Loja: Confort y Descanso Compartido

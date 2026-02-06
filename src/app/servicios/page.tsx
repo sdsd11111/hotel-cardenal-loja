@@ -85,7 +85,7 @@ export default function ServiciosPage() {
                         sizes="100vw"
                         quality={75}
                     />
-                    <div className="absolute inset-0 bg-black/40"></div>
+                    {/* Overlay removed as requested */}
                     <div className="relative z-10 text-center text-white px-4 max-w-5xl mx-auto">
                         <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-6 drop-shadow-xl leading-tight">
                             Servicios de Excelencia: Su Hogar en Loja

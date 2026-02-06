@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { RestauranteHome } from '@/components/RestauranteHome';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
@@ -84,7 +85,7 @@ export default function TurismoPage() {
                 {/* Fullscreen Hero Section */}
                 <div className="relative h-screen w-full flex items-center justify-center overflow-hidden">
                     <Image
-                        src="/images/turismo/hero.webp"
+                        src="/images/turismo/hero.webp?v=2"
                         alt="Turismo en Loja - Hotel El Cardenal"
                         fill
                         className="object-cover"
@@ -132,7 +133,7 @@ export default function TurismoPage() {
                             {/* 1. Parque Lineal La Tebaida */}
                             <div className="flex flex-col md:flex-row gap-8 items-center bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 <ImageLightbox
-                                    src="/images/turismo/parque-lineal.webp"
+                                    src="/images/turismo/parque-lineal.webp?v=2"
                                     alt="Parque Lineal La Tebaida - Cerca de Hotel El Cardenal"
                                     className="w-full md:w-1/2"
                                     aspectRatio="h-64 md:h-80"
@@ -154,7 +155,7 @@ export default function TurismoPage() {
                             {/* 2. Parque Recreacional Jipiro */}
                             <div className="flex flex-col md:flex-row-reverse gap-8 items-center bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 <ImageLightbox
-                                    src="/images/turismo/parque-jipiro.webp"
+                                    src="/images/turismo/parque-jipiro.webp?v=2"
                                     alt="Parque Recreacional Jipiro - Cerca de Hotel El Cardenal"
                                     className="w-full md:w-1/2"
                                     aspectRatio="h-64 md:h-80"
@@ -176,7 +177,7 @@ export default function TurismoPage() {
                             {/* 3. Parque Colinar Pucará */}
                             <div className="flex flex-col md:flex-row gap-8 items-center bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 <ImageLightbox
-                                    src="/images/turismo/Pucara.webp"
+                                    src="/images/turismo/Pucara.webp?v=2"
                                     alt="Parque Colinar Pucará Vista Panorámica - Cerca de Hotel El Cardenal"
                                     className="w-full md:w-1/2"
                                     aspectRatio="h-64 md:h-80"
@@ -214,7 +215,7 @@ export default function TurismoPage() {
                         <div className="grid md:grid-cols-3 gap-6">
                             <div className="bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden hover:-translate-y-1 transition-transform">
                                 <ImageLightbox
-                                    src="/images/turismo/puerta-de-la-city.webp"
+                                    src="/images/turismo/puerta-de-la-city.webp?v=2"
                                     alt="Puerta de la Ciudad Loja - Cerca de Hotel El Cardenal"
                                     aspectRatio="h-48"
                                 />
@@ -227,7 +228,7 @@ export default function TurismoPage() {
 
                             <div className="bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden hover:-translate-y-1 transition-transform">
                                 <ImageLightbox
-                                    src="/images/turismo/plaza.webp"
+                                    src="/images/turismo/plaza.webp?v=2"
                                     alt="Plaza de la Independencia Loja"
                                     aspectRatio="h-48"
                                 />
@@ -240,7 +241,7 @@ export default function TurismoPage() {
 
                             <div className="bg-white border border-gray-100 shadow-lg rounded-xl overflow-hidden hover:-translate-y-1 transition-transform">
                                 <ImageLightbox
-                                    src="/images/turismo/calle-lourdes.webp"
+                                    src="/images/turismo/calle-lourdes.webp?v=2"
                                     alt="Calle Lourdes Loja"
                                     aspectRatio="h-48"
                                 />
@@ -288,7 +289,7 @@ export default function TurismoPage() {
                                 </ul>
                             </div>
                             <ImageLightbox
-                                src="/images/turismo/gastronomia.png"
+                                src="/images/turismo/gastronomia.png?v=2"
                                 alt="Gastronomía Tradicional de Loja - Cerca de Hotel El Cardenal"
                                 className="rounded-xl shadow-lg border-4 border-white"
                                 aspectRatio="h-80"
@@ -296,17 +297,13 @@ export default function TurismoPage() {
                         </div>
                     </section>
 
-                    {/* Final CTA */}
-                    <div className="text-center pb-10">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6">¿Listo para explorar Loja?</h3>
-                        <Link
-                            href="/habitaciones"
-                            className="inline-flex items-center gap-2 bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-4 px-10 rounded-lg shadow-xl transition-all uppercase tracking-widest"
-                        >
-                            Reservar mi Estancia
-                            <ArrowRight size={20} />
-                        </Link>
+                    {/* Sección "Descubra Loja" (RestauranteHome) */}
+                    <div className="mb-20">
+                        <RestauranteHome />
                     </div>
+
+                    {/* Final CTA */}
+                    {/* CTA Section removed as requested */}
 
                 </div>
             </main>

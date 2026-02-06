@@ -18,11 +18,10 @@ export const metadata: Metadata = {
 };
 
 const galleryImages = [
-    '/images/habitaciones/familiar/familiar-loft-main.webp',
-    '/images/habitaciones/familiar/familiar-loft-thumb.webp',
-    '/images/habitaciones/familiar/3-1 OCT 2022.webp',
-    '/images/habitaciones/familiar/304-4D.webp',
-    '/images/habitaciones/familiar/room-economic-203-3-scaled (1) (1).webp'
+    '/images/habitaciones/familiar/familiar-loft-main.webp?v=2',
+    '/images/habitaciones/familiar/familiar-loft-thumb.webp?v=2',
+    '/images/habitaciones/familiar/detalle-1.webp?v=2',
+    '/images/habitaciones/familiar/detalle-2.webp?v=2'
 ];
 
 export default function FamiliarLoftPage() {
@@ -75,7 +74,7 @@ export default function FamiliarLoftPage() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <div className="relative h-screen flex items-center justify-center overflow-hidden">
+                <div className="relative h-screen flex items-end justify-center overflow-hidden pb-12 md:pb-24">
                     <Image
                         src="/images/habitaciones/familiar/familiar-loft-main.webp"
                         alt="Habitación Familiar Loft - Hotel El Cardenal Loja"
@@ -83,7 +82,7 @@ export default function FamiliarLoftPage() {
                         className="object-cover"
                         priority
                     />
-                    <div className="absolute inset-0 bg-black/40"></div>
+                    <div className="absolute inset-0 bg-black/20"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
                         <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 drop-shadow-md leading-tight">
                             Familiar Loft en Loja: El Refugio Ideal para su Familia

@@ -10,10 +10,10 @@ export const metadata: Metadata = {
         siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/logo.jpg',
+                url: '/logo.png',
                 width: 1200,
                 height: 630,
-                alt: 'Tours Loja Podocarpus Villonaco',
+                alt: 'Tours Hotel El Cardenal Loja',
             },
         ],
         locale: 'es_EC',
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Tours y Experiencias en Loja | Hotel El Cardenal Loja',
-        description: 'Explore el Parque Podocarpus, Villonaco y Loja con tours guiados.',
-        images: ['/logo.jpg'],
+        title: 'Tours y Experiencias | Hotel El Cardenal Loja',
+        description: 'Descubra Loja con nosotros: City Tour, Vilcabamba y Parque Nacional Podocarpus.',
+        images: ['/logo.png'],
     },
 };

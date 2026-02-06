@@ -68,7 +68,7 @@ export default function GalleryPage() {
                         "name": "Galería de Fotos - Hotel El Cardenal Loja",
                         "description": "Explora nuestras instalaciones, habitaciones neoclásicas, restaurante tradicional y el entorno natural del Parque La Tebaida en Loja.",
                         "url": "https://hotelelcardenalloja.com/galeria",
-                        "image": "https://hotelelcardenalloja.com/logo.jpg"
+                        "image": "https://hotelelcardenalloja.com/logo.png"
                     })
                 }}
             />

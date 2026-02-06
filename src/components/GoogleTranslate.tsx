@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 declare global {
   interface Window {
@@ -14,6 +15,7 @@ declare global {
 interface GoogleTranslateProps {
   inHeader?: boolean;
   hideUI?: boolean;
+  textColor?: string;
 }
 
 const languages = [
@@ -26,7 +28,7 @@ const languages = [
   { code: 'zh-CN', name: '中文', flag: '🇨🇳' },
 ];
 
-export default function GoogleTranslate({ inHeader = false, hideUI = false }: GoogleTranslateProps) {
+export default function GoogleTranslate({ inHeader = false, hideUI = false, textColor }: GoogleTranslateProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState(languages[0]);
   const initialized = useRef(false);
@@ -232,16 +234,11 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false }: Go
         <div className="relative">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`
-              flex items-center gap-2 px-3 py-1.5 rounded-md
-              transition-all duration-200
-              ${inHeader
-                ? 'text-white hover:text-yellow-400 hover:bg-white/10'
-                : 'text-gray-700 hover:bg-gray-100'
-              }
-              text-xs font-bold uppercase tracking-wide
-            `}
-            style={inHeader ? { textShadow: '0 2px 4px rgba(0,0,0,0.8)' } : {}}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200 text-xs font-bold uppercase tracking-wide",
+              textColor ? textColor : (inHeader ? 'text-white hover:text-yellow-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100')
+            )}
+            style={inHeader && !textColor ? { textShadow: '0 2px 4px rgba(0,0,0,0.8)' } : {}}
           >
             <span className="text-base">{currentLang.flag}</span>
             <span className="hidden sm:inline">{currentLang.code.toUpperCase()}</span>

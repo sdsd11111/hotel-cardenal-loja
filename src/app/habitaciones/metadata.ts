@@ -10,7 +10,7 @@ export const metadata: Metadata = {
         siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/logo.jpg',
+                url: '/logo.png',
                 width: 1200,
                 height: 630,
                 alt: 'Habitaciones Hotel El Cardenal Loja',
@@ -23,6 +23,6 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Habitaciones Premium | Hotel El Cardenal Loja',
         description: 'Descubra nuestras habitaciones de lujo en Loja. Suites ejecutivas, presidenciales y habitaciones familiares.',
-        images: ['/logo.jpg'],
+        images: ['/logo.png'],
     },
 };

@@ -10,10 +10,10 @@ export const metadata: Metadata = {
         siteName: 'Hotel El Cardenal Loja',
         images: [
             {
-                url: '/logo.jpg',
+                url: '/logo.png',
                 width: 1200,
                 height: 630,
-                alt: 'Piscina y Spa Hotel El Cardenal Loja',
+                alt: 'Piscina Hotel El Cardenal Loja',
             },
         ],
         locale: 'es_EC',
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Piscina Climatizada y Spa | Hotel El Cardenal Loja',
-        description: 'Piscina panorámica climatizada, spa, masajes y vistas espectaculares.',
-        images: ['/logo.jpg'],
+        title: 'Piscina Climatizada | Hotel El Cardenal Loja',
+        description: 'Relájese en nuestra piscina cubierta y climatizada, exclusiva para huéspedes.',
+        images: ['/logo.png'],
     },
 };

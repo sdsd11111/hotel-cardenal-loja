@@ -18,11 +18,10 @@ export const metadata: Metadata = {
 };
 
 const galleryImages = [
-    '/images/habitaciones/matrimonial/matrimonial-main.webp',
-    '/images/habitaciones/matrimonial/matrimonial-thumb.webp',
-    '/images/habitaciones/matrimonial/doble-twin-main.webp',
-    '/images/habitaciones/matrimonial/familiar-loft-main.webp',
-    '/images/habitaciones/matrimonial/triple-main.webp'
+    '/images/habitaciones/matrimonial/matrimonial-main.webp?v=2',
+    '/images/habitaciones/matrimonial/matrimonial-thumb.webp?v=2',
+    '/images/habitaciones/matrimonial/detalle-1.webp?v=2',
+    '/images/habitaciones/matrimonial/detalle-2.webp?v=2'
 ];
 
 export default function MatrimonialPage() {
@@ -74,7 +73,7 @@ export default function MatrimonialPage() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <div className="relative h-screen flex items-center justify-center overflow-hidden">
+                <div className="relative h-screen flex items-end justify-center overflow-hidden pb-12 md:pb-24">
                     <Image
                         src="/images/habitaciones/matrimonial/matrimonial-main.webp"
                         alt="Habitación Matrimonial - Hotel El Cardenal Loja"
@@ -82,7 +81,7 @@ export default function MatrimonialPage() {
                         className="object-cover"
                         priority
                     />
-                    <div className="absolute inset-0 bg-black/40"></div>
+                    <div className="absolute inset-0 bg-black/20"></div>
                     <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
                         <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 drop-shadow-md leading-tight">
                             Habitación Matrimonial en Loja: Elegancia y Descanso Privado

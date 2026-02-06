@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     siteName: 'Hotel El Cardenal Loja',
     images: [
       {
-        url: '/logo.jpg',
+        url: '/logo.png',
         width: 1200,
         height: 630,
         alt: 'Hotel Cardenal Loja',
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "Hotel Cardenal Loja - Elegancia y Confort",
     description: "El hotel preferido en el centro de Loja.",
-    images: ['/logo.jpg'],
+    images: ['/logo.png'],
   },
   verification: {
     google: 'b8aT21-LZNETjhU4bA6PX_7tV-OQ941E5SpXG_7NFpw',

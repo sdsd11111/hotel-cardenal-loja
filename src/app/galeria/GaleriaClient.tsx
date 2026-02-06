@@ -26,7 +26,6 @@ export default function GaleriaClient() {
                         priority
                         quality={75}
                     />
-                    <div className="absolute inset-0 bg-black/40"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center px-4 max-w-5xl">
                             <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-white drop-shadow-lg mb-6 leading-tight">

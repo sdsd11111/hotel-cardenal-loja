@@ -14,7 +14,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 const headerData = {
-    logo: '/logo.jpg'
+    logo: '/logo.png'
 };
 export default function CheckoutPage() {
     const router = useRouter();

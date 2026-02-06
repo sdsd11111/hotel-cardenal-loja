@@ -27,7 +27,7 @@ export interface HeroContent {
 
 // Datos de ejemplo para el header
 export const headerData = {
-  logo: "/logo.jpg",
+  logo: "/logo.png",
   navItems: [
     { label: "Inicio", href: "/" },
     { label: "Servicios", href: "/servicios" },
@@ -47,7 +47,7 @@ export const heroData: HeroContent = {
 
 // Datos de ejemplo para el footer
 export const footerData = {
-  logo: "/logo.jpg",
+  logo: "/logo.png",
   description: "Transformando ideas en soluciones digitales excepcionales. Comprometidos con la excelencia y la innovación.",
   socialLinks: [
     { name: "Facebook", url: "#", icon: "facebook" },

@@ -23,27 +23,35 @@ declare global {
     }
 }
 
-// Hero slides data
-const heroSlides = [
-    {
-        id: 1,
-        image: '/images/hero/hero-main.webp',
-    },
-    {
-        id: 2,
-        image: '/images/hero/hero-services.webp',
-    }
-];
-
 const HERO_CONTENT = {
     title: 'Hotel Familiar en Loja',
-    subtitle: 'Desayuno Incluido y Cerca de la Naturaleza',
-    description: 'En Hotel El Cardenal te ofrecemos una estancia acogedora y segura en el sector más tranquilo de la ciudad. Disfruta de la comodidad de nuestras 6 exclusivas habitaciones, parqueadero gratuito y la paz de estar junto al Parque Lineal La Tebaida. El alojamiento en Loja ideal para quienes buscan un trato humano, aire puro y el mejor desayuno casero de la región.',
+    subtitle: 'Un hotel con leyenda rodeado de Naturaleza',
+    description: 'En Hotel El Cardenal ofrecemos una estancia acogedora y segura donde se sentirá como en casa. Situado en una hermosa zona residencial junto al rio Malacatos',
     cta: 'Reserva Aquí'
 };
 
 export default function HomeClient({ customLogo, themeClass }: { customLogo?: string, themeClass?: string }) {
     const router = useRouter();
+
+    // Hero slides data moved inside to ensure reactivity/refresh
+    const heroSlides = [
+        {
+            id: 1,
+            image: '/images/hero/hero-main.webp?v=2',
+        },
+        {
+            id: 2,
+            image: '/images/hero/hero-services.webp?v=2',
+        },
+        {
+            id: 3,
+            image: '/images/hero/hero-tres.webp?v=2',
+        },
+        {
+            id: 4,
+            image: '/images/hero/hero-cuatro.webp?v=2',
+        }
+    ];
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoRotating, setIsAutoRotating] = useState(true);
@@ -101,6 +109,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                 logo={customLogo || headerData.logo}
                 showReservationSearch={true}
                 themeClass={themeClass}
+                forceDarkText={false} // Default to white text over typical hero images
                 reservationSearchProps={{
                     fechaEntrada,
                     fechaSalida,
@@ -135,31 +144,31 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                 quality={75}
                                 sizes="100vw"
                             />
-                            <div className={cn("absolute inset-0 transition-all duration-1000", themeClass ? "hero-theme-2-gradient opacity-90" : "bg-black/50 md:bg-black/40")}></div>
-                            <div className={cn("absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent", themeClass ? "opacity-30" : "opacity-100")}></div>
+                            {/* Overlay 10% Dark per user request */}
+                            <div className="absolute inset-0 bg-black/10 z-10" />
 
                             {/* Contenido del slide - Fijo para todos los slides */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-start md:justify-center z-20 px-4 pt-40 pb-20 md:pt-16 md:pb-0">
-                                <div className="max-w-4xl text-center space-y-6 md:space-y-8 px-4">
+                            <div className="absolute inset-0 flex flex-col items-center justify-between md:justify-center z-20 px-4 pt-40 pb-32 md:pt-16 md:pb-0">
+                                <div className="max-w-4xl md:max-w-full text-center space-y-6 md:space-y-8 px-4">
                                     <div className="inline-block px-4 py-2 bg-cardenal-gold/20 backdrop-blur-sm border-l-4 border-cardenal-gold mb-4 animate-fadeInDown">
                                         <span className={cn("text-white text-xs md:text-sm font-bold uppercase tracking-[0.4em]", themeClass ? "italic" : "")}>
                                             {HERO_CONTENT.subtitle}
                                         </span>
                                     </div>
                                     <h1 className={cn(
-                                        "text-4xl md:text-8xl font-black text-white leading-[1.1] md:leading-tight animate-fadeInUp drop-shadow-2xl font-serif whitespace-nowrap",
+                                        "text-6xl sm:text-7xl md:text-7xl lg:text-8xl font-black text-white leading-[1.05] md:leading-tight animate-fadeInUp drop-shadow-2xl font-serif text-center mx-auto",
                                         themeClass ? "tracking-wider" : ""
                                     )}>
                                         {HERO_CONTENT.title}
                                     </h1>
-                                    <p className="text-lg md:text-2xl text-white/95 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-lg font-body animate-fadeInUp delay-200">
+                                    <p className="hidden md:block text-base md:text-xl text-white/95 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-lg font-body animate-fadeInUp delay-200">
                                         {expanded
                                             ? HERO_CONTENT.description
-                                            : "En Hotel El Cardenal te ofrecemos una estancia acogedora y segura en el sector más tranquilo de la ciudad. Disfruta de la comodidad de nuestras 6 exclusivas habitaciones..."}
+                                            : "En Hotel El Cardenal ofrecemos una estancia acogedora y segura donde se sentirá como en casa..."}
                                     </p>
                                     <button
                                         onClick={() => setExpanded(!expanded)}
-                                        className="mt-3 md:mt-4 text-cardenal-gold font-bold hover:text-white transition-colors uppercase text-xs md:text-sm tracking-widest border-b border-cardenal-gold"
+                                        className="hidden md:inline-block mt-3 md:mt-4 text-cardenal-gold font-bold hover:text-white transition-colors uppercase text-xs md:text-sm tracking-widest border-b border-cardenal-gold"
                                     >
                                         {expanded ? 'Ocultar' : 'Seguir leyendo'}
                                     </button>
@@ -333,14 +342,14 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                     </div>
                 </div>
 
+                {/* Sección Nuestras Habitaciones - Moved before Nuestra Propuesta */}
+                <HabitacionesHome themeClass={themeClass} />
+
                 {/* Sección Nuestra Propuesta */}
                 <NuestraPropuesta />
 
                 {/* Sección Amenidades Destacadas */}
                 <AmenidadesCarousel />
-
-                {/* Sección Nuestras Habitaciones */}
-                <HabitacionesHome themeClass={themeClass} />
 
                 {/* Sección Galería Preview */}
                 <GaleriaPreview />
@@ -348,7 +357,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                 {/* Sección Confianza y Credibilidad */}
                 <ConfianzaCredibilidad />
 
-                {/* Sección Experiencia Gastronómica */}
+                {/* Sección Ubicación y Turismo (Mapa Full Width) */}
                 <RestauranteHome />
 
                 {/* Sección Preguntas Frecuentes */}

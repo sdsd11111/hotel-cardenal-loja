@@ -131,7 +131,7 @@ function PagosContent() {
 
     return (
         <div className="min-h-screen bg-[#f3f4f6] flex flex-col font-sans">
-            <Header logo="/logo.jpg" />
+            <Header logo="/logo.png" />
 
             <main className="flex-1 pt-32 pb-12 px-4 flex flex-col items-center">
                 <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-2xl overflow-hidden">
