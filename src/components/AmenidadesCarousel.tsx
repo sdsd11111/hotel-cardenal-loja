@@ -40,7 +40,7 @@ export const AmenidadesCarousel = () => {
                 {/* Section Title */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-8 font-serif leading-tight">
-                        NUESTROS <span className="text-cardenal-gold-dark">SERVICIOS EXCEPCIONALES</span>
+                        NUESTROS <span className="text-cardenal-gold">SERVICIOS EXCEPCIONALES</span>
                     </h2>
                     <div className="text-lg md:text-xl font-medium leading-relaxed space-y-3">
                         <p className="text-cardenal-brown font-semibold">Habitaciones con historia, diseñadas para tu comodidad</p>
@@ -79,7 +79,6 @@ export const AmenidadesCarousel = () => {
                                 <Link
                                     href={servicio.href}
                                     className="inline-flex items-center gap-2 bg-cardenal-gold hover:bg-cardenal-green text-white font-bold py-2.5 px-5 transition-all duration-300 text-xs uppercase tracking-widest shadow-lg group-hover:gap-3"
-                                    aria-label={`Ver más sobre ${servicio.title}`}
                                 >
                                     Ver más
                                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

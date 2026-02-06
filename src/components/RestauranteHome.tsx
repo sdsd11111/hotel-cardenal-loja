@@ -27,12 +27,12 @@ export const RestauranteHome = () => {
                 <div className="text-center mb-12 max-w-4xl mx-auto">
                     <div className="inline-flex items-center gap-2 mb-6">
                         <MapPin className="w-6 h-6 text-cardenal-gold" />
-                        <span className="text-cardenal-gold-dark font-bold text-xs uppercase tracking-[0.3em] font-serif">
+                        <span className="text-cardenal-gold font-bold text-xs uppercase tracking-[0.3em] font-serif">
                             Ubicación Privilegiada
                         </span>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green font-serif leading-tight">
-                        Explore Loja desde el <span className="text-cardenal-gold-dark italic">Corazón de la Tradición</span>
+                        Explore Loja desde el <span className="text-cardenal-gold italic">Corazón de la Tradición</span>
                     </h2>
                 </div>
 

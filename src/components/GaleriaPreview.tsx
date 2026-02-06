@@ -159,7 +159,7 @@ export const GaleriaPreview = () => {
                 {/* Section Header */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <div className="inline-block mb-6">
-                        <span className="text-cardenal-gold-dark font-bold text-xs uppercase tracking-[0.3em] bg-cardenal-gold/10 px-6 py-3 font-serif">
+                        <span className="text-cardenal-gold font-bold text-xs uppercase tracking-[0.3em] bg-cardenal-gold/10 px-6 py-3 font-serif">
                             Galería de Experiencias
                         </span>
                     </div>
@@ -249,7 +249,6 @@ export const GaleriaPreview = () => {
                     <Link
                         href="/galeria"
                         className="inline-flex items-center gap-3 bg-cardenal-green hover:bg-cardenal-gold text-white font-bold py-5 px-10 transition-all duration-500 shadow-xl font-serif tracking-widest text-sm group"
-                        aria-label="Ver galería completa de fotos del hotel"
                     >
                         VER GALERÍA COMPLETA
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />

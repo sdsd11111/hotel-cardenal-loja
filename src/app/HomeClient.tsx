@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import dynamic from 'next/dynamic';
-const NuestraPropuesta = dynamic(() => import("@/components/NuestraPropuesta").then(m => m.NuestraPropuesta), { ssr: false });
-const AmenidadesCarousel = dynamic(() => import("@/components/AmenidadesCarousel").then(m => m.AmenidadesCarousel), { ssr: false });
-const HabitacionesHome = dynamic(() => import("@/components/HabitacionesHome").then(m => m.HabitacionesHome), { ssr: false });
-const GaleriaPreview = dynamic(() => import("@/components/GaleriaPreview").then(m => m.GaleriaPreview), { ssr: false });
-const ConfianzaCredibilidad = dynamic(() => import("@/components/ConfianzaCredibilidad").then(m => m.ConfianzaCredibilidad), { ssr: false });
-const RestauranteHome = dynamic(() => import("@/components/RestauranteHome").then(m => m.RestauranteHome), { ssr: false });
-const FAQ = dynamic(() => import("@/components/FAQ").then(m => m.FAQ), { ssr: false });
+
+// Lazy load components below the fold for performance
+const NuestraPropuesta = dynamic(() => import("@/components/NuestraPropuesta").then(mod => mod.NuestraPropuesta));
+const AmenidadesCarousel = dynamic(() => import("@/components/AmenidadesCarousel").then(mod => mod.AmenidadesCarousel));
+const HabitacionesHome = dynamic(() => import("@/components/HabitacionesHome").then(mod => mod.HabitacionesHome));
+const GaleriaPreview = dynamic(() => import("@/components/GaleriaPreview").then(mod => mod.GaleriaPreview));
+const ConfianzaCredibilidad = dynamic(() => import("@/components/ConfianzaCredibilidad").then(mod => mod.ConfianzaCredibilidad));
+const RestauranteHome = dynamic(() => import("@/components/RestauranteHome").then(mod => mod.RestauranteHome));
+const FAQ = dynamic(() => import("@/components/FAQ").then(mod => mod.FAQ));
 import { headerData } from "@/types";
 import { ChevronLeft, ChevronRight, Minus, Plus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -142,8 +144,8 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                 fill
                                 className="object-cover"
                                 priority={index === 0}
-                                quality={70}
-                                sizes="(max-width: 768px) 100vw, (max-width: 1920px) 100vw, 1920px"
+                                quality={60}
+                                sizes="(max-width: 1920px) 100vw, 1920px"
                             />
                             {/* Overlay 10% Dark per user request */}
                             <div className="absolute inset-0 bg-black/10 z-10" />

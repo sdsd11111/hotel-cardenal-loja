@@ -34,145 +34,42 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
   const initialized = useRef(false);
 
   useEffect(() => {
-    // Only initialize the widget if this is the main instance (not in header)
-    if (inHeader) return;
+    const loadScript = () => {
+      if ((window as any).__googleTranslateInitializedScript) return;
+      (window as any).__googleTranslateInitializedScript = true;
 
-    // Prevent multiple initializations
-    if (initialized.current || window.__googleTranslateInitialized) {
-      return;
-    }
+      const script = document.createElement('script');
+      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      script.async = true;
+      document.body.appendChild(script);
+    };
 
-    initialized.current = true;
-    window.__googleTranslateInitialized = true;
-
-    // Initialize Google Translate widget FIRST
     window.googleTranslateElementInit = () => {
       if (window.google && window.google.translate) {
         new window.google.translate.TranslateElement(
           {
             pageLanguage: 'es',
             includedLanguages: 'en,es,fr,de,it,pt,zh-CN',
-            layout: window.google.translate.TranslateElement.InlineLayout.VERTICAL, // VERTICAL creates a select element
+            layout: window.google.translate.TranslateElement.InlineLayout.VERTICAL,
             autoDisplay: false,
           },
           'google_translate_element'
         );
-
-        // Apply hiding styles AFTER widget has been created
-        setTimeout(() => {
-          const style = document.createElement('style');
-          style.id = 'google-translate-custom-styles';
-          style.innerHTML = `
-            /* Hide Google Translate widget but keep it functional */
-            #google_translate_element {
-              visibility: hidden !important;
-              opacity: 0 !important;
-              position: fixed !important;
-              top: -9999px !important;
-              z-index: -9999 !important;
-              pointer-events: none !important;
-            }
-            
-            /* CRITICAL: Hide ALL Google Translate banner variations */
-            .goog-te-banner-frame {
-              display: none !important;
-              visibility: hidden !important;
-            }
-            
-            .goog-te-banner-frame.skiptranslate {
-              display: none !important;
-              visibility: hidden !important;
-            }
-            
-            iframe.goog-te-banner-frame {
-              display: none !important;
-              visibility: hidden !important;
-            }
-            
-            iframe.skiptranslate {
-              display: none !important;
-              visibility: hidden !important;
-            }
-            
-            /* Force body to not have top offset from banner */
-            body {
-              top: 0px !important;
-              position: static !important;
-            }
-            
-            body.translated-ltr {
-              top: 0px !important;
-              position: static !important;
-            }
-            
-            /* Hide the select but keep it functional */
-            .goog-te-combo {
-              visibility: hidden !important;
-              position: fixed !important;
-              top: -9999px !important;
-            }
-            
-            /* Hide Google branding */
-            .goog-logo-link {
-              display: none !important;
-            }
-            
-            .goog-te-gadget {
-              color: transparent !important;
-            }
-            
-            .goog-te-gadget > span,
-            .goog-te-gadget > div {
-              display: none !important;
-              visibility: hidden !important;
-            }
-            
-            /* Hide any floating elements Google adds */
-            .skiptranslate {
-              display: hidden !important;
-              font-size: 0 !important;
-            }
-            
-            #goog-gt- {
-              display: none !important;
-            }
-            
-            [id^="goog-gt-"] {
-              display: none !important;
-            }
-          `;
-
-          if (!document.getElementById('google-translate-custom-styles')) {
-            document.head.appendChild(style);
-            console.log('✅ Google Translate styles applied');
-          }
-        }, 1000); // Wait 1 second after initialization to hide
       }
     };
 
-    // Load Google Translate script only after a short delay and if not already loaded
-    const loadScript = () => {
-      const existingScript = document.querySelector('script[src*="translate.google.com"]');
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-        script.async = true;
-        document.body.appendChild(script);
-      } else if (window.google && window.google.translate) {
-        window.googleTranslateElementInit();
-      }
-    };
-
-    // Use interaction or timeout to load the heavy third-party script
-    const timeoutId = setTimeout(() => {
-      if (document.readyState === 'complete') {
-        loadScript();
-      } else {
-        window.addEventListener('load', loadScript, { once: true });
-      }
-    }, 4000); // Increased delay to 4s for better performance scores
-
-    return () => clearTimeout(timeoutId);
+    // Load only on main instance or if header is the only one
+    if (!inHeader || !document.getElementById('google_translate_element')) {
+      // Short delay to avoid blocking initial render
+      const timeoutId = setTimeout(() => {
+        if (document.readyState === 'complete') {
+          loadScript();
+        } else {
+          window.addEventListener('load', loadScript, { once: true });
+        }
+      }, 1000);
+      return () => clearTimeout(timeoutId);
+    }
   }, [inHeader]);
 
   const changeLanguage = (lang: typeof languages[0]) => {
@@ -226,8 +123,21 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
 
   return (
     <div className="relative">
-      {/* Hidden Google Translate element - ONLY render if not in header (main instance) */}
-      {!inHeader && <div id="google_translate_element" />}
+      {/* Hidden Google Translate element - ONLY render once to avoid duplicate IDs */}
+      {!inHeader && <div id="google_translate_element" className="fixed -top-9999 left-0 h-0 w-0 overflow-hidden pointer-events-none opacity-0" />}
+
+      {/* Global CSS to hide Google's default UI elements */}
+      {!inHeader && (
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            body { top: 0 !important; position: static !important; }
+            .goog-te-banner-frame, .goog-te-menu-frame, .goog-te-balloon-frame { display: none !important; }
+            .goog-te-gadget { font-size: 0 !important; color: transparent !important; }
+            #google_translate_element { display: none !important; }
+            .skiptranslate { display: none !important; }
+            #goog-gt- { display: none !important; }
+          `}} />
+      )}
 
       {/* Custom Language Selector */}
       {!hideUI && (
@@ -239,6 +149,7 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
               textColor ? textColor : (inHeader ? 'text-white hover:text-yellow-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100')
             )}
             style={inHeader && !textColor ? { textShadow: '0 2px 4px rgba(0,0,0,0.8)' } : {}}
+            aria-label="Seleccionar idioma"
           >
             <span className="text-base">{currentLang.flag}</span>
             <span className="hidden sm:inline">{currentLang.code.toUpperCase()}</span>

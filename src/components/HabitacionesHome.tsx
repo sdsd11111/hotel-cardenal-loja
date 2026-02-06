@@ -64,7 +64,7 @@ export const HabitacionesHome = ({ themeClass }: { themeClass?: string }) => {
                 {/* Section Title */}
                 <div className="text-center mb-16 max-w-4xl mx-auto">
                     <h2 className={cn("text-3xl md:text-5xl font-bold mb-6 font-serif", isTheme2 ? "text-white" : "text-cardenal-green")}>
-                        Habitaciones y Alojamiento en Loja: <span className="text-cardenal-gold-dark italic">Descanso Íntimo junto a la Naturaleza</span>
+                        Habitaciones y Alojamiento en Loja: <span className="text-cardenal-gold italic">Descanso Íntimo junto a la Naturaleza</span>
                     </h2>
                     <p className={cn("text-lg md:text-xl font-medium leading-relaxed", isTheme2 ? "text-white/90" : "text-text-main")}>
                         Descubra la armonía entre el diseño neoclásico y el descanso moderno en nuestras 6 exclusivas habitaciones.

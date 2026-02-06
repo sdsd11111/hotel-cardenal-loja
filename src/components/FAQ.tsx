@@ -93,7 +93,7 @@ export const FAQ = () => {
                         </span>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-bold text-cardenal-green mb-6 font-serif leading-tight">
-                        Experiencia del Huésped: <span className="text-cardenal-gold-dark italic">Preguntas Frecuentes</span> sobre su Estancia
+                        Experiencia del Huésped: <span className="text-cardenal-gold italic">Preguntas Frecuentes</span> sobre su Estancia
                     </h2>
                     <h3 className="text-lg md:text-xl text-text-muted font-medium leading-relaxed">
                         Resolvemos sus dudas para que su visita al Hotel El Cardenal sea perfecta.
