@@ -124,6 +124,8 @@ export const NuestraPropuesta = () => {
                                         fill
                                         className="object-cover"
                                         loading="lazy"
+                                        sizes="(max-width: 1200px) 100vw, 800px"
+                                        quality={60}
                                     />
                                     {/* Dark overlay */}
                                     <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors"></div>

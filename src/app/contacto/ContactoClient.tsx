@@ -306,8 +306,8 @@ function ContactoContent() {
                         fill
                         className="object-cover"
                         priority
-                        sizes="(max-width: 1920px) 100vw, 1920px"
-                        quality={60}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1200px) 100vw, 1600px"
+                        quality={50}
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
 

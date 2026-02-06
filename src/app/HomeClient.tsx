@@ -40,19 +40,19 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
     const heroSlides = [
         {
             id: 1,
-            image: '/images/hero/hero-main.webp?v=2',
+            image: '/images/hero/hero-main.webp',
         },
         {
             id: 2,
-            image: '/images/hero/hero-services.webp?v=2',
+            image: '/images/hero/hero-services.webp',
         },
         {
             id: 3,
-            image: '/images/hero/hero-tres.webp?v=2',
+            image: '/images/hero/hero-tres.webp',
         },
         {
             id: 4,
-            image: '/images/hero/hero-cuatro.webp?v=2',
+            image: '/images/hero/hero-cuatro.webp',
         }
     ];
 
@@ -144,8 +144,8 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                 fill
                                 className="object-cover"
                                 priority={index === 0}
-                                quality={60}
-                                sizes="(max-width: 1920px) 100vw, 1920px"
+                                quality={50}
+                                sizes="(max-width: 640px) 100vw, (max-width: 1200px) 100vw, 1600px"
                             />
                             {/* Overlay 10% Dark per user request */}
                             <div className="absolute inset-0 bg-black/10 z-10" />

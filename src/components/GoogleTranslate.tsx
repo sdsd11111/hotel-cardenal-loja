@@ -60,14 +60,22 @@ export default function GoogleTranslate({ inHeader = false, hideUI = false, text
 
     // Load only on main instance or if header is the only one
     if (!inHeader || !document.getElementById('google_translate_element')) {
-      // Short delay to avoid blocking initial render
+      // Extreme delay to avoid blocking initial render and LCP
       const timeoutId = setTimeout(() => {
+        const initLoad = () => {
+          if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(() => loadScript());
+          } else {
+            loadScript();
+          }
+        };
+
         if (document.readyState === 'complete') {
-          loadScript();
+          initLoad();
         } else {
-          window.addEventListener('load', loadScript, { once: true });
+          window.addEventListener('load', initLoad, { once: true });
         }
-      }, 1000);
+      }, 4000);
       return () => clearTimeout(timeoutId);
     }
   }, [inHeader]);
