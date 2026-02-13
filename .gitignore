@@ -36,6 +36,29 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Local Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database Migration Scripts (Temporary)
+migrate_*.mjs
+audit_*.mjs
+check_*.mjs
+debug_*.mjs
+verify_*.mjs
+inspect_*.mjs
+list_tables.mjs
+*_out.txt
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!jsconfig.json
+!next.config.mjs
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
