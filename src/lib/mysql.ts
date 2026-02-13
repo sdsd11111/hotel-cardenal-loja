@@ -13,9 +13,6 @@ const dbConfig = {
     keepAliveInitialDelay: 10000,
     connectTimeout: 20000, // 20 seconds
     timezone: '-05:00', // Ecuador Time
-    ssl: {
-        rejectUnauthorized: false
-    }
 };
 
 // Pool de conexiones (reutilizable)
