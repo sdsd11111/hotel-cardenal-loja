@@ -25,15 +25,22 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
-// Configuración de las 6 habitaciones reales sincronizadas con IDs de DB
-const ROOMS_CONFIG = [
-    { id: 1, name: 'Habitación Matrimonial', num: '301', type: 'matrimonial', capacity: 2, color: 'border-pink-200 bg-pink-50' },
-    { id: 2, name: 'Habitación Doble', num: '301', type: 'matrimonial', capacity: 2, color: 'border-pink-200 bg-pink-50' },
-    { id: 3, name: 'Habitación Triple', num: '302', type: 'doble', capacity: 3, color: 'border-blue-200 bg-blue-50' },
-    { id: 4, name: 'Habitación Cuádruple', num: '302', type: 'doble', capacity: 3, color: 'border-blue-200 bg-blue-50' },
-    { id: 5, name: 'Habitación Familiar', num: '303', type: 'triple', capacity: 4, color: 'border-green-200 bg-green-50' },
-    { id: 6, name: 'Habitación Suite', num: '303', type: 'triple', capacity: 4, color: 'border-green-200 bg-green-50' },
-];
+// La configuración de habitaciones ahora es dinámica. 
+// Definimos los colores estáticos por ID o tipo para mantener la estética.
+const ROOM_COLORS: Record<string, string> = {
+    '301': 'border-pink-200 bg-pink-50',
+    '302': 'border-blue-200 bg-blue-50',
+    '303': 'border-green-200 bg-green-50',
+};
+
+interface Room {
+    id: number;
+    name: string;
+    num: string;
+    type: string;
+    capacity: number;
+    color: string;
+}
 
 interface Reserva {
     id: number;
@@ -52,7 +59,8 @@ interface Reserva {
 }
 
 export default function RecepcionPage() {
-    const [selectedRoom, setSelectedRoom] = useState(ROOMS_CONFIG[0]);
+    const [rooms, setRooms] = useState<Room[]>([]);
+    const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [reservas, setReservas] = useState<Reserva[]>([]);
     const [loading, setLoading] = useState(true);
@@ -76,7 +84,60 @@ export default function RecepcionPage() {
         estado: 'PENDIENTE'
     });
 
+    // Dynamic Rooms Fetch
+    useEffect(() => {
+        const fetchRooms = async () => {
+            try {
+                const res = await fetch('/api/habitaciones');
+                if (res.ok) {
+                    const data = await res.json();
+                    const mappedRooms = data.map((r: any) => {
+                        const nameLower = r.nombre.toLowerCase();
+                        let type = 'Triple';
+                        let identifier = '303';
+                        let num = '303';
+
+                        if (nameLower.includes('matrimonial') || nameLower.includes('301')) {
+                            type = 'Matrimonial';
+                            identifier = '301';
+                            num = '301';
+                        } else if (nameLower.includes('triple') || nameLower.includes('303')) {
+                            type = 'Triple';
+                            identifier = '303';
+                            num = '303';
+                        } else if (nameLower.includes('twin') || nameLower.includes('302') || nameLower.includes('doble')) {
+                            type = 'Doble';
+                            identifier = '302';
+                            num = '302';
+                        }
+
+                        return {
+                            id: r.id,
+                            name: r.nombre,
+                            num: num,
+                            type: type,
+                            capacity: r.max_adultos + (r.max_ninos || 0),
+                            color: ROOM_COLORS[identifier] || 'border-gray-200 bg-gray-50'
+                        };
+                    }).sort((a: any, b: any) => {
+                        const order: Record<string, number> = { '301': 1, '302': 2, '303': 3 };
+                        const idA = a.num || '303';
+                        const idB = b.num || '303';
+                        return (order[idA] || 4) - (order[idB] || 4);
+                    });
+
+                    setRooms(mappedRooms);
+                    if (mappedRooms.length > 0) setSelectedRoom(mappedRooms[0]);
+                }
+            } catch (err) {
+                console.error('Error fetching rooms:', err);
+            }
+        };
+        fetchRooms();
+    }, []);
+
     const fetchReservas = useCallback(async () => {
+        if (!selectedRoom) return;
         setLoading(true);
         try {
             const year = currentDate.getFullYear();
@@ -94,7 +155,7 @@ export default function RecepcionPage() {
         } finally {
             setLoading(false);
         }
-    }, [currentDate]);
+    }, [currentDate, selectedRoom]);
 
     // Efecto para refresh manual o automático
     useEffect(() => {
@@ -129,9 +190,10 @@ export default function RecepcionPage() {
     };
 
     const getReservaForDate = (date: Date) => {
-        if (!date) return undefined;
+        if (!date || !selectedRoom) return undefined;
         const dateStr = date.toISOString().split('T')[0];
         return reservas.find(r => {
+            if (!selectedRoom) return false;
             if (Number(r.habitacion_id) !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
             const checkIn = String(r.fecha_entrada).split('T')[0];
@@ -141,9 +203,10 @@ export default function RecepcionPage() {
     };
 
     const getCheckInForDate = (date: Date) => {
-        if (!date) return undefined;
+        if (!date || !selectedRoom) return undefined;
         const dateStr = date.toISOString().split('T')[0];
         return reservas.find(r => {
+            if (!selectedRoom) return false;
             if (Number(r.habitacion_id) !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
             return String(r.fecha_entrada).split('T')[0] === dateStr;
@@ -151,9 +214,10 @@ export default function RecepcionPage() {
     };
 
     const getCheckOutForDate = (date: Date) => {
-        if (!date) return undefined;
+        if (!date || !selectedRoom) return undefined;
         const dateStr = date.toISOString().split('T')[0];
         return reservas.find(r => {
+            if (!selectedRoom) return false;
             if (Number(r.habitacion_id) !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
             return String(r.fecha_salida).split('T')[0] === dateStr;
@@ -172,6 +236,11 @@ export default function RecepcionPage() {
     };
 
     const handleDayClick = (date: Date) => {
+        if (!selectedRoom) {
+            alert('Por favor, selecciona una habitación primero.');
+            return;
+        }
+
         const occupied = getReservaForDate(date);
         if (occupied) {
             setEditingReserva(occupied);
@@ -212,6 +281,10 @@ export default function RecepcionPage() {
     };
 
     const handleNewBooking = () => {
+        if (!selectedRoom) {
+            alert('Por favor, selecciona una habitación primero.');
+            return;
+        }
         const today = new Date();
         const dateStr = today.toISOString().split('T')[0];
         setSelectedDate(dateStr);
@@ -234,6 +307,7 @@ export default function RecepcionPage() {
 
     const handleSaveManualReserva = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!selectedRoom) return;
 
         // 1. Validar Capacidad
         if (formData.adultos + formData.ninos > selectedRoom.capacity) {
@@ -243,6 +317,7 @@ export default function RecepcionPage() {
 
         // 2. Validar Solapamientos (Overlap)
         const hasOverlap = reservas.some(r => {
+            if (!selectedRoom) return false;
             if (r.habitacion_id !== selectedRoom.id) return false;
             if (r.estado === 'CANCELADA') return false;
             if (editingReserva && r.id === editingReserva.id) return false;
@@ -392,18 +467,23 @@ export default function RecepcionPage() {
                 {/* Sidebar: Rooms */}
                 <aside className="w-80 bg-white border-r-2 border-gray-300 overflow-y-auto p-6 flex flex-col gap-4">
                     <h3 className="text-sm font-black uppercase tracking-[0.2em] text-black border-b-2 border-gray-200 pb-2 mb-2">Seleccionar Habitación</h3>
-                    {ROOMS_CONFIG.map((room) => (
+                    {rooms.length === 0 && (
+                        <div className="flex items-center justify-center p-8 text-gray-400">
+                            <Loader2 className="w-6 h-6 animate-spin mr-2" /> Cargando...
+                        </div>
+                    )}
+                    {rooms.map((room) => (
                         <button
                             key={room.id}
                             onClick={() => setSelectedRoom(room)}
                             className={cn(
                                 "flex flex-col p-5 rounded-2xl border-4 transition-all duration-300 text-left relative overflow-hidden group shadow-sm",
-                                selectedRoom.id === room.id
+                                selectedRoom?.id === room.id
                                     ? "border-cardenal-gold bg-cardenal-gold/10 shadow-lg"
                                     : "border-gray-200 bg-white hover:border-gray-400 hover:shadow-md"
                             )}
                         >
-                            {selectedRoom.id === room.id && (
+                            {selectedRoom?.id === room.id && (
                                 <div className="absolute top-3 right-3">
                                     <CheckCircle2 className="w-6 h-6 text-cardenal-gold" />
                                 </div>
@@ -436,7 +516,7 @@ export default function RecepcionPage() {
                                 <h2 className="text-2xl font-black text-black capitalize font-serif">
                                     {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                                 </h2>
-                                <p className="text-sm text-gray-800 font-bold mt-0.5">Habitación: <span className="text-cardenal-gold font-black bg-gray-100 px-2 py-0.5 rounded border border-gray-200">{selectedRoom.name}</span></p>
+                                <p className="text-sm text-gray-800 font-bold mt-0.5">Habitación: <span className="text-cardenal-gold font-black bg-gray-100 px-2 py-0.5 rounded border border-gray-200">{selectedRoom?.name || '...'}</span></p>
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="flex bg-white p-1 rounded-xl border border-gray-300 shadow-sm">
@@ -449,7 +529,8 @@ export default function RecepcionPage() {
                                     </Button>
                                 </div>
                                 <Button className="bg-cardenal-green hover:bg-cardenal-green/90 text-white rounded-xl font-black text-sm py-2 px-4 shadow-md flex gap-2 transform active:scale-95 transition-all"
-                                    onClick={handleNewBooking}>
+                                    onClick={handleNewBooking}
+                                    disabled={!selectedRoom}>
                                     <Plus className="w-5 h-5 stroke-[3px]" />
                                     NUEVA RESERVA
                                 </Button>
@@ -549,7 +630,7 @@ export default function RecepcionPage() {
                             <div className={cn("p-8 flex items-center justify-between text-white", editingReserva ? "bg-cardenal-gold" : "bg-cardenal-green")}>
                                 <div className="flex flex-col">
                                     <h3 className="text-2xl font-serif font-bold">{editingReserva ? 'Editar Estado' : 'Reserva Manual'}</h3>
-                                    <p className="text-sm text-white/70">Habitación: <span className="font-bold">{selectedRoom.name}</span></p>
+                                    <p className="text-sm text-white/70">Habitación: <span className="font-bold">{selectedRoom?.name || '...'}</span></p>
                                     {editingReserva && (
                                         <Link href="/admin/clientes" target="_blank" className="mt-2 inline-flex items-center gap-1 text-xs font-black bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg w-fit transition-colors">
                                             <User className="w-3 h-3" /> Ir a Gestión del Cliente
@@ -618,7 +699,7 @@ export default function RecepcionPage() {
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Adultos</label>
-                                        <Input type="number" min="1" max={selectedRoom.capacity} value={formData.adultos || 1} onChange={e => setFormData({ ...formData, adultos: parseInt(e.target.value) || 1 })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
+                                        <Input type="number" min="1" max={selectedRoom?.capacity || 4} value={formData.adultos || 1} onChange={e => setFormData({ ...formData, adultos: parseInt(e.target.value) || 1 })} className="bg-white border-2 border-gray-400 rounded-xl py-7 text-lg font-black text-black" />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black uppercase tracking-widest text-black mb-1 block">Niños</label>

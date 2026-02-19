@@ -301,16 +301,17 @@ function HabitacionesContent() {
                 const nombreLower = room.nombre.toLowerCase();
                 let identifier = '303'; // Default logic to match modal
 
-                if (nombreLower.includes('301') || nombreLower.includes('matrimonial')) {
+                // Improved categorization logic to handle 'Doble Matrimonial' correctly (Matrimonial takes precedence)
+                if (nombreLower.includes('matrimonial') || nombreLower.includes('301')) {
                     identifier = '301';
-                } else if (nombreLower.includes('302') || nombreLower.includes('doble') || nombreLower.includes('twin')) {
-                    identifier = '302';
-                } else if (nombreLower.includes('303') || nombreLower.includes('triple')) {
+                } else if (nombreLower.includes('triple') || nombreLower.includes('303')) {
                     identifier = '303';
+                } else if (nombreLower.includes('twin') || nombreLower.includes('302') || (nombreLower.includes('doble') && !nombreLower.includes('matrimonial'))) {
+                    identifier = '302';
                 } else {
                     // Fallback based on capacity if name doesn't help
                     if (room.max_adultos <= 2) identifier = '301';
-                    else if (room.max_adultos === 3) identifier = '303'; // Corregido: 3 personas es Triple (303)
+                    else if (room.max_adultos === 3) identifier = '302';
                     else identifier = '303';
                 }
 
@@ -571,11 +572,12 @@ function HabitacionesContent() {
         }
     }).sort((a, b) => {
         // Ordenar: Matrimonial (301) primero, luego Doble Twin (302), luego Triple (303)
+        // Ordenar: Matrimonial (301) primero, luego Doble Twin (302), luego Triple (303)
         const getRoomTypeOrder = (hab: Habitacion) => {
             const nombre = hab.nombre.toLowerCase();
+            if (nombre.includes('matrimonial')) return 1; // 301
+            if (nombre.includes('twin') || (nombre.includes('doble') && !nombre.includes('matrimonial'))) return 2; // 302
             if (nombre.includes('triple')) return 3; // 303
-            if (nombre.includes('2 camas') || nombre.includes('twin')) return 2; // 302
-            if (nombre.includes('doble') || nombre.includes('matrimonial')) return 1; // 301
             return 4; // Otras al final
         };
         return getRoomTypeOrder(a) - getRoomTypeOrder(b);

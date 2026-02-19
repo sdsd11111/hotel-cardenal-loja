@@ -8,11 +8,14 @@ const dbConfig = {
     database: 'enloja_hotelcardenal'
 };
 
-async function listTables() {
+async function describeTables() {
     const conn = await mysql.createConnection(dbConfig);
-    const [tables] = await conn.execute('SHOW TABLES');
-    console.log(tables);
+
+    console.log('\n--- DESCRIBE room_type_configs ---');
+    const [cols] = await conn.execute('DESCRIBE room_type_configs');
+    console.log(JSON.stringify(cols, null, 2));
+
     await conn.end();
 }
 
-listTables().catch(console.error);
+describeTables().catch(console.error);
