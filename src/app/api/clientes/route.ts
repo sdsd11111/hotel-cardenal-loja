@@ -46,7 +46,7 @@ export async function GET(request: Request) {
             params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
 
-        sql += ` ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        sql += ` ORDER BY created_at DESC, id DESC LIMIT ${limit} OFFSET ${offset}`;
 
         const clientes = await query(sql, params);
 
