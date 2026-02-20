@@ -622,25 +622,28 @@ function HabitacionesContent() {
         return 'triple';
     };
 
-    const addToCart = (habitacion: Habitacion, mealsOverride?: { desayuno: boolean; almuerzo: boolean; cena: boolean }) => {
+    const addToCart = (habitacion: Habitacion, mealsOverride?: { desayuno: boolean; almuerzo: boolean; cena: boolean }, personasOverride?: number) => {
         const meals = mealsOverride || pendingMeals[habitacion.id] || { desayuno: false, almuerzo: false, cena: false };
 
-        // Find the correct price option based on current filters
-        const ninosCobradosComoAdultos = appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
-        const totalAdultosEfectivos = appliedFilters.adultos + ninosCobradosComoAdultos;
+        // Determine effective occupancy for this specific addition
+        const effectivePersonas = personasOverride || (appliedFilters.adultos + appliedFilters.ninos);
 
-        const option = habitacion.priceOptions?.find(opt => opt.personas === totalAdultosEfectivos)
+        // Find the correct price option based on this occupancy
+        const option = habitacion.priceOptions?.find(opt => opt.personas === effectivePersonas)
             || habitacion.priceOptions?.[0]
-            || { personas: totalAdultosEfectivos, precioBase: habitacion.precioNumerico, impuestos: 0 };
+            || { personas: effectivePersonas, precioBase: habitacion.precioNumerico, impuestos: 0 };
 
         setCart(prev => {
             const newItem: CartItem = {
                 habitacion,
                 cantidad: 1,
                 comidas: { ...meals },
-                adultos: appliedFilters.adultos,
-                ninos: appliedFilters.ninos,
-                ninosEdades: [...appliedFilters.ninosEdades],
+                // Split guests if possible, but for meal calculation the sum is what matters most
+                // If we have personasOverride, we can't know for sure how many are kids without more logic,
+                // but we can estimate or just use the sum since meal price usually applies to everyone.
+                adultos: personasOverride !== undefined ? personasOverride : appliedFilters.adultos,
+                ninos: personasOverride !== undefined ? 0 : appliedFilters.ninos,
+                ninosEdades: personasOverride !== undefined ? [] : [...appliedFilters.ninosEdades],
                 opcionPrecio: option
             };
             return [...prev, newItem];
@@ -1332,8 +1335,8 @@ function HabitacionesContent() {
                                     ...prev,
                                     [room.id]: mealsFromModal
                                 }));
-                                // Pass meals directly to avoid stale state
-                                addToCart(room, mealsFromModal);
+                                // Pass meals AND personas directly to avoid stale state or global filter issues
+                                addToCart(room, mealsFromModal, opciones.personas);
                             });
 
                             setAvailabilityRoom(null);
@@ -1344,58 +1347,84 @@ function HabitacionesContent() {
                 {/* Floating Bottom Cart Notification */}
                 {cart.length > 0 && (
                     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[50] w-full max-w-2xl px-4 animate-fadeInUp">
-                        <div className="bg-cardenal-green text-white p-4 md:p-6 shadow-2xl rounded-2xl border-2 border-cardenal-gold flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <div className="bg-white/20 p-3 rounded-xl">
-                                    <ShoppingCart className="w-6 h-6 text-cardenal-gold" />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-lg leading-tight">
-                                        {cart.reduce((total, item) => total + item.cantidad, 0)} {cart.length === 1 && cart[0].cantidad === 1 ? 'Habitación seleccionada' : 'Habitaciones seleccionadas'}
-                                    </p>
-                                    <p className="text-white/80 text-sm font-medium">
-                                        Total estimado: <span className="text-cardenal-gold font-bold text-base">US${calcularTotal().toFixed(2)}</span>
-                                    </p>
-                                </div>
+                        <div className="bg-cardenal-green text-white p-4 md:p-6 shadow-2xl rounded-2xl border-2 border-cardenal-gold flex flex-col gap-4">
+                            {/* Items List (Small dots or summary) */}
+                            <div className="flex flex-wrap gap-2 pb-2 border-b border-white/10">
+                                {cart.map((item, idx) => (
+                                    <div key={idx} className="bg-white/10 rounded-lg px-3 py-1.5 flex items-center gap-2 group animate-fadeIn">
+                                        <span className="text-[10px] font-bold text-cardenal-gold/80 flex items-center gap-1">
+                                            <Bed className="w-3 h-3" />
+                                            {item.habitacion.nombre}
+                                        </span>
+                                        <span className="text-[10px] opacity-70">
+                                            ({item.adultos + (item.ninosEdades?.length || 0)} p)
+                                        </span>
+                                        <button
+                                            onClick={() => removeFromCart(idx)}
+                                            className="hover:text-red-400 transition-colors p-0.5 rounded-full hover:bg-white/10"
+                                            title="Quitar"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
-                            <button
-                                onClick={() => {
-                                    // Save the full cart for the multi-room checkout
-                                    localStorage.setItem('pendingCheckoutCart', JSON.stringify(cart));
 
-                                    // Compatibility fallback: save the first item as the "single" item
-                                    // This prevents breaking if the user goes back to a version of checkout that doesn't support arrays
-                                    const firstItem = cart[0];
-                                    const noches = (() => {
-                                        if (!fechaEntrada || !fechaSalida) return 1;
-                                        const start = new Date(fechaEntrada);
-                                        const end = new Date(fechaSalida);
-                                        return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-                                    })();
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-white/20 p-3 rounded-xl">
+                                        <ShoppingCart className="w-6 h-6 text-cardenal-gold" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-lg leading-tight">
+                                            {cart.reduce((total, item) => total + item.cantidad, 0)} {cart.length === 1 && cart[0].cantidad === 1 ? 'Habitación seleccionada' : 'Habitaciones seleccionadas'}
+                                        </p>
+                                        <p className="text-white/80 text-sm font-medium">
+                                            Total estimado: <span className="text-cardenal-gold font-bold text-base">US${calcularTotal().toFixed(2)}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        localStorage.setItem('pendingCheckoutCart', JSON.stringify(cart));
 
-                                    localStorage.setItem('pendingCheckout', JSON.stringify({
-                                        habitacion: firstItem.habitacion,
-                                        option: firstItem.opcionPrecio,
-                                        cantidad: cart.length, // Total rooms of group
-                                        fechaEntrada,
-                                        fechaSalida,
-                                        comidas: firstItem.comidas,
-                                        adultos: firstItem.adultos,
-                                        ninos: firstItem.ninos,
-                                        ninosEdades: firstItem.ninosEdades,
-                                        childPricingPolicy,
-                                        childFixedPrice,
-                                        childAgeThreshold,
-                                        isMultiRoom: cart.length > 1
-                                    }));
+                                        // Clear stale session IDs for new checkout
+                                        localStorage.removeItem('savedReservaId');
+                                        localStorage.removeItem('clientTxId');
 
-                                    window.location.href = '/checkout';
-                                }}
-                                className="w-full md:w-auto bg-cardenal-gold hover:bg-white hover:text-cardenal-green text-cardenal-green-dark font-black py-3 px-8 rounded-xl transition-all duration-300 shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 group"
-                            >
-                                Finalizar Reserva
-                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
+                                        // Compatibility fallback: save the first item as the "single" item
+                                        const firstItem = cart[0];
+                                        const noches = (() => {
+                                            if (!fechaEntrada || !fechaSalida) return 1;
+                                            const start = new Date(fechaEntrada);
+                                            const end = new Date(fechaSalida);
+                                            return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+                                        })();
+
+                                        localStorage.setItem('pendingCheckout', JSON.stringify({
+                                            habitacion: firstItem.habitacion,
+                                            option: firstItem.opcionPrecio,
+                                            cantidad: cart.length,
+                                            fechaEntrada,
+                                            fechaSalida,
+                                            comidas: firstItem.comidas,
+                                            adultos: firstItem.adultos,
+                                            ninos: firstItem.ninos,
+                                            ninosEdades: firstItem.ninosEdades,
+                                            childPricingPolicy,
+                                            childFixedPrice,
+                                            childAgeThreshold,
+                                            isMultiRoom: cart.length > 1
+                                        }));
+
+                                        window.location.href = '/checkout';
+                                    }}
+                                    className="w-full md:w-auto bg-cardenal-gold hover:bg-white hover:text-cardenal-green text-cardenal-green-dark font-black py-3 px-8 rounded-xl transition-all duration-300 shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 group"
+                                >
+                                    Finalizar Reserva
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

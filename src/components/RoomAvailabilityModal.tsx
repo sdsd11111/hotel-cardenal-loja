@@ -486,7 +486,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                             mealSettings.dinner;
 
                                                     // Guests count for this item (Adults + Children)
-                                                    const totalGuests = initialOccupancy; // This matches the personas in the option
+                                                    const totalGuests = option.personas;
 
                                                     return total + (isSelected && !isIncluded ? price * totalGuests : 0);
                                                 }, 0)) +
@@ -611,7 +611,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                                 mealKey === 'almuerzo' ? mealSettings.lunch :
                                                                     mealSettings.dinner;
 
-                                                            return total + (isSelected && !isIncluded ? price * initialOccupancy : 0);
+                                                            return total + (isSelected && !isIncluded ? price * option.personas : 0);
                                                         }, 0)) +
                                                         (childPricingPolicy === 'fixed' ? ninosEdades.filter(age => age < childAgeThreshold).length * childFixedPrice : 0)) * cantidadSeleccionada * getNoches()}
                                                 </div>
@@ -633,33 +633,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                     Todavía no se te cobrará nada
                                                 </div>
 
-                                                <div className="space-y-3">
-                                                    <div className="text-xs font-bold text-gray-900 border-t border-gray-100 pt-3 uppercase tracking-wider">Tu paquete:</div>
 
-                                                    <div className="flex items-start gap-2 text-[11px] text-gray-700">
-                                                        <Coffee className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                                                        <div>
-                                                            <span className="font-bold">Desayuno</span> incluido (Fantástico)
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-start gap-2 text-[11px] text-gray-700">
-                                                        <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                                                        <div>
-                                                            <span className="font-bold">Cancelación gratis</span> antes del 24 de diciembre de 2025
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-start gap-2 text-[11px] text-gray-700 pl-5">
-                                                        <span className="w-1 h-1 bg-gray-400 rounded-full mt-1.5 shrink-0" />
-                                                        <div>Pagas al alojamiento antes de llegar</div>
-                                                    </div>
-
-                                                    <div className="flex items-start gap-2 text-[11px] text-green-700">
-                                                        <Sparkles className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                                                        <div>Reembolso completo durante el plazo de cancelación gratis</div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         ) : (
                                             <div className="h-full flex items-center justify-center text-gray-300 italic text-sm">

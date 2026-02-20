@@ -363,7 +363,8 @@ async function syncWithClientes(data: any, reservationNumber: string) {
                     total_estadias = total_estadias + 1,
                     habitacion_preferida = ?,
                     pais = COALESCE(?, pais),
-                    comentarios = ?
+                    comentarios = ?,
+                    motivo = ?
                 WHERE id = ?`,
                 [
                     data?.whatsapp || null,
@@ -371,6 +372,7 @@ async function syncWithClientes(data: any, reservationNumber: string) {
                     data?.habitacion_nombre || data?.habitacion_id || null,
                     data?.pais || null,
                     data?.peticiones || null,
+                    data?.reserva_para === 'otro' ? `Reserva para Tercero #${reservationNumber}` : `Reserva Online #${reservationNumber}`,
                     existingId
                 ]
             );

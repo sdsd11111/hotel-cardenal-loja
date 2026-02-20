@@ -84,7 +84,7 @@ export default function CheckoutPage() {
         if (savedId || savedTxId) {
             setSavedReservaId(savedId || '');
             setClientTxId(savedTxId || '');
-            setStep(3); // Si ya tenía ID, mandarlo directo al paso de pago
+            // Removed automatic skip to step 3 to ensure user verifies their data in step 2
         }
 
         const fetchMealPrices = async () => {
