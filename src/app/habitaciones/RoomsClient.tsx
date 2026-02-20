@@ -9,11 +9,11 @@ import { Footer } from '@/components/Footer';
 import ReservationSearchPanel from '@/components/ReservationSearchPanel';
 import { RoomDetailBookingModal } from '@/components/RoomDetailBookingModal';
 import { RoomAvailabilityModal } from '@/components/RoomAvailabilityModal';
-import { headerData, Habitacion } from '@/types';
+import { headerData, Habitacion, PriceOption } from '@/types';
 import {
     Bed, Eye, Briefcase, Coffee, Users, Tv, Bath, Car, Wind,
     ConciergeBell, Sparkles, Droplets, Award, Sofa, Wifi,
-    Calendar, X, Minus, Plus, Info, Loader2, Clock, Check
+    Calendar, X, Minus, Plus, Info, Loader2, Clock, Check, ShoppingCart, ArrowRight
 } from 'lucide-react';
 
 
@@ -49,6 +49,11 @@ interface CartItem {
         almuerzo: boolean;
         cena: boolean;
     };
+    // Context for detailed pricing in checkout
+    adultos: number;
+    ninos: number;
+    ninosEdades: number[];
+    opcionPrecio: PriceOption;
 }
 
 // Helper function to calculate dynamic price based on guest count
@@ -62,8 +67,11 @@ const getDynamicPrice = (habitacion: Habitacion, adultos: number, ninosEdades: n
     // Total de personas que cuentan para los rangos de precios (Base + Niños adultos)
     let totalGuestsForTier = adultos + ninosCobradosComoAdultos;
 
-    // POLÍTICA: Si la política es 'adult', TODOS los niños cuentan para el rango de precio
-    if (policy === 'adult') {
+    // REGLA ESPECIAL: En habitaciones Matrimoniales, los niños SIEMPRE cuentan como adultos
+    if (habitacion.nombre.toLowerCase().includes('matrimonial')) {
+        totalGuestsForTier = adultos + ninosEdades.length;
+    } else if (policy === 'adult') {
+        // POLÍTICA: Si la política es 'adult', TODOS los niños cuentan para el rango de precio
         totalGuestsForTier = adultos + ninosEdades.length;
     }
 
@@ -140,6 +148,7 @@ function HabitacionesContent() {
     const [childAgeThreshold, setChildAgeThreshold] = useState(8);
     const [childPricingPolicy, setChildPricingPolicy] = useState('free');
     const [childFixedPrice, setChildFixedPrice] = useState(0);
+    const [mealSettings, setMealSettings] = useState({ breakfast: 0, lunch: 0, dinner: 0 });
     const [fechaEntrada, setFechaEntrada] = useState('');
     const [fechaSalida, setFechaSalida] = useState('');
 
@@ -183,6 +192,16 @@ function HabitacionesContent() {
 
                     const fixedPrice = data.find((s: any) => s.setting_key === 'child_fixed_price');
                     if (fixedPrice) setChildFixedPrice(parseFloat(fixedPrice.setting_value));
+
+                    const bPrice = data.find((s: any) => s.setting_key === 'breakfast_price');
+                    const lPrice = data.find((s: any) => s.setting_key === 'lunch_price');
+                    const dPrice = data.find((s: any) => s.setting_key === 'dinner_price');
+
+                    setMealSettings({
+                        breakfast: bPrice ? parseFloat(bPrice.setting_value) : 0,
+                        lunch: lPrice ? parseFloat(lPrice.setting_value) : 0,
+                        dinner: dPrice ? parseFloat(dPrice.setting_value) : 0
+                    });
                 }
 
                 // 2. Fetch centralized room configurations (for pricing)
@@ -549,6 +568,12 @@ function HabitacionesContent() {
         // Si no hay filtros aplicados (0 personas en total), mostrar todo
         if (total === 0) return true;
 
+        // SI EL GRUPO SUPERA LA CAPACIDAD DE LA HABITACIÓN MÁS GRANDE (4 PERSONAS)
+        // Mostramos todas las habitaciones disponibles para que el usuario las combine en el carrito.
+        if (adultos > 4) {
+            return true;
+        }
+
         const nombre = hab.nombre.toLowerCase();
 
         // REGLA: Si es 1 sola persona, SOLO mostrar matrimoniales
@@ -589,27 +614,36 @@ function HabitacionesContent() {
         setNinosEdades([]);
     };
 
-    const addToCart = (habitacion: Habitacion) => {
-        const meals = pendingMeals[habitacion.id] || { desayuno: false, almuerzo: false, cena: false };
+    const getRoomType = (nombre: string) => {
+        const n = nombre.toUpperCase();
+        if (n.includes('MATRIMONIAL') || n.includes('301')) return 'matrimonial';
+        if (n.includes('DOBLE') || n.includes('TWIN') || n.includes('302')) return 'doble';
+        if (n.includes('TRIPLE') || n.includes('303')) return 'triple';
+        return 'triple';
+    };
+
+    const addToCart = (habitacion: Habitacion, mealsOverride?: { desayuno: boolean; almuerzo: boolean; cena: boolean }) => {
+        const meals = mealsOverride || pendingMeals[habitacion.id] || { desayuno: false, almuerzo: false, cena: false };
+
+        // Find the correct price option based on current filters
+        const ninosCobradosComoAdultos = appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
+        const totalAdultosEfectivos = appliedFilters.adultos + ninosCobradosComoAdultos;
+
+        const option = habitacion.priceOptions?.find(opt => opt.personas === totalAdultosEfectivos)
+            || habitacion.priceOptions?.[0]
+            || { personas: totalAdultosEfectivos, precioBase: habitacion.precioNumerico, impuestos: 0 };
+
         setCart(prev => {
-            // If the same room with the same meals exists, increment quantity
-            const existing = prev.find(item =>
-                item.habitacion.id === habitacion.id &&
-                item.comidas.desayuno === meals.desayuno &&
-                item.comidas.almuerzo === meals.almuerzo &&
-                item.comidas.cena === meals.cena
-            );
-            if (existing) {
-                return prev.map(item =>
-                    (item.habitacion.id === habitacion.id &&
-                        item.comidas.desayuno === meals.desayuno &&
-                        item.comidas.almuerzo === meals.almuerzo &&
-                        item.comidas.cena === meals.cena)
-                        ? { ...item, cantidad: item.cantidad + 1 }
-                        : item
-                );
-            }
-            return [...prev, { habitacion, cantidad: 1, comidas: { ...meals } }];
+            const newItem: CartItem = {
+                habitacion,
+                cantidad: 1,
+                comidas: { ...meals },
+                adultos: appliedFilters.adultos,
+                ninos: appliedFilters.ninos,
+                ninosEdades: [...appliedFilters.ninosEdades],
+                opcionPrecio: option
+            };
+            return [...prev, newItem];
         });
     };
 
@@ -633,17 +667,20 @@ function HabitacionesContent() {
         const salida = new Date(fechaSalida);
         const noches = Math.ceil((salida.getTime() - entrada.getTime()) / (1000 * 60 * 60 * 24));
         if (noches <= 0) return 0;
+
         return cart.reduce((total, item) => {
-            let mealsPrice = 0;
+            const totalGuests = item.adultos + item.ninosEdades.length;
+            let totalMealsPricePerNight = 0;
+
             // Only charge if NOT included
-            if (item.comidas.desayuno && !item.habitacion.incluyeDesayuno) mealsPrice += 1.0;
-            if (item.comidas.almuerzo && !item.habitacion.incluyeAlmuerzo) mealsPrice += 1.0;
-            if (item.comidas.cena && !item.habitacion.incluyeCena) mealsPrice += 1.0;
+            if (item.comidas.desayuno && !item.habitacion.incluyeDesayuno) totalMealsPricePerNight += mealSettings.breakfast * totalGuests;
+            if (item.comidas.almuerzo && !item.habitacion.incluyeAlmuerzo) totalMealsPricePerNight += mealSettings.lunch * totalGuests;
+            if (item.comidas.cena && !item.habitacion.incluyeCena) totalMealsPricePerNight += mealSettings.dinner * totalGuests;
 
             // Calculate dynamic base price
-            const basePrice = getDynamicPrice(item.habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold, childPricingPolicy, childFixedPrice);
+            const basePrice = getDynamicPrice(item.habitacion, item.adultos, item.ninosEdades, childAgeThreshold, childPricingPolicy, childFixedPrice);
 
-            return total + ((basePrice + mealsPrice) * item.cantidad * noches);
+            return total + ((basePrice * item.cantidad + totalMealsPricePerNight) * noches);
         }, 0);
     };
 
@@ -839,7 +876,7 @@ function HabitacionesContent() {
                                     </button>
                                     <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroAdultos}</span>
                                     <button
-                                        onClick={() => setFiltroAdultos(prev => prev === 0 ? 1 : prev + 1)}
+                                        onClick={() => setFiltroAdultos(prev => prev === 0 ? 1 : Math.min(18, prev + 1))}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
@@ -869,9 +906,9 @@ function HabitacionesContent() {
                                         <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroNinos}</span>
                                         <button
                                             onClick={() => {
-                                                const newVal = filtroNinos + 1;
+                                                const newVal = Math.min(18, filtroNinos + 1);
                                                 setFiltroNinos(newVal);
-                                                setNinosEdades(prev => [...prev, 5]); // Edad por defecto 5
+                                                setNinosEdades(prev => [...prev.slice(0, newVal - 1), 5]); // Edad por defecto 5
                                             }}
                                             className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                             type="button"
@@ -934,7 +971,15 @@ function HabitacionesContent() {
                             {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) ? (
                                 <>
                                     <span className="font-serif italic text-cardenal-gold mr-2 text-2xl">Recomendación Exclusiva:</span>
-                                    Hemos seleccionado cuidadosamente estas <span className="font-bold text-gray-800">{habitacionesFiltradas.length}</span> opciones ideales para su grupo de {appliedFilters.adultos} adultos y {appliedFilters.ninos} niños.
+                                    {appliedFilters.adultos > 4 ? (
+                                        <>
+                                            Para su grupo de <span className="font-bold text-gray-800">{appliedFilters.adultos} adultos y {appliedFilters.ninos} niños</span>, le sugerimos <span className="font-bold text-cardenal-green">seleccionar varias habitaciones</span> y agregarlas a su reserva para completar el cupo total.
+                                        </>
+                                    ) : (
+                                        <>
+                                            Hemos seleccionado cuidadosamente estas <span className="font-bold text-gray-800">{habitacionesFiltradas.length}</span> opciones ideales para su grupo de {appliedFilters.adultos} adultos y {appliedFilters.ninos} niños.
+                                        </>
+                                    )}
                                 </>
                             ) : (
                                 <>
@@ -1059,7 +1104,7 @@ function HabitacionesContent() {
                                                         </div>
 
                                                         {/* Children pricing info badge */}
-                                                        {habitacion.ninosGratis !== undefined && (
+                                                        {habitacion.ninosGratis !== undefined && !habitacion.nombre.toLowerCase().includes('matrimonial') && (
                                                             <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 flex items-center gap-2">
                                                                 <Users className="w-3 h-3" />
                                                                 {habitacion.ninosGratis > 0 ? (
@@ -1098,10 +1143,10 @@ function HabitacionesContent() {
                                                             </p>
                                                             <div className="grid grid-cols-1 xs:grid-cols-3 gap-2">
                                                                 {([
-                                                                    { key: 'desayuno', label: 'Desayuno', included: habitacion.incluyeDesayuno },
-                                                                    { key: 'almuerzo', label: 'Almuerzo', included: habitacion.incluyeAlmuerzo },
-                                                                    { key: 'cena', label: 'Cena', included: habitacion.incluyeCena }
-                                                                ] as const).map(({ key, label, included }) => (
+                                                                    { key: 'desayuno', label: 'Desayuno', included: habitacion.incluyeDesayuno, price: mealSettings.breakfast },
+                                                                    { key: 'almuerzo', label: 'Almuerzo', included: habitacion.incluyeAlmuerzo, price: mealSettings.lunch },
+                                                                    { key: 'cena', label: 'Cena', included: habitacion.incluyeCena, price: mealSettings.dinner }
+                                                                ] as const).map(({ key, label, included, price }) => (
                                                                     <button
                                                                         key={key}
                                                                         onClick={() => {
@@ -1110,7 +1155,7 @@ function HabitacionesContent() {
                                                                         }}
                                                                         disabled={!!included}
                                                                         className={cn(
-                                                                            "relative flex items-center justify-center gap-2 px-3 py-2 rounded border transition-all duration-300",
+                                                                            "relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded border transition-all duration-300 min-h-[56px]",
                                                                             included
                                                                                 ? "bg-green-100 border-green-300 text-green-800 cursor-default"
                                                                                 : (pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena']
@@ -1118,19 +1163,21 @@ function HabitacionesContent() {
                                                                                     : "bg-white border-gray-200 text-gray-600 hover:border-cardenal-gold hover:text-cardenal-gold")
                                                                         )}
                                                                     >
-                                                                        {included ? (
-                                                                            // Add Check icon import if needed, or use text/emoji
-                                                                            <Check className="w-3 h-3" />
-                                                                        ) : (
-                                                                            <div className={cn(
-                                                                                "w-3 h-3 rounded-full border border-current flex items-center justify-center transition-colors",
-                                                                                pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena'] ? "bg-white/20" : "bg-transparent"
-                                                                            )}>
-                                                                                {pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena'] && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                                                                            </div>
-                                                                        )}
-                                                                        <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
-                                                                        {included && <span className="text-[9px] ml-1 bg-green-200 text-green-800 px-1 rounded">Incluido</span>}
+                                                                        <div className="flex items-center gap-2">
+                                                                            {included ? (
+                                                                                <Check className="w-3 h-3" />
+                                                                            ) : (
+                                                                                <div className={cn(
+                                                                                    "w-3 h-3 rounded-full border border-current flex items-center justify-center transition-colors",
+                                                                                    pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena'] ? "bg-white/20" : "bg-transparent"
+                                                                                )}>
+                                                                                    {pendingMeals[habitacion.id]?.[key as 'desayuno' | 'almuerzo' | 'cena'] && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                                                </div>
+                                                                            )}
+                                                                            <span className="text-[11px] font-black uppercase tracking-wider">{label}</span>
+                                                                        </div>
+                                                                        {!included && <span className="text-xs font-black text-gray-900">${price.toFixed(2)} c/u</span>}
+                                                                        {included && <span className="text-[10px] bg-green-200 text-green-800 px-1.5 py-0.5 rounded font-black">Incluido</span>}
                                                                     </button>
                                                                 ))}
                                                             </div>
@@ -1208,7 +1255,11 @@ function HabitacionesContent() {
                     <RoomDetailBookingModal
                         habitacion={selectedRoom}
                         onClose={() => setSelectedRoom(null)}
-                        onAddToCart={addToCart}
+                        onAddToCart={(hab) => {
+                            addToCart(hab);
+                            setSelectedRoom(null);
+                        }}
+                        isAlreadyInCart={cart.some(item => item.habitacion.id === selectedRoom.id)}
                     />
                 )}
 
@@ -1217,28 +1268,24 @@ function HabitacionesContent() {
                     <RoomAvailabilityModal
                         habitacion={availabilityRoom}
                         inventoryCount={(() => {
-                            const nombreUpper = availabilityRoom.nombre.toUpperCase();
-                            let type = 'triple'; // default fallback
-                            if (nombreUpper.includes('MATRIMONIAL') || nombreUpper.includes('301')) type = 'matrimonial';
-                            else if (nombreUpper.includes('DOBLE') || nombreUpper.includes('TWIN') || nombreUpper.includes('302')) type = 'doble';
-                            else if (nombreUpper.includes('TRIPLE') || nombreUpper.includes('303')) type = 'triple';
+                            const type = getRoomType(availabilityRoom.nombre);
+                            // All available rooms of this type
+                            const availableOfType = habitaciones.filter(h => getRoomType(h.nombre) === type && h.disponible);
+                            // Rooms of this type already in cart
+                            const inCartTypeIds = cart
+                                .filter(item => getRoomType(item.habitacion.nombre) === type)
+                                .map(item => item.habitacion.id);
 
-                            // Count how many rooms of this type are available IN THE CURRENT FETCHED DATA
-                            return habitaciones.filter(h => {
-                                const hUpper = h.nombre.toUpperCase();
-                                let hType = '';
-                                if (hUpper.includes('MATRIMONIAL') || hUpper.includes('301')) hType = 'matrimonial';
-                                else if (hUpper.includes('DOBLE') || hUpper.includes('TWIN') || hUpper.includes('302')) hType = 'doble';
-                                else if (hUpper.includes('TRIPLE') || hUpper.includes('303')) hType = 'triple';
-
-                                return hType === type && h.disponible;
-                            }).length;
+                            // Remaining available rooms of this type
+                            return Math.max(0, availableOfType.filter(h => !inCartTypeIds.includes(h.id)).length);
                         })()}
                         initialOccupancy={
-                            appliedFilters.adultos +
-                            (childPricingPolicy === 'adult'
-                                ? appliedFilters.ninosEdades.length
-                                : appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length)
+                            availabilityRoom.nombre.toLowerCase().includes('matrimonial')
+                                ? appliedFilters.adultos + appliedFilters.ninosEdades.length
+                                : appliedFilters.adultos +
+                                (childPricingPolicy === 'adult'
+                                    ? appliedFilters.ninosEdades.length
+                                    : appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length)
                         }
                         fechaEntrada={appliedFilters.entrada}
                         fechaSalida={appliedFilters.salida}
@@ -1248,22 +1295,109 @@ function HabitacionesContent() {
                         childPricingPolicy={childPricingPolicy}
                         childFixedPrice={childFixedPrice}
                         ninosEdades={appliedFilters.ninosEdades}
+                        mealSettings={mealSettings}
                         onAddToCart={(hab, cantidad, opciones) => {
-                            // Agregar al carrito con las opciones seleccionadas
-                            for (let i = 0; i < cantidad; i++) {
+                            const type = getRoomType(hab.nombre);
+
+                            // 1. Guardar comidas pendientes para la habitación principal abierta
+                            setPendingMeals(prev => ({
+                                ...prev,
+                                [hab.id]: {
+                                    desayuno: opciones.desayuno,
+                                    almuerzo: opciones.almuerzo,
+                                    cena: opciones.cena
+                                }
+                            }));
+
+                            // 2. Identificar habitaciones candidatas (del mismo tipo y disponibles)
+                            const inCartIds = cart.map(item => item.habitacion.id);
+                            const possibleRooms = habitaciones.filter(h =>
+                                getRoomType(h.nombre) === type &&
+                                h.disponible &&
+                                !inCartIds.includes(h.id)
+                            );
+
+                            // 3. Tomar las N seleccionadas (incluyendo la actual si no estaba)
+                            const roomsToAdd = possibleRooms.slice(0, cantidad);
+
+                            // 4. Agregarlas al carrito
+                            const mealsFromModal = {
+                                desayuno: opciones.desayuno,
+                                almuerzo: opciones.almuerzo,
+                                cena: opciones.cena
+                            };
+                            roomsToAdd.forEach(room => {
+                                // Copiar comidas a las otras habitaciones del mismo tipo
                                 setPendingMeals(prev => ({
                                     ...prev,
-                                    [hab.id]: {
-                                        desayuno: opciones.desayuno,
-                                        almuerzo: opciones.almuerzo,
-                                        cena: opciones.cena
-                                    }
+                                    [room.id]: mealsFromModal
                                 }));
-                                addToCart(hab);
-                            }
+                                // Pass meals directly to avoid stale state
+                                addToCart(room, mealsFromModal);
+                            });
+
                             setAvailabilityRoom(null);
                         }}
                     />
+                )}
+
+                {/* Floating Bottom Cart Notification */}
+                {cart.length > 0 && (
+                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[50] w-full max-w-2xl px-4 animate-fadeInUp">
+                        <div className="bg-cardenal-green text-white p-4 md:p-6 shadow-2xl rounded-2xl border-2 border-cardenal-gold flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-white/20 p-3 rounded-xl">
+                                    <ShoppingCart className="w-6 h-6 text-cardenal-gold" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-lg leading-tight">
+                                        {cart.reduce((total, item) => total + item.cantidad, 0)} {cart.length === 1 && cart[0].cantidad === 1 ? 'Habitación seleccionada' : 'Habitaciones seleccionadas'}
+                                    </p>
+                                    <p className="text-white/80 text-sm font-medium">
+                                        Total estimado: <span className="text-cardenal-gold font-bold text-base">US${calcularTotal().toFixed(2)}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    // Save the full cart for the multi-room checkout
+                                    localStorage.setItem('pendingCheckoutCart', JSON.stringify(cart));
+
+                                    // Compatibility fallback: save the first item as the "single" item
+                                    // This prevents breaking if the user goes back to a version of checkout that doesn't support arrays
+                                    const firstItem = cart[0];
+                                    const noches = (() => {
+                                        if (!fechaEntrada || !fechaSalida) return 1;
+                                        const start = new Date(fechaEntrada);
+                                        const end = new Date(fechaSalida);
+                                        return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+                                    })();
+
+                                    localStorage.setItem('pendingCheckout', JSON.stringify({
+                                        habitacion: firstItem.habitacion,
+                                        option: firstItem.opcionPrecio,
+                                        cantidad: cart.length, // Total rooms of group
+                                        fechaEntrada,
+                                        fechaSalida,
+                                        comidas: firstItem.comidas,
+                                        adultos: firstItem.adultos,
+                                        ninos: firstItem.ninos,
+                                        ninosEdades: firstItem.ninosEdades,
+                                        childPricingPolicy,
+                                        childFixedPrice,
+                                        childAgeThreshold,
+                                        isMultiRoom: cart.length > 1
+                                    }));
+
+                                    window.location.href = '/checkout';
+                                }}
+                                className="w-full md:w-auto bg-cardenal-gold hover:bg-white hover:text-cardenal-green text-cardenal-green-dark font-black py-3 px-8 rounded-xl transition-all duration-300 shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 group"
+                            >
+                                Finalizar Reserva
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+                    </div>
                 )}
 
             </main>

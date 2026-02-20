@@ -13,6 +13,7 @@ interface RoomDetailBookingModalProps {
     habitacion: Habitacion;
     onClose: () => void;
     onAddToCart: (habitacion: Habitacion) => void;
+    isAlreadyInCart?: boolean;
 }
 
 // Imágenes por tipo de habitación
@@ -100,7 +101,8 @@ const getRoomInfo = (roomName: string) => {
 export const RoomDetailBookingModal: React.FC<RoomDetailBookingModalProps> = ({
     habitacion,
     onClose,
-    onAddToCart
+    onAddToCart,
+    isAlreadyInCart = false
 }) => {
     const images = getRoomImages(habitacion.nombre);
     const roomInfo = getRoomInfo(habitacion.nombre);
@@ -278,6 +280,33 @@ export const RoomDetailBookingModal: React.FC<RoomDetailBookingModalProps> = ({
                             <p className="text-gray-700 text-sm">
                                 <span className="font-bold">Política de humo:</span> no se puede fumar
                             </p>
+                        </div>
+
+                        {/* CTA Button */}
+                        <div className="mt-8 border-t pt-6">
+                            <button
+                                onClick={() => !isAlreadyInCart && onAddToCart(habitacion)}
+                                className={cn(
+                                    "w-full py-4 px-8 rounded-xl font-black transition-all duration-300 shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 group",
+                                    isAlreadyInCart
+                                        ? "bg-gray-100 text-gray-400 cursor-default"
+                                        : "bg-cardenal-green hover:bg-cardenal-gold text-white"
+                                )}
+                            >
+                                {isAlreadyInCart ? (
+                                    <>
+                                        <Check className="w-5 h-5 text-green-500" />
+                                        Habitación Agregada
+                                    </>
+                                ) : (
+                                    'Añadir a mi Reserva'
+                                )}
+                            </button>
+                            {!isAlreadyInCart && (
+                                <p className="text-center text-[10px] text-gray-400 mt-2 italic font-medium">
+                                    Esta habitación se añadirá a su carrito. Podrá seguir añadiendo más habitaciones después.
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

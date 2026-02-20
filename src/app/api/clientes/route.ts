@@ -225,7 +225,7 @@ export async function POST(request: Request) {
         try {
             await transporter.sendMail({
                 from: process.env.EMAIL_FROM,
-                to: process.env.EMAIL_USER,
+                to: `${process.env.EMAIL_USER}, elcardenalhotel@gmail.com`,
                 subject: `🔔 Nueva Solicitud: ${data.nombre} - ${data.motivo || 'Consulta'}`,
                 html: `
                     <h2>Nueva solicitud recibida</h2>

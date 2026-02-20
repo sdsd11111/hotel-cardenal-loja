@@ -296,7 +296,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                                 <span className="text-sm font-bold font-sans">{adultos}</span>
                                             </div>
                                             <button
-                                                onClick={() => setAdultos(Math.min(10, adultos + 1))}
+                                                onClick={() => setAdultos(Math.min(18, adultos + 1))}
                                                 className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                                                 type="button"
                                                 aria-label="Aumentar número de adultos"
@@ -325,7 +325,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                                                 <span className="text-sm font-bold font-sans">{ninos}</span>
                                             </div>
                                             <button
-                                                onClick={() => setNinos(Math.min(10, ninos + 1))}
+                                                onClick={() => setNinos(Math.min(18, ninos + 1))}
                                                 className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                                                 type="button"
                                                 aria-label="Aumentar número de niños"

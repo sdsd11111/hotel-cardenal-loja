@@ -30,6 +30,7 @@ function PagosContent() {
     const reserva_para = searchParams.get('reserva_para') || '';
     const pais = searchParams.get('pais') || '';
     const peticiones = searchParams.get('peticiones') || '';
+    const rooms = searchParams.get('rooms') || '';
 
     // Efecto para verificar pago (cuando regresa de PayPhone)
     useEffect(() => {
@@ -51,7 +52,8 @@ function PagosContent() {
                 whatsapp: whatsapp,
                 reserva_para: reserva_para,
                 pais: pais,
-                peticiones: peticiones
+                peticiones: peticiones,
+                rooms: rooms ? JSON.parse(rooms) : undefined
             };
 
             // Intentar recuperar de localStorage si faltan datos (caso Redirect)
@@ -122,12 +124,13 @@ function PagosContent() {
                 whatsapp: whatsapp,
                 reserva_para: reserva_para,
                 pais: pais,
-                peticiones: peticiones
+                peticiones: peticiones,
+                rooms: rooms ? JSON.parse(rooms) : undefined
             };
             console.log("Guardando contexto de pago en localStorage (fullPendingPayment):", dataToStore);
             localStorage.setItem('fullPendingPayment', JSON.stringify(dataToStore));
         }
-    }, [reservaId, nombre, email, id, amount, entrada, salida, habitacion_id, habitacion_nombre, adultos, whatsapp, reserva_para, pais, peticiones]);
+    }, [reservaId, nombre, email, id, amount, entrada, salida, habitacion_id, habitacion_nombre, adultos, whatsapp, reserva_para, pais, peticiones, rooms]);
 
     return (
         <div className="min-h-screen bg-[#f3f4f6] flex flex-col font-sans">
@@ -192,6 +195,7 @@ function PagosContent() {
                                     <PayPhoneBox
                                         amount={parseFloat(amount)}
                                         description={description}
+                                        clientTransactionId={clientTransactionId || ''}
                                     />
                                 </div>
                             </>

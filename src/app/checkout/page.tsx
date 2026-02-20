@@ -19,6 +19,7 @@ const headerData = {
 export default function CheckoutPage() {
     const router = useRouter();
     const [bookingData, setBookingData] = useState<any>(null);
+    const [cartItems, setCartItems] = useState<any[]>([]);
     const [mounted, setMounted] = useState(false);
     const [step, setStep] = useState(2); // 2: Tus datos, 3: Terminar reserva
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
@@ -27,6 +28,7 @@ export default function CheckoutPage() {
     const [savedReservaId, setSavedReservaId] = useState<string>('');
     const [clientTxId, setClientTxId] = useState<string>('');
     const [isCreatingTransferReservation, setIsCreatingTransferReservation] = useState(false);
+    const [mealSettings, setMealSettings] = useState({ breakfast: 0, lunch: 0, dinner: 0 });
 
 
     const [formData, setFormData] = useState({
@@ -65,6 +67,11 @@ export default function CheckoutPage() {
             setBookingData(JSON.parse(data));
         }
 
+        const cartData = localStorage.getItem('pendingCheckoutCart');
+        if (cartData) {
+            setCartItems(JSON.parse(cartData));
+        }
+
         // Recuperar datos personales si existen
         const savedFormData = localStorage.getItem('checkoutFormData');
         if (savedFormData) {
@@ -79,6 +86,26 @@ export default function CheckoutPage() {
             setClientTxId(savedTxId || '');
             setStep(3); // Si ya tenía ID, mandarlo directo al paso de pago
         }
+
+        const fetchMealPrices = async () => {
+            try {
+                const res = await fetch('/api/admin/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    const bPrice = data.find((s: any) => s.setting_key === 'breakfast_price');
+                    const lPrice = data.find((s: any) => s.setting_key === 'lunch_price');
+                    const dPrice = data.find((s: any) => s.setting_key === 'dinner_price');
+                    setMealSettings({
+                        breakfast: bPrice ? parseFloat(bPrice.setting_value) : 0,
+                        lunch: lPrice ? parseFloat(lPrice.setting_value) : 0,
+                        dinner: dPrice ? parseFloat(dPrice.setting_value) : 0
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching meal prices:', error);
+            }
+        };
+        fetchMealPrices();
     }, []);
 
     // Guardar formData cada vez que cambie
@@ -142,24 +169,47 @@ export default function CheckoutPage() {
     };
 
     const noches = getNoches();
-    const precioBaseHabitacion = (option.precioBase) * cantidad * noches;
 
-    // Calcular extras de comidas
-    const extraComidas = Object.entries(comidas || {}).reduce((total: number, [meal, selected]) => {
-        if (!selected) return total;
-        const isIncluded = meal === 'desayuno' ? habitacion.incluyeDesayuno :
-            meal === 'almuerzo' ? habitacion.incluyeAlmuerzo :
-                habitacion.incluyeCena;
-        return total + (isIncluded ? 0 : 1.0 * cantidad * noches);
+    // Logic to calculate totals for multiple items or single item
+    const itemsToProcess = cartItems.length > 0 ? cartItems : (bookingData ? [{
+        habitacion: bookingData.habitacion,
+        opcionPrecio: bookingData.option,
+        cantidad: bookingData.cantidad,
+        comidas: bookingData.comidas,
+        adultos: bookingData.adultos,
+        ninos: bookingData.ninos,
+        ninosEdades: bookingData.ninosEdades
+    }] : []);
+
+    const subtotal = itemsToProcess.reduce((acc, item) => {
+        const itemNoches = noches;
+        const precioBase = (item.opcionPrecio.precioBase) * item.cantidad * itemNoches;
+
+        // Calculate meals
+        const extraComidas = Object.entries(item.comidas || {}).reduce((mTotal: number, [meal, selected]) => {
+            if (!selected) return mTotal;
+            const isIncluded = meal === 'desayuno' ? item.habitacion.incluyeDesayuno :
+                meal === 'almuerzo' ? item.habitacion.incluyeAlmuerzo :
+                    item.habitacion.incluyeCena;
+
+            const price = meal === 'desayuno' ? mealSettings.breakfast :
+                meal === 'almuerzo' ? mealSettings.lunch :
+                    mealSettings.dinner;
+
+            // Simple quantity is item.cantidad, but we need total guests for meals
+            // Let's assume adults + kids is the count for meals
+            const totalGuests = (item.adultos || 0) + (item.ninosEdades?.length || 0);
+
+            return mTotal + (isIncluded ? 0 : price * totalGuests * item.cantidad * itemNoches);
+        }, 0);
+
+        // Calculate children supplements
+        const extraNinos = childPricingPolicy === 'fixed'
+            ? (item.ninosEdades.filter((age: number) => age < childAgeThreshold).length * childFixedPrice * item.cantidad * itemNoches)
+            : 0;
+
+        return acc + precioBase + extraComidas + extraNinos;
     }, 0);
-
-    // Calcular extras de niños si aplica
-    const extraNinos = childPricingPolicy === 'fixed'
-        ? (ninosEdades.filter((age: number) => age < childAgeThreshold).length * childFixedPrice * cantidad * noches)
-        : 0;
-
-    // Precio base sin impuestos
-    const subtotal = precioBaseHabitacion + extraComidas + extraNinos;
 
     // IVA 15%
     const iva = subtotal * 0.15;
@@ -290,7 +340,9 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-xs font-bold text-gray-900 uppercase">Has seleccionado</p>
-                                        <p className="text-sm font-bold text-[#0071c2]">{cantidad} {cantidad === 1 ? 'habitación' : 'habitaciones'} para {option.personas} {option.personas === 1 ? 'adulto' : 'adultos'}</p>
+                                        <p className="text-sm font-bold text-[#0071c2]">
+                                            {itemsToProcess.reduce((acc, i) => acc + i.cantidad, 0)} {itemsToProcess.reduce((acc, i) => acc + i.cantidad, 0) === 1 ? 'habitación' : 'habitaciones'}
+                                        </p>
                                     </div>
                                     <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                                 </div>
@@ -306,22 +358,45 @@ export default function CheckoutPage() {
                         <div className="bg-[#ebf3ff] rounded-lg shadow-sm border border-gray-200 p-4">
                             <h3 className="text-xl font-bold mb-4">Desglose del precio</h3>
                             <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span>{cantidad}x {habitacion.nombre}</span>
-                                    <span>US${precioBaseHabitacion.toFixed(2)}</span>
-                                </div>
-                                {extraComidas > 0 && (
-                                    <div className="flex justify-between text-blue-700">
-                                        <span>Extras de comidas</span>
-                                        <span>US${extraComidas.toFixed(2)}</span>
-                                    </div>
-                                )}
-                                {extraNinos > 0 && (
-                                    <div className="flex justify-between text-amber-700">
-                                        <span>Suplemento por niños</span>
-                                        <span>US${extraNinos.toFixed(2)}</span>
-                                    </div>
-                                )}
+                                {itemsToProcess.map((item, idx) => {
+                                    const itemPrecioBase = item.opcionPrecio.precioBase * item.cantidad * noches;
+                                    const itemExtraMeals = Object.entries(item.comidas || {}).reduce((mTotal: number, [meal, selected]) => {
+                                        if (!selected) return mTotal;
+                                        const isIncluded = meal === 'desayuno' ? item.habitacion.incluyeDesayuno :
+                                            meal === 'almuerzo' ? item.habitacion.incluyeAlmuerzo :
+                                                item.habitacion.incluyeCena;
+
+                                        const price = meal === 'desayuno' ? mealSettings.breakfast :
+                                            meal === 'almuerzo' ? mealSettings.lunch :
+                                                mealSettings.dinner;
+
+                                        const totalGuests = (item.adultos || 0) + (item.ninosEdades?.length || 0);
+
+                                        return mTotal + (isIncluded ? 0 : price * totalGuests * item.cantidad * noches);
+                                    }, 0);
+                                    const itemExtraNinos = childPricingPolicy === 'fixed'
+                                        ? (item.ninosEdades.filter((age: number) => age < childAgeThreshold).length * childFixedPrice * item.cantidad * noches)
+                                        : 0;
+
+                                    return (
+                                        <div key={idx} className="space-y-1 pb-2 border-b border-blue-100 last:border-0 last:pb-0">
+                                            <div className="flex justify-between font-bold">
+                                                <span>{item.cantidad}x {item.habitacion.nombre}</span>
+                                                <span>US${(itemPrecioBase + itemExtraMeals + itemExtraNinos).toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-[10px] text-gray-500 pl-2">
+                                                <span>Base ({item.opcionPrecio.personas} pers.)</span>
+                                                <span>US${itemPrecioBase.toFixed(2)}</span>
+                                            </div>
+                                            {(itemExtraMeals > 0 || itemExtraNinos > 0) && (
+                                                <div className="flex justify-between text-[10px] text-blue-600 pl-2">
+                                                    <span>Suplementos (+ Niños/Comidas)</span>
+                                                    <span>US${(itemExtraMeals + itemExtraNinos).toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                                 <div className="flex justify-between font-medium border-t border-blue-100 pt-2 mt-2">
                                     <span>Subtotal</span>
                                     <span>US${subtotal.toFixed(2)}</span>
@@ -495,12 +570,33 @@ export default function CheckoutPage() {
 
                                 {/* Room details summary */}
                                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
-                                    <h3 className="text-xl font-bold">Habitación {habitacion.nombre}</h3>
-
-                                    <div className="flex items-start gap-3 text-sm text-gray-700">
-                                        <Users className="w-5 h-5 shrink-0" />
-                                        <p><span className="font-bold text-gray-900">Personas:</span> {option.personas} adultos</p>
-                                    </div>
+                                    {itemsToProcess.map((item, idx) => (
+                                        <div key={idx} className={cn("p-4 rounded-lg bg-gray-50 border border-gray-100", idx > 0 && "mt-4")}>
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h3 className="font-bold text-gray-900">Habitación {item.habitacion.nombre}</h3>
+                                                <span className="text-xs bg-cardenal-green text-white px-2 py-0.5 rounded">Seleccionada</span>
+                                            </div>
+                                            <div className="flex items-center gap-6 text-sm text-gray-700">
+                                                <div className="flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-gray-400" />
+                                                    <span>{item.opcionPrecio.personas} adultos</span>
+                                                </div>
+                                                {item.ninos > 0 && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Sparkles className="w-4 h-4 text-amber-500" />
+                                                        <span>{item.ninos} niños</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    <Utensils className="w-4 h-4 text-gray-400" />
+                                                    <span>
+                                                        {item.comidas.desayuno && 'D'} {item.comidas.almuerzo && 'A'} {item.comidas.cena && 'C'}
+                                                        {!item.comidas.desayuno && !item.comidas.almuerzo && !item.comidas.cena && 'Solo alojamiento'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
 
                                     <div className="border-t border-gray-100 pt-6 space-y-4">
                                         <h4 className="font-bold">Peticiones especiales</h4>
@@ -559,19 +655,33 @@ export default function CheckoutPage() {
                                                         // Cobrar precio con IVA + comisión (20.6% total)
                                                         const params = new URLSearchParams({
                                                             amount: totalConTarjeta.toFixed(2),
-                                                            reserva: 'PENDIENTE', // Indicador para que el backend cree la reserva al confirmar
+                                                            reserva: 'PENDIENTE',
                                                             clientTransactionId: clientTxId,
                                                             email: formData.email,
                                                             nombre: `${formData.nombre} ${formData.apellido}`,
                                                             entrada: fechaEntrada,
                                                             salida: fechaSalida,
-                                                            habitacion_id: habitacion.id.toString(),
-                                                            habitacion_nombre: habitacion.nombre,
-                                                            adultos: option.personas.toString(),
                                                             whatsapp: `${formData.codigoPais}${formData.telefono}`,
                                                             reserva_para: formData.reservaPara,
                                                             pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
-                                                            peticiones: formData.peticiones
+                                                            peticiones: formData.peticiones,
+                                                            // Pass multiple rooms as serialized JSON (include dates & customer info for reservation creation)
+                                                            rooms: JSON.stringify(itemsToProcess.map(it => ({
+                                                                habitacion_id: it.habitacion.id,
+                                                                habitacion_nombre: it.habitacion.nombre,
+                                                                fecha_entrada: fechaEntrada,
+                                                                fecha_salida: fechaSalida,
+                                                                nombre_cliente: `${formData.nombre} ${formData.apellido}`,
+                                                                email_cliente: formData.email,
+                                                                whatsapp: `${formData.codigoPais}${formData.telefono}`,
+                                                                adultos: it.opcionPrecio.personas,
+                                                                ninos: it.ninos,
+                                                                precio: (it.opcionPrecio.precioBase * it.cantidad * noches) * 1.15,
+                                                                pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
+                                                                estado: 'OK',
+                                                                peticiones: formData.peticiones,
+                                                                reserva_para: formData.reservaPara
+                                                            })))
                                                         });
                                                         router.push(`/checkout/pagos?${params.toString()}`);
                                                     }}
@@ -592,7 +702,7 @@ export default function CheckoutPage() {
                                                 </button>
                                             </div>
                                         </div>
-                                    ) : (
+                                    ) : paymentMethod === 'transfer' ? (
                                         // TRANSFER DETAILS
                                         <div className="space-y-6">
                                             <div className="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -642,10 +752,15 @@ export default function CheckoutPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="bg-amber-50 border-l-4 border-cardenal-gold p-4 text-sm text-amber-900">
-                                                <div className="flex gap-3">
-                                                    <Info className="w-5 h-5 shrink-0" />
-                                                    <p>IMPORTANTE: Una vez realizada la transferencia, envía tu comprobante para confirmar definitivamente tu habitación.</p>
+                                            <div className="bg-amber-50 border-l-4 border-cardenal-gold p-6 text-sm text-amber-900 shadow-sm">
+                                                <div className="flex gap-4">
+                                                    <Info className="w-6 h-6 text-cardenal-gold shrink-0" />
+                                                    <div className="space-y-1">
+                                                        <p className="font-black uppercase tracking-wider text-xs italic">¡Último paso!</p>
+                                                        <p className="font-medium leading-relaxed">
+                                                            Para <span className="font-black underline">FINALIZAR TU RESERVA</span> y asegurar tu habitación, haz clic en el botón verde de abajo para enviarnos tu comprobante por WhatsApp.
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -663,16 +778,33 @@ export default function CheckoutPage() {
                                                                     id: "TRANSFERENCIA",
                                                                     clientTransactionId: clientTxId,
                                                                     reservationData: {
-                                                                        habitacion_id: habitacion.id,
-                                                                        habitacion_nombre: habitacion.nombre,
+                                                                        rooms: itemsToProcess.map(it => ({
+                                                                            habitacion_id: it.habitacion.id,
+                                                                            habitacion_nombre: it.habitacion.nombre,
+                                                                            fecha_entrada: fechaEntrada,
+                                                                            fecha_salida: fechaSalida,
+                                                                            nombre_cliente: `${formData.nombre} ${formData.apellido}`,
+                                                                            email_cliente: formData.email,
+                                                                            whatsapp: `${formData.codigoPais}${formData.telefono}`,
+                                                                            adultos: it.opcionPrecio.personas,
+                                                                            ninos: it.ninos,
+                                                                            precio: (it.opcionPrecio.precioBase * it.cantidad * noches) * 1.15,
+                                                                            pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
+                                                                            estado: 'PENDIENTE',
+                                                                            peticiones: `[TRANSFERENCIA] ${formData.peticiones}`,
+                                                                            reserva_para: formData.reservaPara
+                                                                        })),
+                                                                        // Fallback legacy fields for single room
+                                                                        habitacion_id: itemsToProcess[0].habitacion.id,
+                                                                        habitacion_nombre: itemsToProcess[0].habitacion.nombre,
                                                                         fecha_entrada: fechaEntrada,
                                                                         fecha_salida: fechaSalida,
                                                                         nombre_cliente: `${formData.nombre} ${formData.apellido}`,
                                                                         email_cliente: formData.email,
                                                                         whatsapp: `${formData.codigoPais}${formData.telefono}`,
-                                                                        adultos: option.personas,
-                                                                        ninos: 0,
-                                                                        precio: totalConIVA, // Para transferencia solo cobrar IVA (15%)
+                                                                        adultos: itemsToProcess[0].opcionPrecio.personas,
+                                                                        ninos: itemsToProcess[0].ninos,
+                                                                        precio: totalConIVA,
                                                                         pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
                                                                         estado: 'PENDIENTE',
                                                                         peticiones: `[TRANSFERENCIA] ${formData.peticiones}`,
@@ -684,15 +816,14 @@ export default function CheckoutPage() {
                                                             const data = await res.json();
 
                                                             if (res.ok) {
-                                                                // Open WhatsApp after successful reservation creation
-                                                                window.open(`https://wa.me/593996616878?text=${encodeURIComponent(`Hola, acabo de realizar una transferencia por mi reserva de ${totalConIVA.toFixed(2)} USD. Adjunto mi comprobante.`)}`, '_blank');
-                                                                // Limpiar datos ya que la reserva se creó
-                                                                localStorage.removeItem('pendingCheckout');
-                                                                localStorage.removeItem('checkoutFormData');
-                                                                localStorage.removeItem('savedReservaId');
-                                                                localStorage.removeItem('clientTxId');
-                                                                setStep(2);
-                                                                router.push('/');
+                                                                const waMessage = `Hola, soy el de la reserva #${clientTxId} y le paso el comprobante del pago.`;
+                                                                const waUrl = `https://wa.me/593996616878?text=${encodeURIComponent(waMessage)}`;
+
+                                                                // Open WhatsApp directly
+                                                                window.location.href = waUrl;
+
+                                                                // Set step 4 as target if they come back
+                                                                setStep(4);
                                                             } else {
                                                                 alert('No se pudo crear la reserva: ' + (data.message || 'Inténtalo de nuevo.'));
                                                             }
@@ -720,7 +851,62 @@ export default function CheckoutPage() {
                                                 </button>
                                             </div>
                                         </div>
+                                    ) : (
+                                        // CARD - Show loading/redirecting state
+                                        <div className="py-16 flex flex-col items-center text-center">
+                                            <Loader2 className="w-12 h-12 animate-spin text-[#0071c2] mb-6" />
+                                            <h3 className="text-xl font-black text-gray-900 uppercase italic">Redirigiendo a PayPhone...</h3>
+                                            <p className="text-gray-500 text-sm mt-2">Serás redirigido al formulario de pago seguro.</p>
+                                            <button
+                                                onClick={() => setPaymentMethod('selection')}
+                                                className="mt-6 text-sm font-bold text-[#0071c2] hover:underline uppercase"
+                                            >
+                                                Cancelar y volver
+                                            </button>
+                                        </div>
                                     )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 4: SUCCESS / CONFIRMATION */}
+                        {step === 4 && (
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center space-y-8 animate-fade-in">
+                                <div className="inline-flex items-center justify-center w-24 h-24 bg-green-50 rounded-full mb-4">
+                                    <CheckCircle2 className="w-16 h-16 text-green-500" />
+                                </div>
+                                <div className="space-y-4">
+                                    <h2 className="text-3xl font-black text-gray-900 uppercase italic tracking-tight">¡Solicitud Recibida!</h2>
+                                    <p className="text-gray-600 text-lg max-w-md mx-auto">
+                                        Hemos registrado tu reserva. Se ha abierto una pestaña nueva con nuestro WhatsApp para que puedas enviarnos el comprobante.
+                                    </p>
+                                </div>
+                                <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 max-w-lg mx-auto text-left space-y-4">
+                                    <div className="flex gap-3">
+                                        <Info className="w-5 h-5 text-blue-500 shrink-0" />
+                                        <p className="text-sm text-blue-800">
+                                            Tu número de reserva provisional es: <span className="font-bold text-blue-900">#{savedReservaId || clientTxId || 'Pendiente'}</span>
+                                        </p>
+                                    </div>
+                                    <p className="text-xs text-blue-700/70">
+                                        Tan pronto como verifiquemos tu transferencia, recibirás un correo de confirmación definitiva.
+                                    </p>
+                                </div>
+                                <div className="pt-8 text-center">
+                                    <button
+                                        onClick={() => {
+                                            localStorage.removeItem('pendingCheckout');
+                                            localStorage.removeItem('pendingCheckoutCart');
+                                            localStorage.removeItem('checkoutFormData');
+                                            localStorage.removeItem('savedReservaId');
+                                            localStorage.removeItem('clientTxId');
+                                            window.location.href = '/';
+                                        }}
+                                        className="inline-flex items-center gap-2 bg-[#1f2937] text-white font-bold py-4 px-10 rounded-xl hover:bg-black transition-all hover:scale-105 uppercase tracking-widest text-xs"
+                                    >
+                                        <Globe className="w-5 h-5" />
+                                        Confirmar y Volver al inicio
+                                    </button>
                                 </div>
                             </div>
                         )}

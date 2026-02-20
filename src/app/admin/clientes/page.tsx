@@ -116,6 +116,7 @@ export default function AdminClientesPage() {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${lastDay}`;
     });
     const [filterTipo, setFilterTipo] = useState('entrada');
+    const [activeCategory, setActiveCategory] = useState<'Hotel' | 'Restaurante' | 'Eventos'>('Hotel');
 
     const fetchClientes = async () => {
         setLoading(true);
@@ -651,6 +652,30 @@ export default function AdminClientesPage() {
                     </button>
                 </div>
 
+                {/* Categories Tabs (Only for Gestion view) */}
+                {view === 'gestion' && (
+                    <div className="flex gap-4 mb-6">
+                        {[
+                            { id: 'Hotel', label: '🏨 Hotel', color: 'bg-orange-600' },
+                            { id: 'Restaurante', label: '🍽️ Restaurante', color: 'bg-green-600' },
+                            { id: 'Eventos', label: '🎉 Eventos', color: 'bg-blue-600' }
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveCategory(tab.id as any)}
+                                className={cn(
+                                    "px-6 py-2 rounded-full text-sm font-black transition-all border-2",
+                                    activeCategory === tab.id
+                                        ? `${tab.color} text-white border-transparent shadow-lg scale-105`
+                                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                                )}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 {view === 'gestion' ? (
                     <div className="bg-white p-8 rounded-3xl shadow-xl border-2 border-gray-300 mb-8">
                         <div className="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
@@ -664,7 +689,14 @@ export default function AdminClientesPage() {
                                 />
                             </div>
                             <div className="text-sm font-black text-black bg-cardenal-gold/10 px-4 py-2 rounded-full border-2 border-cardenal-gold/30">
-                                Mostrando {clientes.length} resultados
+                                Mostrando {
+                                    clientes.filter(c => {
+                                        const m = (c.motivo || '').toLowerCase();
+                                        if (activeCategory === 'Restaurante') return m === 'consulta de restaurante';
+                                        if (activeCategory === 'Eventos') return m.includes('evento') || m.includes('cotizacion');
+                                        return !m.includes('restaurante') && !m.includes('evento') && !m.includes('cotizacion');
+                                    }).length
+                                } resultados
                             </div>
                         </div>
 
@@ -726,99 +758,106 @@ export default function AdminClientesPage() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        clientes.map(cliente => (
-                                            <React.Fragment key={cliente.id}>
-                                                <tr className={cn(
-                                                    "transition-all duration-300 border-l-4 group cursor-pointer",
-                                                    expandedClient === cliente.id ? "bg-cardenal-gold/5 border-l-cardenal-gold" : "hover:bg-gray-50 border-l-transparent",
-                                                    cliente.es_vip ? "bg-yellow-50/30" : ""
-                                                )}>
-                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={cn(
-                                                                "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2",
-                                                                cliente.es_vip ? "bg-cardenal-gold text-white border-yellow-600" : "bg-cardenal-green text-white border-green-800"
-                                                            )}>
-                                                                {cliente.nombre[0]}
+                                        clientes
+                                            .filter(c => {
+                                                const m = (c.motivo || '').toLowerCase();
+                                                if (activeCategory === 'Restaurante') return m === 'consulta de restaurante';
+                                                if (activeCategory === 'Eventos') return m.includes('evento') || m.includes('cotizacion');
+                                                return !m.includes('restaurante') && !m.includes('evento') && !m.includes('cotizacion');
+                                            })
+                                            .map(cliente => (
+                                                <React.Fragment key={cliente.id}>
+                                                    <tr className={cn(
+                                                        "transition-all duration-300 border-l-4 group cursor-pointer",
+                                                        expandedClient === cliente.id ? "bg-cardenal-gold/5 border-l-cardenal-gold" : "hover:bg-gray-50 border-l-transparent",
+                                                        cliente.es_vip ? "bg-yellow-50/30" : ""
+                                                    )}>
+                                                        <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={cn(
+                                                                    "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2",
+                                                                    cliente.es_vip ? "bg-cardenal-gold text-white border-yellow-600" : "bg-cardenal-green text-white border-green-800"
+                                                                )}>
+                                                                    {cliente.nombre[0]}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="font-black text-lg text-black leading-none">{cliente.nombre} {cliente.apellidos}</p>
+                                                                        {cliente.es_vip === 1 && <Crown className="w-5 h-5 text-cardenal-gold fill-cardenal-gold" />}
+                                                                    </div>
+                                                                    <p className="text-xs font-black text-gray-700 mt-1 uppercase tracking-tight">ID: #{cliente.id}</p>
+                                                                </div>
                                                             </div>
-                                                            <div>
+                                                        </td>
+                                                        <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                            <div className="space-y-1.5">
+                                                                <div className="flex items-center gap-2 text-sm font-black text-black">
+                                                                    <Mail className="w-4 h-4 text-cardenal-gold" /> {cliente.email || '—'}
+                                                                </div>
+                                                                <div className="flex items-center gap-2 text-sm font-black text-black">
+                                                                    <Phone className="w-4 h-4 text-green-700" /> {cliente.telefono || '—'}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                            <div className="space-y-1.5 uppercase">
+                                                                <p className="text-sm font-black text-black">{cliente.identificacion || '—'}</p>
+                                                                <p className="text-[10px] font-black text-gray-700 max-w-[200px] truncate">{cliente.razon_social || 'PERSONAL'}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-5" onClick={() => handleExpand(cliente.id)}>
+                                                            <div className="space-y-2">
                                                                 <div className="flex items-center gap-2">
-                                                                    <p className="font-black text-lg text-black leading-none">{cliente.nombre} {cliente.apellidos}</p>
-                                                                    {cliente.es_vip === 1 && <Crown className="w-5 h-5 text-cardenal-gold fill-cardenal-gold" />}
+                                                                    <div className="bg-cardenal-green/10 text-cardenal-green text-[10px] font-black px-2 py-0.5 rounded border border-cardenal-green/20">
+                                                                        {cliente.total_estadias || 0} VISITAS
+                                                                    </div>
+                                                                    {cliente.ultima_estadia && (
+                                                                        <div className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm">
+                                                                            ULT: {new Date(cliente.ultima_estadia).toLocaleDateString()}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                                <p className="text-xs font-black text-gray-700 mt-1 uppercase tracking-tight">ID: #{cliente.id}</p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
-                                                        <div className="space-y-1.5">
-                                                            <div className="flex items-center gap-2 text-sm font-black text-black">
-                                                                <Mail className="w-4 h-4 text-cardenal-gold" /> {cliente.email || '—'}
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-sm font-black text-black">
-                                                                <Phone className="w-4 h-4 text-green-700" /> {cliente.telefono || '—'}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
-                                                        <div className="space-y-1.5 uppercase">
-                                                            <p className="text-sm font-black text-black">{cliente.identificacion || '—'}</p>
-                                                            <p className="text-[10px] font-black text-gray-700 max-w-[200px] truncate">{cliente.razon_social || 'PERSONAL'}</p>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-5" onClick={() => handleExpand(cliente.id)}>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="bg-cardenal-green/10 text-cardenal-green text-[10px] font-black px-2 py-0.5 rounded border border-cardenal-green/20">
-                                                                    {cliente.total_estadias || 0} VISITAS
-                                                                </div>
-                                                                {cliente.ultima_estadia && (
-                                                                    <div className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm">
-                                                                        ULT: {new Date(cliente.ultima_estadia).toLocaleDateString()}
+                                                                {cliente.calificacion > 0 && (
+                                                                    <div className="flex gap-0.5">
+                                                                        {[...Array(5)].map((_, i) => (
+                                                                            <Sparkles key={i} className={cn("w-3 h-3", i < cliente.calificacion ? "text-cardenal-gold fill-cardenal-gold" : "text-gray-300")} />
+                                                                        ))}
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            {cliente.calificacion > 0 && (
-                                                                <div className="flex gap-0.5">
-                                                                    {[...Array(5)].map((_, i) => (
-                                                                        <Sparkles key={i} className={cn("w-3 h-3", i < cliente.calificacion ? "text-cardenal-gold fill-cardenal-gold" : "text-gray-300")} />
-                                                                    ))}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-5 text-right">
-                                                        <div className="flex items-center justify-end gap-3">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleExpand(cliente.id)}
-                                                                className={cn("rounded-xl border-2 transition-all", expandedClient === cliente.id ? "bg-cardenal-gold text-white border-cardenal-gold" : "hover:bg-gray-100 border-gray-200 text-black")}
-                                                            >
-                                                                {expandedClient === cliente.id ? <X className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => { if (confirm('¿Eliminar cliente?')) fetch(`/api/clientes/${cliente.id}`, { method: 'DELETE' }).then(() => fetchClientes()) }}
-                                                                className="hover:bg-red-50 text-red-600 rounded-xl border-2 border-transparent hover:border-red-200"
-                                                            >
-                                                                <Trash2 className="w-5 h-5" />
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                {expandedClient === cliente.id && (
-                                                    <tr>
-                                                        <td colSpan={5} className="p-0 bg-gray-100/50">
-                                                            <div className="p-10 border-x-4 border-b-4 border-cardenal-gold rounded-b-3xl shadow-inner animate-in slide-in-from-top duration-300">
-                                                                {renderDetailsForm(editingClient || cliente)}
+                                                        </td>
+                                                        <td className="p-5 text-right">
+                                                            <div className="flex items-center justify-end gap-3">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => handleExpand(cliente.id)}
+                                                                    className={cn("rounded-xl border-2 transition-all", expandedClient === cliente.id ? "bg-cardenal-gold text-white border-cardenal-gold" : "hover:bg-gray-100 border-gray-200 text-black")}
+                                                                >
+                                                                    {expandedClient === cliente.id ? <X className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => { if (confirm('¿Eliminar cliente?')) fetch(`/api/clientes/${cliente.id}`, { method: 'DELETE' }).then(() => fetchClientes()) }}
+                                                                    className="hover:bg-red-50 text-red-600 rounded-xl border-2 border-transparent hover:border-red-200"
+                                                                >
+                                                                    <Trash2 className="w-5 h-5" />
+                                                                </Button>
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                )}
-                                            </React.Fragment>
-                                        ))
+                                                    {expandedClient === cliente.id && (
+                                                        <tr>
+                                                            <td colSpan={5} className="p-0 bg-gray-100/50">
+                                                                <div className="p-10 border-x-4 border-b-4 border-cardenal-gold rounded-b-3xl shadow-inner animate-in slide-in-from-top duration-300">
+                                                                    {renderDetailsForm(editingClient || cliente)}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </React.Fragment>
+                                            ))
                                     )}
                                 </tbody>
                             </table>
@@ -977,6 +1016,6 @@ export default function AdminClientesPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

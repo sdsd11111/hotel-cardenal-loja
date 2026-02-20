@@ -29,8 +29,11 @@ import Link from 'next/link';
 // Definimos los colores estáticos por ID o tipo para mantener la estética.
 const ROOM_COLORS: Record<string, string> = {
     '301': 'border-pink-200 bg-pink-50',
+    '201': 'border-pink-200 bg-pink-50',
     '302': 'border-blue-200 bg-blue-50',
+    '202': 'border-blue-200 bg-blue-50',
     '303': 'border-green-200 bg-green-50',
+    '304': 'border-green-200 bg-green-50',
 };
 
 interface Room {
@@ -92,38 +95,38 @@ export default function RecepcionPage() {
                 if (res.ok) {
                     const data = await res.json();
                     const mappedRooms = data.map((r: any) => {
-                        const nameLower = r.nombre.toLowerCase();
+                        const nombre = r.nombre || '';
+                        // Parse room names like "Matrimonial-301", "Doble-202", "Triple-303"
+                        const match = nombre.match(/(\w+)-(\d+)/);
                         let type = 'Triple';
-                        let identifier = '303';
                         let num = '303';
 
-                        if (nameLower.includes('matrimonial') || nameLower.includes('301')) {
-                            type = 'Matrimonial';
-                            identifier = '301';
-                            num = '301';
-                        } else if (nameLower.includes('triple') || nameLower.includes('303')) {
-                            type = 'Triple';
-                            identifier = '303';
-                            num = '303';
-                        } else if (nameLower.includes('twin') || nameLower.includes('302') || nameLower.includes('doble')) {
-                            type = 'Doble';
-                            identifier = '302';
-                            num = '302';
+                        if (match) {
+                            const typePart = match[1].toLowerCase();
+                            num = match[2];
+                            if (typePart.includes('matrimonial')) type = 'Matrimonial';
+                            else if (typePart.includes('doble') || typePart.includes('twin')) type = 'Doble';
+                            else if (typePart.includes('triple')) type = 'Triple';
+                        } else {
+                            // Fallback for old naming
+                            const nameLower = nombre.toLowerCase();
+                            if (nameLower.includes('matrimonial')) { type = 'Matrimonial'; num = '301'; }
+                            else if (nameLower.includes('doble') || nameLower.includes('twin')) { type = 'Doble'; num = '302'; }
+                            else if (nameLower.includes('triple')) { type = 'Triple'; num = '303'; }
                         }
 
                         return {
                             id: r.id,
-                            name: r.nombre,
+                            name: nombre,
                             num: num,
                             type: type,
                             capacity: r.max_adultos + (r.max_ninos || 0),
-                            color: ROOM_COLORS[identifier] || 'border-gray-200 bg-gray-50'
+                            color: ROOM_COLORS[num] || 'border-gray-200 bg-gray-50'
                         };
                     }).sort((a: any, b: any) => {
-                        const order: Record<string, number> = { '301': 1, '302': 2, '303': 3 };
-                        const idA = a.num || '303';
-                        const idB = b.num || '303';
-                        return (order[idA] || 4) - (order[idB] || 4);
+                        // Sort order: Matrimonial-301, Matrimonial-201, Doble-302, Doble-202, Triple-303, Triple-304
+                        const order: Record<string, number> = { '301': 1, '201': 2, '302': 3, '202': 4, '303': 5, '304': 6 };
+                        return (order[a.num] || 99) - (order[b.num] || 99);
                     });
 
                     setRooms(mappedRooms);

@@ -95,7 +95,7 @@ export default function ReservationSearchPanel({
                             </button>
                             <span className="w-12 text-center font-bold">{adultos}</span>
                             <button
-                                onClick={() => onAdultosChange(Math.min(10, adultos + 1))}
+                                onClick={() => onAdultosChange(Math.min(18, adultos + 1))}
                                 className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
                                 type="button"
                             >
@@ -120,7 +120,7 @@ export default function ReservationSearchPanel({
                             </button>
                             <span className="w-12 text-center font-bold">{ninos}</span>
                             <button
-                                onClick={() => onNinosChange(Math.min(10, ninos + 1))}
+                                onClick={() => onNinosChange(Math.min(18, ninos + 1))}
                                 className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
                                 type="button"
                             >

@@ -6,6 +6,7 @@ import Script from "next/script";
 interface PayPhoneBoxProps {
     amount: number; // En dólares (ej: 10.50)
     description: string;
+    clientTransactionId: string;
 }
 
 declare global {
@@ -14,7 +15,7 @@ declare global {
     }
 }
 
-export default function PayPhoneBox({ amount, description }: PayPhoneBoxProps) {
+export default function PayPhoneBox({ amount, description, clientTransactionId }: PayPhoneBoxProps) {
     const [isLoaded, setIsLoaded] = useState(false);
     const containerId = "pp-button";
 
@@ -26,7 +27,7 @@ export default function PayPhoneBox({ amount, description }: PayPhoneBoxProps) {
                 if (container) container.innerHTML = '';
 
                 const amountInCents = Math.round(amount * 100);
-                const transactionId = `hotel-${Date.now().toString().slice(-10)}`;
+                const transactionId = clientTransactionId;
 
                 const ppb = new window.PPaymentButtonBox({
                     token: process.env.NEXT_PUBLIC_PAYPHONE_TOKEN,

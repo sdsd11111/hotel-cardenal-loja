@@ -33,6 +33,27 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
     const [selectedId, setSelectedId] = useState<number | null>(configs[0]?.id || null);
     const [editingConfig, setEditingConfig] = useState<RoomConfig | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [mealPrices, setMealPrices] = useState({ breakfast: '0', lunch: '0', dinner: '0' });
+    const [isSavingMeals, setIsSavingMeals] = useState(false);
+
+    const fetchMealPrices = async () => {
+        try {
+            const res = await fetch('/api/admin/settings');
+            if (res.ok) {
+                const data = await res.json();
+                const b = data.find((s: any) => s.setting_key === 'breakfast_price')?.setting_value || '0';
+                const l = data.find((s: any) => s.setting_key === 'lunch_price')?.setting_value || '0';
+                const d = data.find((s: any) => s.setting_key === 'dinner_price')?.setting_value || '0';
+                setMealPrices({ breakfast: b, lunch: l, dinner: d });
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        fetchMealPrices();
+    }, []);
 
     useEffect(() => {
         const config = configs.find(c => c.id === selectedId);
@@ -124,6 +145,29 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
         }
     };
 
+    const handleSaveMeals = async () => {
+        setIsSavingMeals(true);
+        try {
+            const keys = ['breakfast_price', 'lunch_price', 'dinner_price'];
+            const values = [mealPrices.breakfast, mealPrices.lunch, mealPrices.dinner];
+
+            for (let i = 0; i < keys.length; i++) {
+                await fetch('/api/admin/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ setting_key: keys[i], setting_value: values[i] }),
+                });
+            }
+            alert('Precios de comidas actualizados correctamente');
+            fetchMealPrices();
+        } catch (error) {
+            console.error(error);
+            alert('Error al guardar precios de comidas');
+        } finally {
+            setIsSavingMeals(false);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-fadeIn">
             {/* Tabs for different room types */}
@@ -156,6 +200,52 @@ export default function RoomConfigForm({ configs, onUpdate }: { configs: RoomCon
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column: General Info & Amenities */}
                 <div className="space-y-6">
+                    {/* Meal Prices Section - Requested by user to be BEFORE General Info */}
+                    <div className="bg-white p-8 rounded-3xl border-2 border-cardenal-gold/50 shadow-xl space-y-6">
+                        <h3 className="text-xl font-black text-cardenal-green border-b-2 border-cardenal-gold/20 pb-3 flex items-center gap-2 font-serif">
+                            <Coffee className="w-6 h-6 text-cardenal-gold" /> Configuración de Precios de Comidas
+                        </h3>
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest -mt-4">Estos valores son globales para todas las categorías.</p>
+
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-black uppercase tracking-widest">Desayuno ($)</label>
+                                <Input
+                                    type="number"
+                                    value={mealPrices.breakfast}
+                                    onChange={e => setMealPrices({ ...mealPrices, breakfast: e.target.value })}
+                                    className="border-2 border-gray-300 font-black h-12 text-lg text-cardenal-green"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-black uppercase tracking-widest">Almuerzo ($)</label>
+                                <Input
+                                    type="number"
+                                    value={mealPrices.lunch}
+                                    onChange={e => setMealPrices({ ...mealPrices, lunch: e.target.value })}
+                                    className="border-2 border-gray-300 font-black h-12 text-lg text-cardenal-green"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-black uppercase tracking-widest">Cena ($)</label>
+                                <Input
+                                    type="number"
+                                    value={mealPrices.dinner}
+                                    onChange={e => setMealPrices({ ...mealPrices, dinner: e.target.value })}
+                                    className="border-2 border-gray-300 font-black h-12 text-lg text-cardenal-green"
+                                />
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={handleSaveMeals}
+                            disabled={isSavingMeals}
+                            className="w-full bg-cardenal-green text-white font-black h-10 shadow-md uppercase tracking-widest text-xs"
+                        >
+                            {isSavingMeals ? 'Guardando...' : 'Actualizar Precios de Comidas'}
+                        </Button>
+                    </div>
+
                     <div className="bg-white p-8 rounded-3xl border-2 border-gray-300 shadow-xl space-y-6">
                         <h3 className="text-xl font-black text-cardenal-green border-b-2 border-gray-200 pb-3 flex items-center gap-2">
                             <Settings2 className="w-6 h-6" /> Información General

@@ -306,7 +306,7 @@ export default function RestaurantePage() {
                             <h2 className="text-3xl font-serif font-bold text-cardenal-green mb-4">Reserve su Mesa o Evento Especial</h2>
                             <p className="text-gray-600 max-w-2xl mx-auto">Complete el siguiente formulario y nos pondremos en contacto con usted para confirmar su reserva.</p>
                         </div>
-                        <EventForm />
+                        <EventForm motivoDefault="Consulta de Restaurante" />
                     </section>
 
                 </div>

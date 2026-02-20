@@ -61,7 +61,6 @@ const guiaItems = [
 const hamburgerNavigation = [
   { label: 'Galería', href: '/galeria' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Contacto', href: '/contacto' },
 ];
 
 import { useRouter } from 'next/navigation';
@@ -453,16 +452,6 @@ export const Header = ({
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Blog
-                      </Link>
-                      <Link
-                        href="/contacto"
-                        className={cn(
-                          "block text-lg text-cardenal-brown hover:text-cardenal-gold font-bold transition-colors uppercase tracking-widest",
-                          pathname === '/contacto' && "text-cardenal-gold"
-                        )}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Contacto
                       </Link>
                     </div>
                   </div>

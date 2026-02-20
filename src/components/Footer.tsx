@@ -72,11 +72,6 @@ export const Footer = ({ logo, themeClass }: FooterProps) => {
                   <span className="text-cardenal-gold font-bold">›</span> Servicios
                 </Link>
               </li>
-              <li>
-                <Link href="/contacto" className="text-sm hover:text-white transition-colors flex items-center justify-center md:justify-start gap-2 font-body font-bold">
-                  <span className="text-cardenal-gold font-bold">›</span> Contacto
-                </Link>
-              </li>
             </ul>
           </div>
 

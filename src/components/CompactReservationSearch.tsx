@@ -61,16 +61,7 @@ export default function CompactReservationSearch({
             {/* Adults */}
             <div className="flex items-center gap-1 bg-cardenal-cream px-2 py-1 rounded border border-cardenal-sand flex-shrink-0">
                 <button
-                    onClick={() => onAdultosChange(Math.max(0, adultos - 1))}
-                    className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
-                    type="button"
-                >
-                    <Minus className="w-2.5 h-2.5" />
-                </button>
-                <Users className="w-3 h-3 text-cardenal-green" />
-                <span className="text-xs font-black min-w-[12px] text-center font-sans text-cardenal-green">{adultos}</span>
-                <button
-                    onClick={() => onAdultosChange(Math.min(10, adultos + 1))}
+                    onClick={() => onAdultosChange(Math.min(18, adultos + 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                     type="button"
                 >
@@ -90,7 +81,7 @@ export default function CompactReservationSearch({
                 <Users className="w-2.5 h-2.5 text-cardenal-green" />
                 <span className="text-xs font-black min-w-[12px] text-center font-sans text-cardenal-green">{ninos}</span>
                 <button
-                    onClick={() => onNinosChange(Math.min(10, ninos + 1))}
+                    onClick={() => onNinosChange(Math.min(18, ninos + 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
                     type="button"
                 >

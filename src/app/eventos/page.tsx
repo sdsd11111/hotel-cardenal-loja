@@ -247,20 +247,6 @@ export default function EventosPage() {
                         </div>
                     </section>
 
-                    {/* H3: Reserva y CTA */}
-                    <section className="bg-gray-50 border-l-4 border-cardenal-gold p-8 md:p-12 rounded-r-xl shadow-lg text-center max-w-4xl mx-auto">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Reserve su Espacio</h3>
-                        <p className="text-gray-700 mb-8 max-w-2xl mx-auto">
-                            Debido a nuestra exclusividad y cupo limitado, recomendamos coordinar su evento con anticipación para garantizar la disponibilidad total del área.
-                        </p>
-
-                        <Link
-                            href="/contacto?motivo=Cotizacion+Eventos"
-                            className="inline-flex items-center gap-3 bg-cardenal-gold hover:bg-cardenal-gold/90 text-white font-bold py-4 px-10 rounded-lg transform hover:-translate-y-1 transition-all duration-300 shadow-xl uppercase tracking-widest text-sm"
-                        >
-                            👉 Solicitar Cotización para Eventos
-                        </Link>
-                    </section>
 
                     {/* H2: Formulario de Solicitud Directa */}
                     <section className="mt-20">
@@ -268,7 +254,7 @@ export default function EventosPage() {
                             <h2 className="text-3xl font-serif font-bold text-cardenal-green mb-4">Solicite su Cotización para Eventos</h2>
                             <p className="text-gray-600 max-w-2xl mx-auto">Complete el siguiente formulario y nos pondremos en contacto con usted en menos de 24 horas.</p>
                         </div>
-                        <EventForm />
+                        <EventForm motivoDefault="Consulta para Eventos Corporativos" />
                     </section>
 
                 </div>

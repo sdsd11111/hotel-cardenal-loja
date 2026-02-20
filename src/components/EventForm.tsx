@@ -4,7 +4,11 @@ import React, { useState } from 'react';
 import { User, Phone, Mail, Clock, Calendar, Users, Send, CheckCircle, Info } from 'lucide-react';
 import Link from 'next/link';
 
-export const EventForm = () => {
+interface EventFormProps {
+    motivoDefault?: string;
+}
+
+export const EventForm = ({ motivoDefault = 'Consulta para Eventos Corporativos' }: EventFormProps) => {
     const [formData, setFormData] = useState({
         nombre: '',
         apellidos: '',
@@ -47,7 +51,7 @@ export const EventForm = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    motivo: 'Consulta para Eventos Corporativos',
+                    motivo: motivoDefault,
                     ninos: 0,
                     deseaFacturacion: false,
                     traeMascota: false,

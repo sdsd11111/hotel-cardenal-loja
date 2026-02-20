@@ -91,38 +91,37 @@ export async function POST(request: Request) {
         // === CASO 2: TRANSFERENCIA (CREAR PENDIENTE) ===
         if (id === 'TRANSFERENCIA') {
             console.log('=== MODO TRANSFERENCIA BANCARIA ===');
-            // VALIDAR DISPONIBILIDAD
-            const isAvailable = await checkAvailability(
-                reservationData?.habitacion_id,
-                reservationData?.fecha_entrada,
-                reservationData?.fecha_salida
-            );
-            if (!isAvailable) {
-                return NextResponse.json({ success: false, message: 'CRÍTICO: Habitación ocupada. Alguien ganó la reserva.' }, { status: 409 });
-            }
+            const rooms = reservationData?.rooms;
 
-            try {
-                await insertNewReserva(
-                    reservationData?.precio || 0,
-                    clientTransactionId,
-                    id,
-                    clientTransactionId,
-                    reservationData
-                );
-                // Sincronizar clientes ya que se creó una reserva (aunque sea pendiente)
+            if (rooms && Array.isArray(rooms)) {
+                // Check availability for ALL rooms first
+                for (const room of rooms) {
+                    const isAvailable = await checkAvailability(room.habitacion_id, room.fecha_entrada, room.fecha_salida);
+                    if (!isAvailable) {
+                        return NextResponse.json({ success: false, message: `Habitación ${room.habitacion_nombre} ya no está disponible.` }, { status: 409 });
+                    }
+                }
+
+                // Insert all reservations
+                for (let i = 0; i < rooms.length; i++) {
+                    const room = rooms[i];
+                    const uniqueResId = `${clientTransactionId}-${i + 1}`;
+                    await insertNewReserva(room.precio, clientTransactionId, id, uniqueResId, { ...reservationData, ...room });
+                }
+
                 await syncWithClientes(reservationData, clientTransactionId);
-
-                // Decisión: Enviamos correo para que el cliente tenga su respaldo de "Solicitud Recibida".
                 await sendBookingEmails(reservationData, clientTransactionId, 'PENDING_TRANSFER');
+            } else {
+                // Legacy single-room flow
+                const isAvailable = await checkAvailability(reservationData?.habitacion_id, reservationData?.fecha_entrada, reservationData?.fecha_salida);
+                if (!isAvailable) return NextResponse.json({ success: false, message: 'Habitación ocupada.' }, { status: 409 });
 
-                return NextResponse.json({ success: true, message: 'Reserva pendiente creada' });
-            } catch (innerError: any) {
-                console.error("Error creating TRANSFERENCIA reservation:", innerError);
-                return NextResponse.json({
-                    success: false,
-                    message: innerError.message || 'Error interno al crear reserva'
-                }, { status: 500 });
+                await insertNewReserva(reservationData?.precio || 0, clientTransactionId, id, clientTransactionId, reservationData);
+                await syncWithClientes(reservationData, clientTransactionId);
+                await sendBookingEmails(reservationData, clientTransactionId, 'PENDING_TRANSFER');
             }
+
+            return NextResponse.json({ success: true, message: 'Reserva(s) pendiente(s) creada(s)' });
         }
 
         // === CASO 3: SIMULACIÓN MANUAL (RECEPCIÓN) ===
@@ -191,96 +190,74 @@ export async function POST(request: Request) {
         const isApproved = data.transactionStatus === "Approved" || data.statusCode === 3;
 
         if (isApproved) {
-            // Fulfillment: Guardar o Actualizar en la base de datos
             try {
                 const amount = data.amount / 100;
                 const reservaParam = reservationData?.numero_reserva?.toString() || '';
+                const rooms = reservationData?.rooms;
 
-                // --- SECURITY CHECKS START ---
-                let finalEstado = 'OK';
+                if (rooms && Array.isArray(rooms)) {
+                    // MULTI-ROOM FLOW
+                    let allAvailable = true;
+                    let firstUnavailable = '';
 
-                // 1. Availability Check (Prevent Double Booking)
-                // Usamos excludeId si estamos actualizando una reserva existente
-                const excludeId = (/^\d+$/.test(reservaParam)) ? parseInt(reservaParam) : undefined;
+                    for (const room of rooms) {
+                        const isAvailable = await checkAvailability(room.habitacion_id, room.fecha_entrada, room.fecha_salida);
+                        if (!isAvailable) {
+                            allAvailable = false;
+                            firstUnavailable = room.habitacion_nombre;
+                            break;
+                        }
+                    }
 
-                const isAvailable = await checkAvailability(
-                    reservationData?.habitacion_id,
-                    reservationData?.fecha_entrada,
-                    reservationData?.fecha_salida,
-                    excludeId
-                );
+                    const finalEstado = allAvailable ? 'OK' : 'CONFLICTO_FECHAS';
 
-                if (!isAvailable) {
-                    console.error(`CRITICAL: PayPhone OK but Room ${reservationData?.habitacion_id} BUSY. ID: ${id}`);
-                    finalEstado = 'CONFLICTO_FECHAS'; // Admin must resolve
-                }
+                    for (let i = 0; i < rooms.length; i++) {
+                        const room = rooms[i];
+                        const uniqueResId = `${clientTransactionId}-${i + 1}`;
+                        // For multi-room, we always insert because clientTransactionId is shared
+                        await insertNewReserva(room.precio, clientTransactionId, id, uniqueResId, { ...reservationData, ...room, estado: finalEstado });
+                    }
 
-                // 2. Price Check (Prevent Tampering)
-                const isValidPrice = await verifyRoomPrice(
-                    reservationData?.habitacion_id,
-                    amount
-                );
+                    await syncWithClientes(reservationData, clientTransactionId);
+                    await sendBookingEmails(reservationData, clientTransactionId);
+                } else {
+                    // SINGLE ROOM FLOW (Legacy or regular)
+                    let finalEstado = 'OK';
+                    const isAvailable = await checkAvailability(reservationData?.habitacion_id, reservationData?.fecha_entrada, reservationData?.fecha_salida);
 
-                if (!isValidPrice && finalEstado === 'OK') {
-                    // Solo marcamos conflicto de precio s no hay otro conflicto peor
-                    console.error(`CRITICAL: PayPhone OK but Price Amount ${amount} < DB Price. ID: ${id}`);
-                    finalEstado = 'CONFLICTO_PRECIO';
-                }
-                // --- SECURITY CHECKS END ---
+                    if (!isAvailable) finalEstado = 'CONFLICTO_FECHAS';
 
-                // Si el parámetro 'reserva' es un ID numérico (de la tabla reservas), actualizamos.
-                // Si contiene 'PRUEBA' o no es numérico, insertamos una nueva.
-                const isNumericId = /^\d+$/.test(reservaParam);
+                    const isValidPrice = await verifyRoomPrice(reservationData?.habitacion_id, amount);
+                    if (!isValidPrice && finalEstado === 'OK') finalEstado = 'CONFLICTO_PRECIO';
 
-                if (isNumericId) {
-                    // 1. ACTUALIZAR reserva existente (flujo real de checkout)
-                    const newMeta = JSON.stringify({
-                        payphone_id: id,
-                        verified_at: new Date().toISOString(),
-                        peticiones: reservationData?.peticiones || '',
-                        pais: reservationData?.pais || '',
-                        reserva_para: reservationData?.reserva_para || 'mi',
-                        habitacion_nombre: reservationData?.habitacion_nombre || '',
-                        security_warning: finalEstado !== 'OK' ? finalEstado : undefined
-                    });
+                    const isNumericId = /^\d+$/.test(reservaParam);
+                    if (isNumericId) {
+                        // UPDATE
+                        const newMeta = JSON.stringify({
+                            payphone_id: id,
+                            verified_at: new Date().toISOString(),
+                            peticiones: reservationData?.peticiones || '',
+                            pais: reservationData?.pais || '',
+                            reserva_para: reservationData?.reserva_para || 'mi',
+                            habitacion_nombre: reservationData?.habitacion_nombre || '',
+                            security_warning: finalEstado !== 'OK' ? finalEstado : undefined
+                        });
 
-                    const updated: any = await query(
-                        `UPDATE reservas 
-                         SET estado = ?, 
-                             numero_reserva = ?, 
-                             precio = ?,
-                             meta = ?
-                         WHERE id = ?`,
-                        [
-                            finalEstado, // OK or CONFLICTO
-                            clientTransactionId,
-                            amount,
-                            newMeta,
-                            parseInt(reservaParam)
-                        ]
-                    );
-
-                    if (updated.affectedRows > 0) {
-                        console.log(`Reserva ID ${reservaParam} actualizada exitosamente a OK`);
-                        // Sincronizar con Lista de Clientes
+                        await query(
+                            `UPDATE reservas SET estado = ?, numero_reserva = ?, precio = ?, meta = ? WHERE id = ?`,
+                            [finalEstado, clientTransactionId, amount, newMeta, parseInt(reservaParam)]
+                        );
                         await syncWithClientes(reservationData, clientTransactionId);
-                        // Enviar correos de confirmación
                         await sendBookingEmails(reservationData, clientTransactionId);
                     } else {
-                        console.log(`No se encontró la reserva ID ${reservaParam} para actualizar, insertando como nueva.`);
-                        await insertNewReserva(amount, reservaParam, id, clientTransactionId, reservationData);
+                        // INSERT
+                        await insertNewReserva(amount, reservaParam, id, clientTransactionId, { ...reservationData, estado: finalEstado });
+                        await sendBookingEmails(reservationData, clientTransactionId);
                     }
-                } else {
-                    // 2. INSERTAR nueva reserva (flujo de prueba o botón directo)
-                    await insertNewReserva(amount, reservaParam, id, clientTransactionId, reservationData);
-                    // Enviar correos de confirmación (también para pruebas)
-                    await sendBookingEmails(reservationData, clientTransactionId);
                 }
-
             } catch (dbError) {
-                console.error("Error updating/saving reservation to DB after successful payment:", dbError);
+                console.error("Error updating/saving multi-room reservation:", dbError);
             }
-
             return NextResponse.json(data);
         }
 
@@ -293,7 +270,7 @@ export async function POST(request: Request) {
         }, { status: response.status });
 
     } catch (error: any) {
-        console.error("PayPhone verification error:", error);
+        console.error("Reservation processing error:", error);
         return NextResponse.json({ message: error.message }, { status: 500 });
     }
 }
@@ -435,13 +412,24 @@ async function syncWithClientes(data: any, reservationNumber: string) {
 }
 
 async function sendBookingEmails(data: any, reservationNumber: string, status: 'CONFIRMED' | 'PENDING_TRANSFER' = 'CONFIRMED') {
-    const ownerEmail = "elcardenalhotel@gmail.com";
+    const ownerEmail = `${process.env.EMAIL_USER}, elcardenalhotel@gmail.com`;
     const guestEmail = data?.email_cliente;
     const guestName = data?.nombre_cliente || 'Huésped';
-    const habitacion = data?.habitacion_nombre || data?.habitacion_id || 'No especificada';
     const checkIn = data?.fecha_entrada || 'No especificada';
     const checkOut = data?.fecha_salida || 'No especificada';
     const total = data?.precio || '0.00';
+
+    // Handle multiple rooms for email body
+    let roomDetailsHtml = '';
+    const rooms = data?.rooms;
+    if (rooms && Array.isArray(rooms)) {
+        roomDetailsHtml = rooms.map(r => `<li><strong>${r.habitacion_nombre}</strong> (${r.adultos} adultos${r.ninos > 0 ? `, ${r.ninos} niños` : ''}) - $${r.precio.toFixed(2)}</li>`).join('');
+    } else {
+        const habitacion = data?.habitacion_nombre || data?.habitacion_id || 'No especificada';
+        roomDetailsHtml = `<li><strong>${habitacion}</strong></li>`;
+    }
+
+    const mainRoomName = rooms && Array.isArray(rooms) ? `${rooms.length} habitaciones` : (data?.habitacion_nombre || 'Habitación');
 
     // Templates
     const subjectGuest = status === 'CONFIRMED'
@@ -449,8 +437,8 @@ async function sendBookingEmails(data: any, reservationNumber: string, status: '
         : '⏳ Solicitud de Reserva Recibida (Pendiente de Pago) - Hotel El Cardenal';
 
     const subjectOwner = status === 'CONFIRMED'
-        ? `🔔 Nueva Reserva CONFIRMADA: ${guestName} - Hab. ${habitacion}`
-        : `⏳ Nueva Solicitud TRANSFERENCIA: ${guestName} - Hab. ${habitacion}`;
+        ? `🔔 Nueva Reserva CONFIRMADA: ${guestName} - ${mainRoomName}`
+        : `⏳ Nueva Solicitud TRANSFERENCIA: ${guestName} - ${mainRoomName}`;
 
     const bodyGuest = status === 'CONFIRMED'
         ? `
@@ -460,10 +448,11 @@ async function sendBookingEmails(data: any, reservationNumber: string, status: '
                 <p>Su reserva ha sido <strong>CONFIRMADA</strong> exitosamente. Detalles:</p>
                 <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
                     <p><strong>Nro. Reserva:</strong> ${reservationNumber}</p>
-                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Habitaciones:</strong></p>
+                    <ul style="margin-top: 5px;">${roomDetailsHtml}</ul>
                     <p><strong>Check-in:</strong> ${checkIn}</p>
                     <p><strong>Check-out:</strong> ${checkOut}</p>
-                    <p><strong>Total Pagado:</strong> $${total}</p>
+                    <p><strong>Total:</strong> $${total}</p>
                 </div>
                 <p>Le esperamos pronto en el Hotel El Cardenal.</p>
                 <hr style="border: none; border-top: 1px solid #eee;">
@@ -477,7 +466,8 @@ async function sendBookingEmails(data: any, reservationNumber: string, status: '
                 <p>Hemos registrado su solicitud de reserva. Su estado actual es: <strong>PENDIENTE DE PAGO</strong>.</p>
                 <div style="background: #fff8f0; padding: 15px; border-radius: 8px; border-left: 4px solid #e67e22;">
                     <p><strong>Nro. Reserva:</strong> ${reservationNumber}</p>
-                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Habitaciones:</strong></p>
+                    <ul style="margin-top: 5px;">${roomDetailsHtml}</ul>
                     <p><strong>Total a Transferir:</strong> $${total}</p>
                 </div>
                 <p><strong>Próximo Paso:</strong> Por favor envíe el comprobante de transferencia por WhatsApp para confirmar su reserva definitivamente.</p>
@@ -497,7 +487,8 @@ async function sendBookingEmails(data: any, reservationNumber: string, status: '
                 <p>Se ha registrado y PAGADO una nueva reserva web (PayPhone):</p>
                 <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0071c2;">
                     <p><strong>Huésped:</strong> ${guestName}</p>
-                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Habitaciones:</strong></p>
+                    <ul style="margin-top: 5px;">${roomDetailsHtml}</ul>
                     <p><strong>Fechas:</strong> ${checkIn} al ${checkOut}</p>
                     <p><strong>ID Transacción:</strong> ${reservationNumber}</p>
                     <p><strong>Monto:</strong> $${total}</p>
@@ -513,7 +504,8 @@ async function sendBookingEmails(data: any, reservationNumber: string, status: '
                 <p>Debes esperar a recibir el comprobante por WhatsApp para confirmarla manualmente en el panel.</p>
                 <div style="background: #fff8f0; padding: 15px; border-radius: 8px; border-left: 4px solid #e67e22;">
                     <p><strong>Huésped:</strong> ${guestName}</p>
-                    <p><strong>Habitación:</strong> ${habitacion}</p>
+                    <p><strong>Habitaciones:</strong></p>
+                    <ul style="margin-top: 5px;">${roomDetailsHtml}</ul>
                     <p><strong>Fechas:</strong> ${checkIn} al ${checkOut}</p>
                     <p><strong>ID Reserva:</strong> ${reservationNumber}</p>
                     <p><strong>Monto Esperado:</strong> $${total}</p>

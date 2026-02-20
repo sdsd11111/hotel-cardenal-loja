@@ -21,8 +21,10 @@ export async function PUT(request: Request) {
         }
 
         await query(
-            'UPDATE hotel_settings SET setting_value = ? WHERE setting_key = ?',
-            [setting_value, setting_key]
+            `INSERT INTO hotel_settings (setting_key, setting_value, display_name, description, category)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
+            [setting_key, setting_value, setting_key, '', 'precios']
         );
 
         return NextResponse.json({ success: true, message: 'Configuración actualizada' });
