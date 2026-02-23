@@ -63,6 +63,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
     // Reservation search state
     const [fechaEntrada, setFechaEntrada] = useState('');
     const [fechaSalida, setFechaSalida] = useState('');
+    const [habitaciones, setHabitaciones] = useState(1);
     const [adultos, setAdultos] = useState(2);
     const [ninos, setNinos] = useState(0);
 
@@ -71,6 +72,7 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
         const params = new URLSearchParams();
         if (fechaEntrada) params.set('entrada', fechaEntrada);
         if (fechaSalida) params.set('salida', fechaSalida);
+        if (habitaciones > 1) params.set('habitaciones', habitaciones.toString());
         if (adultos > 0) params.set('adultos', adultos.toString());
         if (ninos > 0) params.set('ninos', ninos.toString());
 
@@ -118,6 +120,8 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
                     fechaSalida,
                     onFechaEntradaChange: setFechaEntrada,
                     onFechaSalidaChange: setFechaSalida,
+                    habitaciones,
+                    onHabitacionesChange: setHabitaciones,
                     adultos,
                     ninos,
                     onAdultosChange: setAdultos,
@@ -276,6 +280,35 @@ export default function HomeClient({ customLogo, themeClass }: { customLogo?: st
 
                                     {/* Divider */}
                                     <div className="hidden md:block w-px h-12 bg-gray-300 mx-2"></div>
+
+                                    {/* Habitaciones */}
+                                    <div className="flex-shrink-0">
+                                        <label className="block text-xs font-bold text-cardenal-green mb-1 text-center font-serif tracking-widest">
+                                            HAB./CANT.
+                                        </label>
+                                        <div className="flex items-center gap-2 bg-cardenal-cream px-3 py-2 rounded-lg border-2 border-cardenal-sand">
+                                            <button
+                                                onClick={() => setHabitaciones(Math.max(1, habitaciones - 1))}
+                                                className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
+                                                type="button"
+                                                aria-label="Disminuir número de habitaciones"
+                                            >
+                                                <Minus className="w-3 h-3" />
+                                            </button>
+                                            <div className="flex items-center gap-2 min-w-[30px] justify-center">
+                                                <span className="text-sm font-bold font-sans">#</span>
+                                                <span className="text-sm font-bold font-sans">{habitaciones}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => setHabitaciones(Math.min(6, habitaciones + 1))}
+                                                className="p-1 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
+                                                type="button"
+                                                aria-label="Aumentar número de habitaciones"
+                                            >
+                                                <Plus className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    </div>
 
                                     {/* Adults */}
                                     <div className="flex-shrink-0">

@@ -8,6 +8,8 @@ interface CompactReservationSearchProps {
     fechaSalida: string;
     onFechaEntradaChange: (fecha: string) => void;
     onFechaSalidaChange: (fecha: string) => void;
+    habitaciones: number;
+    onHabitacionesChange: (cantidad: number) => void;
     adultos: number;
     ninos: number;
     onAdultosChange: (cantidad: number) => void;
@@ -20,6 +22,8 @@ export default function CompactReservationSearch({
     fechaSalida,
     onFechaEntradaChange,
     onFechaSalidaChange,
+    habitaciones,
+    onHabitacionesChange,
     adultos,
     ninos,
     onAdultosChange,
@@ -58,8 +62,37 @@ export default function CompactReservationSearch({
             {/* Divider */}
             <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
+            {/* Habitaciones */}
+            <div className="flex items-center gap-1 bg-cardenal-cream px-2 py-1 rounded border border-cardenal-sand flex-shrink-0">
+                <button
+                    onClick={() => onHabitacionesChange(Math.max(1, habitaciones - 1))}
+                    className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
+                    type="button"
+                >
+                    <Minus className="w-2.5 h-2.5" />
+                </button>
+                <span className="text-xs font-black text-cardenal-green font-serif">#</span>
+                <span className="text-xs font-black min-w-[12px] text-center font-sans text-cardenal-green">{habitaciones}</span>
+                <button
+                    onClick={() => onHabitacionesChange(Math.min(6, habitaciones + 1))}
+                    className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
+                    type="button"
+                >
+                    <Plus className="w-2.5 h-2.5" />
+                </button>
+            </div>
+
             {/* Adults */}
             <div className="flex items-center gap-1 bg-cardenal-cream px-2 py-1 rounded border border-cardenal-sand flex-shrink-0">
+                <button
+                    onClick={() => onAdultosChange(Math.max(1, adultos - 1))}
+                    className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
+                    type="button"
+                >
+                    <Minus className="w-2.5 h-2.5" />
+                </button>
+                <Users className="w-2.5 h-2.5 text-cardenal-green" />
+                <span className="text-xs font-black min-w-[12px] text-center font-sans text-cardenal-green">{adultos}</span>
                 <button
                     onClick={() => onAdultosChange(Math.min(18, adultos + 1))}
                     className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"

@@ -26,6 +26,8 @@ interface HeaderProps {
     fechaSalida: string;
     onFechaEntradaChange: (fecha: string) => void;
     onFechaSalidaChange: (fecha: string) => void;
+    habitaciones: number;
+    onHabitacionesChange: (cantidad: number) => void;
     adultos: number;
     ninos: number;
     onAdultosChange: (cantidad: number) => void;
@@ -93,6 +95,7 @@ export const Header = ({
   // Internal state for reservation search (used if props are not provided)
   const [internalFechaEntrada, setInternalFechaEntrada] = useState('');
   const [internalFechaSalida, setInternalFechaSalida] = useState('');
+  const [internalHabitaciones, setInternalHabitaciones] = useState(1);
   const [internalAdultos, setInternalAdultos] = useState(2);
   const [internalNinos, setInternalNinos] = useState(0);
 
@@ -101,6 +104,7 @@ export const Header = ({
     const params = new URLSearchParams();
     if (internalFechaEntrada) params.set('entrada', internalFechaEntrada);
     if (internalFechaSalida) params.set('salida', internalFechaSalida);
+    if (internalHabitaciones > 1) params.set('habitaciones', internalHabitaciones.toString());
     if (internalAdultos > 0) params.set('adultos', internalAdultos.toString());
     if (internalNinos > 0) params.set('ninos', internalNinos.toString());
 
@@ -113,6 +117,8 @@ export const Header = ({
     fechaSalida: internalFechaSalida,
     onFechaEntradaChange: setInternalFechaEntrada,
     onFechaSalidaChange: setInternalFechaSalida,
+    habitaciones: internalHabitaciones,
+    onHabitacionesChange: setInternalHabitaciones,
     adultos: internalAdultos,
     ninos: internalNinos,
     onAdultosChange: setInternalAdultos,

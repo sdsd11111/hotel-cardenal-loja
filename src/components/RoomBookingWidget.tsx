@@ -15,6 +15,7 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
     const [isLoadingPrice, setIsLoadingPrice] = useState(false);
     const [entrada, setEntrada] = useState('');
     const [salida, setSalida] = useState('');
+    const [habitaciones, setHabitaciones] = useState(1);
     const [adultos, setAdultos] = useState(2);
     const [ninos, setNinos] = useState(0);
     const [meals, setMeals] = useState({
@@ -55,6 +56,7 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
         const params = new URLSearchParams({
             entrada,
             salida,
+            habitaciones: habitaciones.toString(),
             adultos: adultos.toString(),
             ninos: ninos.toString(),
             desayuno: meals.desayuno ? '1' : '0',
@@ -123,32 +125,63 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
                         </div>
                     </div>
 
-                    {/* Guests */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Guests & Rooms */}
+                    <div className="space-y-4">
                         <div className="relative">
-                            <label className="block text-[10px] font-bold text-cardenal-brown uppercase tracking-widest mb-1.5">Adultos</label>
+                            <label className="block text-[10px] font-bold text-cardenal-brown uppercase tracking-widest mb-1.5">Habitaciones</label>
                             <div className="relative">
-                                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cardenal-gold" />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cardenal-gold flex items-center justify-center font-serif text-sm">#</span>
                                 <select
-                                    value={adultos}
-                                    onChange={(e) => setAdultos(parseInt(e.target.value))}
+                                    value={habitaciones}
+                                    onChange={(e) => setHabitaciones(parseInt(e.target.value))}
                                     className="w-full pl-10 pr-2 py-3 bg-white border-2 border-cardenal-cream/30 focus:border-cardenal-gold focus:outline-none text-sm appearance-none font-bold text-cardenal-green rounded-none"
                                 >
-                                    {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} {n === 1 ? 'Adulto' : 'Adultos'}</option>)}
+                                    {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} {n === 1 ? 'Habitación' : 'Habitaciones'}</option>)}
                                 </select>
                             </div>
                         </div>
-                        <div className="relative">
-                            <label className="block text-[10px] font-bold text-cardenal-brown uppercase tracking-widest mb-1.5">Niños</label>
+
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="relative">
-                                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cardenal-gold" />
-                                <select
-                                    value={ninos}
-                                    onChange={(e) => setNinos(parseInt(e.target.value))}
-                                    className="w-full pl-10 pr-2 py-3 bg-white border-2 border-cardenal-cream/30 focus:border-cardenal-gold focus:outline-none text-sm appearance-none font-bold text-cardenal-green rounded-none"
-                                >
-                                    {[0, 1, 2, 3, 4].map(n => <option key={n} value={n}>{n} {n === 1 ? 'Niño' : 'Niños'}</option>)}
-                                </select>
+                                <label className="block text-[10px] font-bold text-cardenal-brown uppercase tracking-widest mb-1.5">Adultos</label>
+                                <div className="relative">
+                                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cardenal-gold" />
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="18"
+                                        value={adultos}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value, 10);
+                                            setAdultos(isNaN(val) ? 1 : Math.max(1, Math.min(18, val)));
+                                        }}
+                                        className="w-full pl-10 pr-2 py-3 bg-white border-2 border-cardenal-cream/30 focus:border-cardenal-gold focus:outline-none text-sm font-bold text-cardenal-green rounded-none"
+                                    />
+                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-xs font-bold text-cardenal-green/60 pointer-events-none hidden xs:block">
+                                        {adultos === 1 ? 'Adulto' : 'Adultos'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="relative">
+                                <label className="block text-[10px] font-bold text-cardenal-brown uppercase tracking-widest mb-1.5">Niños</label>
+                                <div className="relative">
+                                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cardenal-gold" />
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="18"
+                                        value={ninos}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value, 10);
+                                            setNinos(isNaN(val) ? 0 : Math.max(0, Math.min(18, val)));
+                                        }}
+                                        className="w-full pl-10 pr-2 py-3 bg-white border-2 border-cardenal-cream/30 focus:border-cardenal-gold focus:outline-none text-sm font-bold text-cardenal-green rounded-none"
+                                    />
+                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-xs font-bold text-cardenal-green/60 pointer-events-none hidden xs:block">
+                                        {ninos === 1 ? 'Niño' : 'Niños'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

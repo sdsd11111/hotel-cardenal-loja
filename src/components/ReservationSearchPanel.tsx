@@ -10,7 +10,9 @@ interface ReservationSearchPanelProps {
     onFechaEntradaChange: (fecha: string) => void;
     onFechaSalidaChange: (fecha: string) => void;
 
-    // Filter state (adults/children)
+    // Filter state (rooms/adults/children)
+    habitaciones: number;
+    onHabitacionesChange: (cantidad: number) => void;
     adultos: number;
     ninos: number;
     onAdultosChange: (cantidad: number) => void;
@@ -32,6 +34,8 @@ export default function ReservationSearchPanel({
     fechaSalida,
     onFechaEntradaChange,
     onFechaSalidaChange,
+    habitaciones,
+    onHabitacionesChange,
     adultos,
     ninos,
     onAdultosChange,
@@ -48,7 +52,7 @@ export default function ReservationSearchPanel({
     return (
         <div className={`bg-white border-b-4 border-amber-500 shadow-lg ${sticky ? 'sticky top-0' : ''} z-40 ${className}`}>
             <div className="container mx-auto px-4 py-6">
-                <div className={`grid grid-cols-1 gap-4 items-end ${showCart ? 'md:grid-cols-6' : 'md:grid-cols-4'}`}>
+                <div className={`grid grid-cols-1 gap-4 items-end ${showCart ? 'md:grid-cols-7' : 'md:grid-cols-5'}`}>
                     {/* Check-in */}
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -77,6 +81,31 @@ export default function ReservationSearchPanel({
                             min={fechaEntrada || today}
                             className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
                         />
+                    </div>
+
+                    {/* Habitaciones */}
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">
+                            <Filter className="w-4 h-4 inline mr-1" />
+                            Habitaciones
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => onHabitacionesChange(Math.max(1, habitaciones - 1))}
+                                className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                                type="button"
+                            >
+                                <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="w-12 text-center font-bold">{habitaciones}</span>
+                            <button
+                                onClick={() => onHabitacionesChange(Math.min(6, habitaciones + 1))}
+                                className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                                type="button"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Adults */}

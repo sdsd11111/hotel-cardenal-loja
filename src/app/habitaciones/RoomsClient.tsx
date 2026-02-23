@@ -142,9 +142,11 @@ function HabitacionesContent() {
         }));
     };
 
+    const [filtroHabitaciones, setFiltroHabitaciones] = useState(1);
     const [filtroAdultos, setFiltroAdultos] = useState(0);
     const [filtroNinos, setFiltroNinos] = useState(0);
     const [ninosEdades, setNinosEdades] = useState<number[]>([]);
+
     const [childAgeThreshold, setChildAgeThreshold] = useState(8);
     const [childPricingPolicy, setChildPricingPolicy] = useState('free');
     const [childFixedPrice, setChildFixedPrice] = useState(0);
@@ -156,10 +158,167 @@ function HabitacionesContent() {
     const [appliedFilters, setAppliedFilters] = useState({
         entrada: '',
         salida: '',
+        habitaciones: 1,
         adultos: 0,
         ninos: 0,
         ninosEdades: [] as number[]
     });
+
+    const getMinRoomsNeeded = (adultos: number, ninos: number): number => {
+        // Obtenemos adultos efectivos basados en las edades (si ya están seteadas)
+        const ninosCobradosComoAdultos = ninosEdades.filter(age => age >= childAgeThreshold).length;
+        let adultosEfectivos = adultos + ninosCobradosComoAdultos;
+        let ninosEfectivos = Math.max(0, ninos - ninosCobradosComoAdultos);
+
+        if (childPricingPolicy === 'adult') {
+            adultosEfectivos = adultos + ninos;
+            ninosEfectivos = 0;
+        }
+
+        const totalPersonas = adultosEfectivos + ninosEfectivos;
+        if (totalPersonas <= 0) return 1;
+
+        // Si tenemos las habitaciones cargadas del API, calculamos el máximo posible
+        let maxAdultosHotel = 18;
+        if (habitaciones.length > 0) {
+            maxAdultosHotel = habitaciones.reduce((sum, hab) => sum + ((hab.capacidad?.maxAdultos) || (hab as any).max_adultos || 0), 0);
+        }
+
+        if (adultosEfectivos > maxAdultosHotel) return habitaciones.length > 0 ? habitaciones.length : 6;
+
+        let minR = Infinity;
+        // Inventario base referencial (2M, 2D, 2T) o usar el real si está cargado
+        const cantMatrimonial = habitaciones.filter(h => h.nombre.toLowerCase().includes('matrimonial')).length || 2;
+        const cantDoble = habitaciones.filter(h => h.nombre.toLowerCase().includes('doble') || h.nombre.toLowerCase().includes('twin')).length || 2;
+        const cantTriple = habitaciones.filter(h => h.nombre.toLowerCase().includes('triple')).length || 2;
+
+        const capM_A = 2, capM_N = 1;
+        const capD_A = 3, capD_N = 2;
+        const capT_A = 4, capT_N = 2;
+
+        for (let m = 0; m <= cantMatrimonial; m++) {
+            for (let d = 0; d <= cantDoble; d++) {
+                for (let t = 0; t <= cantTriple; t++) {
+                    const capA = m * capM_A + d * capD_A + t * capT_A;
+                    const capN = m * capM_N + d * capD_N + t * capT_N;
+
+                    // Verificamos si caben los adultos
+                    if (capA >= adultosEfectivos) {
+                        // Verificamos si el resto (niños y/o adultos sobrantes) caben en la capacidad total restante
+                        const espaciosSobrantesAdultos = capA - adultosEfectivos;
+                        const capacidadRestanteParaNinos = espaciosSobrantesAdultos + capN;
+
+                        if (capacidadRestanteParaNinos >= ninosEfectivos) {
+                            const rooms = m + d + t;
+                            if (rooms < minR) {
+                                minR = rooms;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return minR === Infinity ? (habitaciones.length || 6) : minR;
+    };
+
+    const handleAdultosChange = (val: number) => {
+        let maxA = 18; // Default fallback
+        if (habitaciones.length > 0) {
+            maxA = habitaciones.reduce((sum, hab) => sum + ((hab.capacidad?.maxAdultos) || (hab as any).max_adultos || 0), 0);
+        }
+        val = Math.min(val, maxA);
+        setFiltroAdultos(val);
+        const minRooms = getMinRoomsNeeded(val, filtroNinos);
+        if (minRooms > filtroHabitaciones) setFiltroHabitaciones(minRooms);
+    };
+
+    const handleNinosChange = (val: number) => {
+        let maxN = 12; // Default fallback
+        if (habitaciones.length > 0) {
+            maxN = habitaciones.reduce((sum, hab) => Math.max(sum, ((hab.capacidad?.maxNiños) || (hab as any).max_ninos || 0)), 0) * habitaciones.length;
+        }
+        val = Math.min(val, Math.max(18, maxN)); // Absolute safety lid
+        setFiltroNinos(val);
+        setNinosEdades(prev => {
+            if (val < prev.length) return prev.slice(0, val);
+            return [...prev, ...Array(val - prev.length).fill(5)];
+        });
+        const minRooms = getMinRoomsNeeded(filtroAdultos, val);
+        if (minRooms > filtroHabitaciones) setFiltroHabitaciones(minRooms);
+    };
+
+    const handleHabitacionesChange = (val: number) => {
+        const minRooms = getMinRoomsNeeded(filtroAdultos, filtroNinos);
+        setFiltroHabitaciones(Math.max(minRooms, val));
+    };
+
+    const getCombinacionSugerida = (adultos: number, ninos: number, Habitaciones: number): string => {
+        if (Habitaciones <= 1 && (adultos + ninos) <= 4) return "";
+
+        const ninosCobradosComoAdultos = appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
+        let adultosEfectivos = adultos + ninosCobradosComoAdultos;
+        let ninosEfectivos = Math.max(0, ninos - ninosCobradosComoAdultos);
+
+        if (childPricingPolicy === 'adult') {
+            adultosEfectivos = adultos + ninos;
+            ninosEfectivos = 0;
+        }
+
+        let maxAdultosHotel = 18;
+        if (habitaciones.length > 0) {
+            maxAdultosHotel = habitaciones.reduce((sum, hab) => sum + ((hab.capacidad?.maxAdultos) || (hab as any).max_adultos || 0), 0);
+        }
+
+        if (adultosEfectivos > maxAdultosHotel) {
+            return `El grupo excede la capacidad máxima de camas para adultos del hotel (${maxAdultosHotel} personas). Por favor reserve múltiples habitaciones combinando reservas o contáctenos directamente.`;
+        }
+
+        let bestCombo: { m: number, d: number, t: number } | null = null;
+        let minWaste = Infinity;
+
+        const cantMatrimonial = habitaciones.filter(h => h.nombre.toLowerCase().includes('matrimonial')).length || 2;
+        const cantDoble = habitaciones.filter(h => h.nombre.toLowerCase().includes('doble') || h.nombre.toLowerCase().includes('twin')).length || 2;
+        const cantTriple = habitaciones.filter(h => h.nombre.toLowerCase().includes('triple')).length || 2;
+
+        const capM_A = 2, capM_N = 1;
+        const capD_A = 3, capD_N = 2;
+        const capT_A = 4, capT_N = 2;
+
+        for (let m = 0; m <= cantMatrimonial; m++) {
+            for (let d = 0; d <= cantDoble; d++) {
+                for (let t = 0; t <= cantTriple; t++) {
+                    if (m + d + t === Habitaciones) {
+                        const capA = m * capM_A + d * capD_A + t * capT_A;
+                        const capN = m * capM_N + d * capD_N + t * capT_N;
+
+                        if (capA >= adultosEfectivos) {
+                            const espaciosSobrantesAdultos = capA - adultosEfectivos;
+                            const capacidadRestanteParaNinos = espaciosSobrantesAdultos + capN;
+
+                            if (capacidadRestanteParaNinos >= ninosEfectivos) {
+                                // Waste is unutilized adult beds + unutilized child beds
+                                const waste = (capA - adultosEfectivos) + (capN - ninosEfectivos);
+                                if (waste < minWaste) {
+                                    minWaste = waste;
+                                    bestCombo = { m, d, t };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (bestCombo) {
+            const parts = [];
+            if (bestCombo.t > 0) parts.push(`${bestCombo.t} Habitación${bestCombo.t > 1 ? 'es' : ''} Triple${bestCombo.t > 1 ? 's' : ''}`);
+            if (bestCombo.d > 0) parts.push(`${bestCombo.d} Habitación${bestCombo.d > 1 ? 'es' : ''} Doble${bestCombo.d > 1 ? 's' : ''} Twin`);
+            if (bestCombo.m > 0) parts.push(`${bestCombo.m} Habitación${bestCombo.m > 1 ? 'es' : ''} Matrimonial${bestCombo.m > 1 ? 'es' : ''}`);
+            return "Sugerencia: " + parts.join(" + ");
+        }
+
+        return `Sugerencia: Por favor ajuste sus filtros. No es posible acomodar de forma ideal a ${adultosEfectivos} adultos y ${ninosEfectivos} niños en ${Habitaciones} habitación(es) según nuestra distribución de camas actuales.`;
+    };
 
     // Ref to always have the latest filters inside the setInterval closure
     const appliedFiltersRef = useRef(appliedFilters);
@@ -247,6 +406,7 @@ function HabitacionesContent() {
         const params = new URLSearchParams();
         if (fechaEntrada) params.set('entrada', fechaEntrada);
         if (fechaSalida) params.set('salida', fechaSalida);
+        if (filtroHabitaciones > 1) params.set('habitaciones', filtroHabitaciones.toString());
         if (filtroAdultos > 0) params.set('adultos', filtroAdultos.toString());
         if (filtroNinos > 0) {
             params.set('ninos', filtroNinos.toString());
@@ -261,6 +421,7 @@ function HabitacionesContent() {
         setAppliedFilters({
             entrada: fechaEntrada,
             salida: fechaSalida,
+            habitaciones: filtroHabitaciones,
             adultos: filtroAdultos,
             ninos: filtroNinos,
             ninosEdades: ninosEdades
@@ -465,19 +626,22 @@ function HabitacionesContent() {
 
         const entrada = searchParams.get('entrada');
         const salida = searchParams.get('salida');
+        const habitacionesStr = searchParams.get('habitaciones');
         const adultosStr = searchParams.get('adultos');
         const ninosStr = searchParams.get('ninos');
         const ninosEdadesStr = searchParams.get('edades');
 
         // Only update if we have actual parameters in the URL
         // to avoid resetting state to "empty" on partial navigations
-        if (entrada || salida || adultosStr || ninosStr) {
+        if (entrada || salida || adultosStr || ninosStr || habitacionesStr) {
             if (entrada) setFechaEntrada(entrada);
             if (salida) setFechaSalida(salida);
 
+            const habitaciones = habitacionesStr ? parseInt(habitacionesStr) : 1;
             const adultos = adultosStr ? parseInt(adultosStr) : 0;
             const ninos = ninosStr ? parseInt(ninosStr) : 0;
 
+            setFiltroHabitaciones(habitaciones);
             setFiltroAdultos(adultos);
             setFiltroNinos(ninos);
 
@@ -493,6 +657,7 @@ function HabitacionesContent() {
             setAppliedFilters({
                 entrada: entrada || '',
                 salida: salida || '',
+                habitaciones,
                 adultos,
                 ninos,
                 ninosEdades: parsedEdades
@@ -568,9 +733,9 @@ function HabitacionesContent() {
         // Si no hay filtros aplicados (0 personas en total), mostrar todo
         if (total === 0) return true;
 
-        // SI EL GRUPO SUPERA LA CAPACIDAD DE LA HABITACIÓN MÁS GRANDE (4 PERSONAS)
+        // SI SE SOLICITAN MÚLTIPLES HABITACIONES O EL GRUPO SUPERA LA CAPACIDAD MÁXIMA (4 PERSONAS)
         // Mostramos todas las habitaciones disponibles para que el usuario las combine en el carrito.
-        if (adultos > 4) {
+        if (appliedFilters.habitaciones > 1 || adultos > 4) {
             return true;
         }
 
@@ -829,7 +994,7 @@ function HabitacionesContent() {
                 {/* Custom Sticky Search Bar */}
                 <div className="sticky top-0 z-40 bg-white border-b-4 border-amber-500 shadow-lg">
                     <div className="container mx-auto px-4 py-3 md:py-6">
-                        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-6 gap-2 md:gap-4 items-end">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 items-end">
                             {/* Entrada */}
                             <div className="col-span-1">
                                 <label className="hidden md:flex text-[10px] md:text-sm font-bold text-gray-700 mb-1 md:mb-2 items-center gap-1 md:gap-2">
@@ -864,6 +1029,30 @@ function HabitacionesContent() {
                                 </div>
                             </div>
 
+                            {/* Habitaciones */}
+                            <div className="col-span-1">
+                                <label className="hidden md:flex text-[10px] md:text-sm font-bold text-gray-700 mb-1 md:mb-2 items-center gap-1 md:gap-2">
+                                    <Bed className="w-3 h-3 md:w-4 md:h-4 text-amber-500" /> Hab.
+                                </label>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => handleHabitacionesChange(Math.max(1, filtroHabitaciones - 1))}
+                                        className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
+                                        type="button"
+                                    >
+                                        <Minus className="w-2.5 h-2.5 md:w-4 md:h-4" />
+                                    </button>
+                                    <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroHabitaciones}</span>
+                                    <button
+                                        onClick={() => handleHabitacionesChange(Math.min(6, filtroHabitaciones + 1))}
+                                        className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
+                                        type="button"
+                                    >
+                                        <Plus className="w-2.5 h-2.5 md:w-4 md:h-4" />
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Adultos */}
                             <div className="col-span-1">
                                 <label className="hidden md:flex text-[10px] md:text-sm font-bold text-gray-700 mb-1 md:mb-2 items-center gap-1 md:gap-2">
@@ -871,7 +1060,7 @@ function HabitacionesContent() {
                                 </label>
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => setFiltroAdultos(prev => Math.max(0, prev - 1))}
+                                        onClick={() => handleAdultosChange(Math.max(0, filtroAdultos - 1))}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
@@ -879,7 +1068,7 @@ function HabitacionesContent() {
                                     </button>
                                     <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroAdultos}</span>
                                     <button
-                                        onClick={() => setFiltroAdultos(prev => prev === 0 ? 1 : Math.min(18, prev + 1))}
+                                        onClick={() => handleAdultosChange(filtroAdultos === 0 ? 1 : Math.min(18, filtroAdultos + 1))}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
@@ -896,11 +1085,7 @@ function HabitacionesContent() {
                                 <div className="flex flex-col gap-2">
                                     <div className="flex items-center gap-1">
                                         <button
-                                            onClick={() => {
-                                                const newVal = Math.max(0, filtroNinos - 1);
-                                                setFiltroNinos(newVal);
-                                                setNinosEdades(prev => prev.slice(0, newVal));
-                                            }}
+                                            onClick={() => handleNinosChange(Math.max(0, filtroNinos - 1))}
                                             className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                             type="button"
                                         >
@@ -908,11 +1093,7 @@ function HabitacionesContent() {
                                         </button>
                                         <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroNinos}</span>
                                         <button
-                                            onClick={() => {
-                                                const newVal = Math.min(18, filtroNinos + 1);
-                                                setFiltroNinos(newVal);
-                                                setNinosEdades(prev => [...prev.slice(0, newVal - 1), 5]); // Edad por defecto 5
-                                            }}
+                                            onClick={() => handleNinosChange(Math.min(18, filtroNinos + 1))}
                                             className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                             type="button"
                                         >
@@ -970,17 +1151,33 @@ function HabitacionesContent() {
                 {/* Filter Results Info */}
                 <div className="container mx-auto px-4 py-8">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 shadow-sm border border-cardenal-gold/10">
-                        <p className="text-cardenal-green font-medium text-lg md:text-xl">
+                        <div className="text-cardenal-green font-medium text-lg md:text-xl">
                             {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) ? (
                                 <>
-                                    <span className="font-serif italic text-cardenal-gold mr-2 text-2xl">Recomendación Exclusiva:</span>
-                                    {appliedFilters.adultos > 4 ? (
-                                        <>
-                                            Para su grupo de <span className="font-bold text-gray-800">{appliedFilters.adultos} adultos y {appliedFilters.ninos} niños</span>, le sugerimos <span className="font-bold text-cardenal-green">seleccionar varias habitaciones</span> y agregarlas a su reserva para completar el cupo total.
-                                        </>
+                                    {(appliedFilters.adultos + appliedFilters.ninos > 4 || appliedFilters.habitaciones > 1) ? (
+                                        <div className="flex flex-col gap-2">
+                                            <span>
+                                                <span className="font-serif italic text-cardenal-gold mr-2 text-2xl">Recomendación Exclusiva:</span>
+                                                Para su grupo de <span className="font-bold text-gray-800">{appliedFilters.adultos} adultos y {appliedFilters.ninos} niños</span> en <span className="font-bold text-gray-800">{appliedFilters.habitaciones} habitaciones</span>, le sugerimos <span className="font-bold text-cardenal-green">seleccionar múltiples opciones</span> y agregarlas a su reserva.
+                                            </span>
+                                            {getCombinacionSugerida(appliedFilters.adultos, appliedFilters.ninos, appliedFilters.habitaciones) && (
+                                                <span className="text-sm md:text-base text-amber-600 font-bold bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 inline-block w-fit">
+                                                    💡 {getCombinacionSugerida(appliedFilters.adultos, appliedFilters.ninos, appliedFilters.habitaciones)}
+                                                </span>
+                                            )}
+                                        </div>
                                     ) : (
                                         <>
-                                            Hemos seleccionado cuidadosamente estas <span className="font-bold text-gray-800">{habitacionesFiltradas.length}</span> opciones ideales para su grupo de {appliedFilters.adultos} adultos y {appliedFilters.ninos} niños.
+                                            {habitacionesFiltradas.length > 0 ? (
+                                                <>
+                                                    Hemos encontrado <span className="font-bold text-gray-800">{habitacionesFiltradas.length}</span> opciones ideales para su grupo de {appliedFilters.adultos} adultos y {appliedFilters.ninos} niños.
+                                                </>
+                                            ) : (
+                                                <span className="text-red-500">
+                                                    Lo sentimos, no hay habitaciones individuales disponibles para {appliedFilters.adultos + appliedFilters.ninos} personas en las fechas seleccionadas. <br />
+                                                    <span className="text-cardenal-green font-bold text-base">💡 Sugerencia: Intente reservar 2 habitaciones separadas ajustando el filtro de Habitaciones.</span>
+                                                </span>
+                                            )}
                                         </>
                                     )}
                                 </>
@@ -989,7 +1186,7 @@ function HabitacionesContent() {
                                     Mostrando <span className="font-bold text-amber-500 text-2xl px-2">{habitacionesFiltradas.length}</span> habitaciones exclusivas
                                 </>
                             )}
-                        </p>
+                        </div>
                         {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) && (
                             <button
                                 onClick={resetFiltros}
