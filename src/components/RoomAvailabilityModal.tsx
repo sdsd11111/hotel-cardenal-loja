@@ -464,9 +464,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                 )}
                                             </div>
                                         ))}
-                                        <div className="text-gray-600 text-xs">
-                                            • Pagas al alojamiento antes de llegar
-                                        </div>
+
                                     </div>
 
                                     {/* Precio de hoy (Columna Dinámica) */}
@@ -628,10 +626,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                     Agregar a mi reserva
                                                 </button>
 
-                                                <div className="text-[11px] text-gray-600 mb-4 font-medium flex items-center gap-1.5">
-                                                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
-                                                    Todavía no se te cobrará nada
-                                                </div>
+
 
 
                                             </div>
@@ -673,13 +668,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                     </div>
                 )}
 
-                {/* Footer Note */}
-                <div className="p-4 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                        <span>•</span>
-                        <span>Todavía no se te cobrará nada</span>
-                    </div>
-                </div>
+
 
                 <style jsx>{`
                     @keyframes fadeIn {
