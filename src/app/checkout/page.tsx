@@ -413,6 +413,16 @@ export default function CheckoutPage() {
                                     <p className="text-[10px] text-gray-500">Precio con IVA</p>
                                 </div>
                             </div>
+
+                            {/* Nota sobre recargo de tarjeta */}
+                            <div className="mt-4 p-3 bg-white/50 border border-blue-200 rounded-lg text-[10px] text-blue-800 leading-tight">
+                                <p className="flex gap-2">
+                                    <Info className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                    <span>
+                                        <strong>Nota sobre pagos:</strong> Las transferencias bancarias no tienen recargo. Los pagos con tarjeta incluyen una comisión adicional del 5.6%.
+                                    </span>
+                                </p>
+                            </div>
                             {paymentMethod === 'card' && (
                                 <div className="border-t border-blue-200 mt-4 pt-4 space-y-2 text-sm">
                                     <div className="flex justify-between text-orange-700">
