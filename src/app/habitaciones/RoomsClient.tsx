@@ -718,6 +718,8 @@ function HabitacionesContent() {
         // HIDE occupied rooms instead of showing them with a label
         if (!hab.disponible) return false;
 
+        // NEW: Hide rooms already in cart
+        if (cart.some(item => item.habitacion.id === hab.id)) return false;
         // Calcular conteos efectivos de adultos/niños según la política global
         const ninosCobradosComoAdultos = appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
         let adultos = appliedFilters.adultos + ninosCobradosComoAdultos;
@@ -1280,16 +1282,7 @@ function HabitacionesContent() {
                                                             {habitacion.disponible ? 'Disponible' : (habitacion.reservada ? 'Reservada' : 'Ocupada')}
                                                         </div>
 
-                                                        {/* Price overlay - Dynamic pricing based on guest count */}
-                                                        <div className="absolute bottom-0 left-0 bg-cardenal-green text-white px-6 py-4 shadow-2xl flex flex-col items-start leading-tight">
-                                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-cardenal-gold mb-1 not-italic">
-                                                                {appliedFilters.adultos > 0 || appliedFilters.ninosEdades.length > 0 ? `Tarifa para ${appliedFilters.adultos + appliedFilters.ninosEdades.length} ${appliedFilters.adultos + appliedFilters.ninosEdades.length === 1 ? 'persona' : 'personas'}` : 'Cotizar desde'}
-                                                            </span>
-                                                            <div className="flex items-baseline gap-1 font-serif font-bold italic text-3xl">
-                                                                ${getDynamicPrice(habitacion, appliedFilters.adultos, appliedFilters.ninosEdades, childAgeThreshold, childPricingPolicy, childFixedPrice).toFixed(2)}
-                                                                <span className="text-[10px] font-normal not-italic ml-1 opacity-80">/ noche</span>
-                                                            </div>
-                                                        </div>
+
                                                     </div>
 
                                                     <div className="w-full p-8 flex flex-col">

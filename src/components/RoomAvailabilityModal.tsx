@@ -189,15 +189,12 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     const hasBalcony = config ? config.has_balcony : isTriple;
 
     const finalPriceOptions = React.useMemo(() => {
-        // Use prop options first as they contain seasonal logic from parent
         const options = (habitacion.priceOptions && habitacion.priceOptions.length > 0)
             ? habitacion.priceOptions
             : (config ? config.price_options_json as PriceOption[] : []);
 
-        // STRICT FILTER: Only show the option that matches initialOccupancy
-        const exactMatch = options.filter(option => option.personas === initialOccupancy);
-        return exactMatch.length > 0 ? exactMatch : options;
-    }, [config, initialOccupancy, habitacion.priceOptions]);
+        return [...options].sort((a, b) => a.personas - b.personas);
+    }, [config, habitacion.priceOptions]);
 
     const amenidadesUnicas = config ? config.amenities_json as string[] : habitacion.amenidades;
 
