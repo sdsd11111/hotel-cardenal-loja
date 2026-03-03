@@ -271,7 +271,7 @@ export default function MatrimonialPage() {
                                 </div>
 
                                 <Link
-                                    href="/contacto?motivo=Reserva+Habitacion+Matrimonial#formulario-contacto"
+                                    href="/habitaciones"
                                     className="inline-flex items-center gap-3 bg-cardenal-gold hover:bg-cardenal-gold/90 text-white font-bold py-4 px-10 rounded-none transform hover:-translate-y-1 transition-all duration-300 shadow-xl uppercase tracking-widest text-sm"
                                 >
                                     ✨ Reservar Habitación Matrimonial ahora

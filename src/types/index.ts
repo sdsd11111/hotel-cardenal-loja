@@ -40,15 +40,15 @@ export const headerData = {
 export const heroData: HeroContent = {
   title: "Bienvenidos a Nuestra Marca",
   subtitle: "Soluciones innovadoras para tus necesidades. Descubre cómo podemos ayudarte a alcanzar tus objetivos.",
-  ctaText: "Conócenos",
-  ctaHref: "/contacto",
+  ctaText: "Reserva tu Habitación",
+  ctaHref: "/habitaciones",
   backgroundImage: "/hero-bg.jpg"
 };
 
 // Datos de ejemplo para el footer
 export const footerData = {
   logo: "/logo.png",
-  description: "Transformando ideas en soluciones digitales excepcionales. Comprometidos con la excelencia y la innovación.",
+  description: "Desde 1917, Hotel El Cardenal ofrece una estancia acogedora y segura donde se sentirá como en casa en el corazón de Loja.",
   socialLinks: [
     { name: "Facebook", url: "#", icon: "facebook" },
     { name: "Twitter", url: "#", icon: "twitter" },

@@ -388,10 +388,16 @@ export default function CheckoutPage() {
                                                 <span>Base ({item.opcionPrecio.personas} pers.)</span>
                                                 <span>US${itemPrecioBase.toFixed(2)}</span>
                                             </div>
-                                            {(itemExtraMeals > 0 || itemExtraNinos > 0) && (
+                                            {itemExtraMeals > 0 && (
                                                 <div className="flex justify-between text-[10px] text-blue-600 pl-2">
-                                                    <span>Suplementos (+ Niños/Comidas)</span>
-                                                    <span>US${(itemExtraMeals + itemExtraNinos).toFixed(2)}</span>
+                                                    <span>Suplementos (+ Comidas)</span>
+                                                    <span>US${itemExtraMeals.toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {item.ninos > 0 && (
+                                                <div className="flex justify-between text-[10px] text-blue-600 pl-2">
+                                                    <span>Niños ({item.ninos} pers.)</span>
+                                                    <span>{itemExtraNinos > 0 ? `US$${itemExtraNinos.toFixed(2)}` : 'Gratis'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -589,7 +595,7 @@ export default function CheckoutPage() {
                                             <div className="flex items-center gap-6 text-sm text-gray-700">
                                                 <div className="flex items-center gap-2">
                                                     <Users className="w-4 h-4 text-gray-400" />
-                                                    <span>{item.opcionPrecio.personas} adultos</span>
+                                                    <span>{item.adultos} adultos</span>
                                                 </div>
                                                 {item.ninos > 0 && (
                                                     <div className="flex items-center gap-2">
@@ -684,7 +690,7 @@ export default function CheckoutPage() {
                                                                 nombre_cliente: `${formData.nombre} ${formData.apellido}`,
                                                                 email_cliente: formData.email,
                                                                 whatsapp: `${formData.codigoPais}${formData.telefono}`,
-                                                                adultos: it.opcionPrecio.personas,
+                                                                adultos: it.adultos,
                                                                 ninos: it.ninos,
                                                                 precio: (it.opcionPrecio.precioBase * it.cantidad * noches) * 1.15,
                                                                 pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
@@ -796,7 +802,7 @@ export default function CheckoutPage() {
                                                                             nombre_cliente: `${formData.nombre} ${formData.apellido}`,
                                                                             email_cliente: formData.email,
                                                                             whatsapp: `${formData.codigoPais}${formData.telefono}`,
-                                                                            adultos: it.opcionPrecio.personas,
+                                                                            adultos: it.adultos,
                                                                             ninos: it.ninos,
                                                                             precio: (it.opcionPrecio.precioBase * it.cantidad * noches) * 1.15,
                                                                             pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
@@ -812,7 +818,7 @@ export default function CheckoutPage() {
                                                                         nombre_cliente: `${formData.nombre} ${formData.apellido}`,
                                                                         email_cliente: formData.email,
                                                                         whatsapp: `${formData.codigoPais}${formData.telefono}`,
-                                                                        adultos: itemsToProcess[0].opcionPrecio.personas,
+                                                                        adultos: itemsToProcess[0].adultos,
                                                                         ninos: itemsToProcess[0].ninos,
                                                                         precio: totalConIVA,
                                                                         pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,

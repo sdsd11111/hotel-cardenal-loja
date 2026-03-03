@@ -23,6 +23,7 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
         almuerzo: false,
         cena: false
     });
+    const [mealSettings, setMealSettings] = useState({ breakfast: 0, lunch: 0, dinner: 0 });
 
     // Dynamic Price Fetching
     useEffect(() => {
@@ -32,16 +33,32 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
         const fetchCurrentPrice = async () => {
             try {
                 setIsLoadingPrice(true);
-                const response = await fetch('/api/habitaciones');
-                if (response.ok) {
-                    const data = await response.json();
+                const [habitacionesRes, settingsRes] = await Promise.all([
+                    fetch('/api/habitaciones'),
+                    fetch('/api/admin/settings')
+                ]);
+
+                if (habitacionesRes.ok) {
+                    const data = await habitacionesRes.json();
                     const room = data.find((h: any) => h.nombre.toLowerCase().includes(roomName.toLowerCase()));
                     if (room && room.precio_numerico) {
                         setPrice(Number(room.precio_numerico).toFixed(2));
                     }
                 }
+
+                if (settingsRes.ok) {
+                    const settingsData = await settingsRes.json();
+                    const bPrice = settingsData.find((s: any) => s.setting_key === 'breakfast_price');
+                    const lPrice = settingsData.find((s: any) => s.setting_key === 'lunch_price');
+                    const dPrice = settingsData.find((s: any) => s.setting_key === 'dinner_price');
+                    setMealSettings({
+                        breakfast: bPrice ? parseFloat(bPrice.setting_value) : 0,
+                        lunch: lPrice ? parseFloat(lPrice.setting_value) : 0,
+                        dinner: dPrice ? parseFloat(dPrice.setting_value) : 0
+                    });
+                }
             } catch (error) {
-                console.error('Error fetching room price:', error);
+                console.error('Error fetching data:', error);
             } finally {
                 setIsLoadingPrice(false);
             }
@@ -190,20 +207,32 @@ export const RoomBookingWidget = ({ price: initialPrice, roomName }: RoomBooking
                     <div className="pt-2">
                         <label className="block text-[10px] font-bold text-cardenal-brown uppercase tracking-widest mb-3 border-b border-cardenal-gold/20 pb-1">Incluir Alimentación</label>
                         <div className="flex flex-wrap gap-2">
-                            {(['desayuno', 'almuerzo', 'cena'] as const).map((meal) => (
-                                <label key={meal} className="flex-1 min-w-[90px]">
-                                    <input
-                                        type="checkbox"
-                                        className="sr-only peer"
-                                        checked={meals[meal]}
-                                        onChange={() => setMeals(prev => ({ ...prev, [meal]: !prev[meal] }))}
-                                    />
-                                    <div className="w-full text-center px-1 py-2.5 border-2 border-cardenal-cream/30 bg-white peer-checked:bg-cardenal-gold peer-checked:text-white peer-checked:border-cardenal-gold cursor-pointer transition-all text-[9.5px] font-black uppercase tracking-widest text-cardenal-green/60 flex items-center justify-center gap-1 rounded-none shadow-sm peer-checked:shadow-inner">
-                                        <Utensils className="w-3 h-3" />
-                                        {meal}
-                                    </div>
-                                </label>
-                            ))}
+                            {(['desayuno', 'almuerzo', 'cena'] as const).map((meal) => {
+                                let mealPrice = 0;
+                                if (meal === 'desayuno') mealPrice = mealSettings.breakfast;
+                                else if (meal === 'almuerzo') mealPrice = mealSettings.lunch;
+                                else if (meal === 'cena') mealPrice = mealSettings.dinner;
+
+                                return (
+                                    <label key={meal} className="flex-1 min-w-[90px]">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={meals[meal]}
+                                            onChange={() => setMeals(prev => ({ ...prev, [meal]: !prev[meal] }))}
+                                        />
+                                        <div className="w-full text-center px-1 py-1.5 border-2 border-cardenal-cream/30 bg-white peer-checked:bg-cardenal-gold peer-checked:text-white peer-checked:border-cardenal-gold cursor-pointer transition-all flex flex-col items-center justify-center gap-0.5 rounded-none shadow-sm peer-checked:shadow-inner">
+                                            <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-cardenal-green/60 peer-checked:text-white">
+                                                <Utensils className="w-3 h-3" />
+                                                {meal}
+                                            </div>
+                                            <span className="text-[9px] font-medium text-cardenal-brown/70 peer-checked:text-white/80">
+                                                {mealPrice > 0 ? `$${mealPrice.toFixed(2)} c/u` : 'Incluido'}
+                                            </span>
+                                        </div>
+                                    </label>
+                                );
+                            })}
                         </div>
                     </div>
 

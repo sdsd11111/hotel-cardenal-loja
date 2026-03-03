@@ -43,7 +43,7 @@ export default function HomePage() {
           <li><strong>Cercanía a la Naturaleza:</strong> Pasee por los senderos del Parque La Tebaida o disfrute de las vistas al río directamente desde nuestras instalaciones.</li>
         </ul>
 
-        <h2>Nuestras Habitaciones en Loja</h2>
+        <h2>Reserva tu Habitación en Loja</h2>
         <p>Ofrecemos opciones para cada tipo de viajero, todas equipadas con WiFi de alta velocidad, TV por cable y baño privado:</p>
         <ul>
           <li><strong>Habitación Triple:</strong> Perfecta para viajes de amigos o familias pequeñas, con 3 camas individuales y luz natural.</li>

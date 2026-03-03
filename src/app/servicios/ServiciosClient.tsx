@@ -227,10 +227,10 @@ export default function ServiciosClient() {
                                 <ArrowRight className="w-5 h-5" />
                             </Link>
                             <Link
-                                href="/contacto"
+                                href="/habitaciones"
                                 className="inline-flex items-center justify-center gap-2 bg-transparent border-2 border-white hover:bg-white hover:text-cardenal-green text-white font-bold py-5 px-10 transition-all duration-500 font-serif tracking-widest"
                             >
-                                CONTACTAR
+                                RESERVA TU HABITACIÓN
                             </Link>
                         </div>
                     </div>

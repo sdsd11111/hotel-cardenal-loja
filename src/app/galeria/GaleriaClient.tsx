@@ -119,7 +119,7 @@ export default function GaleriaClient() {
                             Reserve ahora y experimente en persona cada detalle que ha descubierto en nuestra galería.
                         </p>
                         <Link
-                            href="/reservas"
+                            href="/habitaciones"
                             className="inline-flex items-center gap-2 bg-white text-cardenal-brown hover:bg-gray-100 font-bold py-4 px-10 rounded-lg shadow-xl transition-all uppercase tracking-widest"
                         >
                             Reservar Ahora

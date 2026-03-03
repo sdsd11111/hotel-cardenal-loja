@@ -314,15 +314,14 @@ export default function HeroPlatos() {
               </div>
 
               <div className="flex justify-center mb-8">
-                <button
+                <a
+                  href="/plato-del-dia.pdf"
+                  download="plato-del-dia.pdf"
                   className="px-6 py-3 md:px-10 md:py-4 bg-cardenal-green hover:bg-cardenal-gold text-white font-bold rounded-lg text-base md:text-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cardenal-green/30 flex items-center gap-2 group font-sans"
-                  onClick={() => {
-                    alert(`¡Gracias por tu pedido de ${currentPlato.titulo}! Pronto nos pondremos en contacto contigo.`);
-                  }}
                 >
-                  <span>Pide tu plato del día</span>
+                  <span>Ve nuestro menú</span>
                   <svg
-                    className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1"
+                    className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-y-1"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -332,10 +331,10 @@ export default function HeroPlatos() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                     />
                   </svg>
-                </button>
+                </a>
               </div>
 
               {platos.length > 1 && (

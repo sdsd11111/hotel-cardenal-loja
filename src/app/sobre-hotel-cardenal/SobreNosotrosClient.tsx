@@ -234,10 +234,10 @@ export default function SobreNosotrosClient() {
                                 "Los principios y legados de El Cardenal Ojeda, trascendieron más tarde generación en generación. Actualmente los negocios están dirigidos por la 3ra generación de su familia."
                             </p>
                             <Link
-                                href="/contacto"
+                                href="/habitaciones"
                                 className="inline-flex items-center gap-4 bg-cardenal-green hover:bg-cardenal-gold text-white px-10 py-5 font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-2xl"
                             >
-                                Reservar Ahora
+                                Reserva tu Habitación
                                 <ChevronRight className="w-5 h-5" />
                             </Link>
                         </div>
