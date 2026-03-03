@@ -403,6 +403,20 @@ function HabitacionesContent() {
             return;
         }
 
+        // Detectar cambio en filtros para reiniciar el carrito
+        const filtersChanged =
+            fechaEntrada !== appliedFilters.entrada ||
+            fechaSalida !== appliedFilters.salida ||
+            filtroHabitaciones !== appliedFilters.habitaciones ||
+            filtroAdultos !== appliedFilters.adultos ||
+            filtroNinos !== appliedFilters.ninos ||
+            JSON.stringify(ninosEdades) !== JSON.stringify(appliedFilters.ninosEdades);
+
+        if (filtersChanged && cart.length > 0) {
+            console.log('[Habitaciones] Filtros cambiados, reiniciando carrito.');
+            setCart([]);
+        }
+
         const params = new URLSearchParams();
         if (fechaEntrada) params.set('entrada', fechaEntrada);
         if (fechaSalida) params.set('salida', fechaSalida);
