@@ -77,6 +77,8 @@ interface RoomAvailabilityModalProps {
         cena: boolean;
     };
     inventoryCount: number;
+    currentCartSize?: number;
+    maxRoomsFromFilter?: number;
     childAgeThreshold?: number;
     childPricingPolicy?: string;
     childFixedPrice?: number;
@@ -106,7 +108,9 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     childPricingPolicy = 'free',
     childFixedPrice = 0,
     ninosEdades = [],
-    mealSettings = { breakfast: 0, lunch: 0, dinner: 0 }
+    mealSettings = { breakfast: 0, lunch: 0, dinner: 0 },
+    currentCartSize = 0,
+    maxRoomsFromFilter = 1
 }) => {
     const [config, setConfig] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -115,31 +119,6 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
     const [showCheckoutSummary, setShowCheckoutSummary] = useState(false);
     const [selectedOption, setSelectedOption] = useState<{ option: PriceOption, cantidad: number } | null>(null);
     const [selectedMeals, setSelectedMeals] = useState<Record<number, { desayuno: boolean, almuerzo: boolean, cena: boolean }>>({});
-
-    // Initialize meals logic
-    useEffect(() => {
-        if (!config) return;
-        const initialMealsState: Record<number, { desayuno: boolean, almuerzo: boolean, cena: boolean }> = {};
-        const options = config.price_options_json as PriceOption[];
-        options.forEach((_, idx) => {
-            initialMealsState[idx] = {
-                desayuno: initialMeals?.desayuno ?? habitacion.incluyeDesayuno ?? false,
-                almuerzo: initialMeals?.almuerzo ?? habitacion.incluyeAlmuerzo ?? false,
-                cena: initialMeals?.cena ?? habitacion.incluyeCena ?? false
-            };
-        });
-        setSelectedMeals(initialMealsState);
-    }, [config, habitacion, initialMeals]);
-
-    const toggleMealSelection = (optionIdx: number, meal: 'desayuno' | 'almuerzo' | 'cena') => {
-        setSelectedMeals(prev => ({
-            ...prev,
-            [optionIdx]: {
-                ...prev[optionIdx],
-                [meal]: !prev[optionIdx][meal]
-            }
-        }));
-    };
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -196,6 +175,29 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
         return [...options].sort((a, b) => a.personas - b.personas);
     }, [config, habitacion.priceOptions]);
 
+    // Initialize meals logic - MUST BE AFTER finalPriceOptions is defined
+    useEffect(() => {
+        const initialMealsState: Record<number, { desayuno: boolean, almuerzo: boolean, cena: boolean }> = {};
+        finalPriceOptions.forEach((_, idx) => {
+            initialMealsState[idx] = {
+                desayuno: initialMeals?.desayuno ?? habitacion.incluyeDesayuno ?? false,
+                almuerzo: initialMeals?.almuerzo ?? habitacion.incluyeAlmuerzo ?? false,
+                cena: initialMeals?.cena ?? habitacion.incluyeCena ?? false
+            };
+        });
+        setSelectedMeals(initialMealsState);
+    }, [finalPriceOptions, habitacion, initialMeals]);
+
+    const toggleMealSelection = (optionIdx: number, meal: 'desayuno' | 'almuerzo' | 'cena') => {
+        setSelectedMeals(prev => ({
+            ...prev,
+            [optionIdx]: {
+                ...prev[optionIdx],
+                [meal]: !prev[optionIdx][meal]
+            }
+        }));
+    };
+
     const amenidadesUnicas = config ? config.amenities_json as string[] : habitacion.amenidades;
 
     const handleBackdropClick = (e: React.MouseEvent) => {
@@ -218,6 +220,37 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
         } else {
             setShowCheckoutSummary(false);
         }
+    };
+
+    const calculateOptionTotal = (option: PriceOption, index: number) => {
+        // Children assigned to THIS room = capped at max_ninos
+        const maxNinosRoom = Number(habitacion.max_ninos ?? habitacion.capacidad?.maxNiños ?? 0);
+        const ninosInRoom = Math.min(ninosEdades.length, maxNinosRoom);
+        const totalGuests = option.personas + ninosInRoom;
+
+        const mealsTotal = Object.keys(selectedMeals[index] || {}).reduce((total, mealKey) => {
+            const isSelected = selectedMeals[index]?.[mealKey as keyof typeof selectedMeals[number]];
+            const isIncluded = mealKey === 'desayuno' ? habitacion.incluyeDesayuno :
+                mealKey === 'almuerzo' ? habitacion.incluyeAlmuerzo :
+                    habitacion.incluyeCena;
+
+            const price = mealKey === 'desayuno' ? mealSettings.breakfast :
+                mealKey === 'almuerzo' ? mealSettings.lunch :
+                    mealSettings.dinner;
+
+            return total + (isSelected && !isIncluded ? price * totalGuests : 0);
+        }, 0);
+
+        // Room-specific child pricing logic (only for children IN this room)
+        const ninosGratis = Number(habitacion.ninos_gratis ?? habitacion.ninosGratis ?? 0);
+        const precioExtra = Number(habitacion.precio_nino_extra ?? habitacion.precioNinoExtra ?? 0);
+        let childSupplement = 0;
+        if (ninosInRoom > 0) {
+            const ninosACobrar = Math.max(0, ninosInRoom - ninosGratis);
+            childSupplement = ninosACobrar * precioExtra;
+        }
+
+        return option.precioBase + mealsTotal + childSupplement;
     };
 
     const handleConfirmBooking = (option: PriceOption, index: number, cantidad: number) => {
@@ -372,6 +405,14 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                             <span>↑</span> Planta superior
                         </p>
 
+                        {/* Rooms Budget Info */}
+                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-4 animate-fadeIn">
+                            <p className="text-xs text-amber-800 flex items-center gap-2">
+                                <Sparkles className="w-3 h-3 text-amber-500" />
+                                <span>Puedes agregar hasta <strong>{Math.max(0, maxRoomsFromFilter - currentCartSize)}</strong> habitación(es) más según tu filtro.</span>
+                            </p>
+                        </div>
+
                         {/* Beds Info - Dynamic based on room type */}
                         {getBedDescription()}
 
@@ -462,36 +503,42 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                             </div>
                                         ))}
 
+                                        {typeof habitacion.ninosGratis === 'number' && habitacion.ninosGratis > 0 && (
+                                            <div className="flex items-center gap-1 text-[#0071c2] font-bold mt-3 animate-pulse">
+                                                <Sparkles className="w-4 h-4 shrink-0" />
+                                                <span>{habitacion.ninosGratis} Niño{habitacion.ninosGratis > 1 ? 's' : ''} <span className="text-green-600">Gratis</span></span>
+                                            </div>
+                                        )}
+
                                     </div>
 
                                     {/* Precio de hoy (Columna Dinámica) */}
-                                    <div className="md:col-span-1 px-4 py-4 flex flex-col items-center justify-center border-r border-gray-200 text-center bg-gray-50/50">
-                                        <div className="font-bold text-gray-400 mb-2 md:hidden">Precio:</div>
-                                        <div className="text-xl font-bold text-gray-900 leading-tight">
-                                            US${(
-                                                option.precioBase +
-                                                (Object.keys(selectedMeals[index] || {}).reduce((total, mealKey) => {
-                                                    const isSelected = selectedMeals[index]?.[mealKey as keyof typeof selectedMeals[number]];
-                                                    const isIncluded = mealKey === 'desayuno' ? habitacion.incluyeDesayuno :
-                                                        mealKey === 'almuerzo' ? habitacion.incluyeAlmuerzo :
-                                                            habitacion.incluyeCena;
+                                    {(() => {
+                                        const maxNinosRoom = Number(habitacion.max_ninos ?? habitacion.capacidad?.maxNiños ?? 0);
+                                        const ninosInRoom = Math.min(ninosEdades.length, maxNinosRoom);
+                                        const ninosGratis = Number(habitacion.ninos_gratis ?? habitacion.ninosGratis ?? 0);
+                                        const precioExtra = Number(habitacion.precio_nino_extra ?? habitacion.precioNinoExtra ?? 0);
+                                        const ninosACobrar = Math.max(0, ninosInRoom - ninosGratis);
+                                        const childSup = ninosACobrar * precioExtra;
+                                        const total = calculateOptionTotal(option, index);
 
-                                                    const price = mealKey === 'desayuno' ? mealSettings.breakfast :
-                                                        mealKey === 'almuerzo' ? mealSettings.lunch :
-                                                            mealSettings.dinner;
-
-                                                    // Guests count for this item (Adults + Children)
-                                                    const totalGuests = option.personas;
-
-                                                    return total + (isSelected && !isIncluded ? price * totalGuests : 0);
-                                                }, 0)) +
-                                                (childPricingPolicy === 'fixed' ? ninosEdades.filter(age => age < childAgeThreshold).length * childFixedPrice : 0)
-                                            ).toFixed(2)}
-                                        </div>
-                                        <div className="text-[10px] text-gray-500">
-                                            Incluye impuestos y cargos
-                                        </div>
-                                    </div>
+                                        return (
+                                            <div className="md:col-span-1 px-4 py-4 flex flex-col items-center justify-center border-r border-gray-200 text-center bg-gray-50/50">
+                                                <div className="font-bold text-gray-400 mb-2 md:hidden">Precio:</div>
+                                                <div className="text-xl font-bold text-gray-900 leading-tight">
+                                                    US${total.toFixed(2)}
+                                                </div>
+                                                {childSup > 0 && (
+                                                    <div className="text-[10px] text-amber-600 font-bold mt-1">
+                                                        (Base: ${option.precioBase.toFixed(2)} + ${childSup.toFixed(2)} niños extra)
+                                                    </div>
+                                                )}
+                                                <div className="text-[10px] text-gray-500">
+                                                    Incluye impuestos y cargos
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* Selector de cantidad */}
                                     <div className="md:col-span-1 px-4 py-4 flex flex-col items-center justify-start border-r border-gray-200">
@@ -500,15 +547,23 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                             <select
                                                 value={cantidadSeleccionada}
                                                 onChange={(e) => handleSelectChange(index, parseInt(e.target.value))}
-                                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 outline-none mb-3"
+                                                className="w-full border rounded px-2 py-1 text-sm outline-none mb-3 transition-colors border-gray-300 focus:border-blue-500"
                                             >
-                                                {Array.from({ length: Math.min(inventoryCount, 6) + 1 }).map((_, i) => (
+                                                {Array.from({ length: Math.min(inventoryCount, Math.max(0, maxRoomsFromFilter - currentCartSize)) + 1 }).map((_, i) => (
                                                     <option key={i} value={i}>{i}</option>
                                                 ))}
                                             </select>
                                         ) : (
                                             <div className="text-center py-2 px-1 bg-red-50 text-red-600 font-bold text-[10px] rounded border border-red-100 mb-3">
                                                 Agotadas en su selección
+                                            </div>
+                                        )}
+
+                                        {ninosEdades.length > (habitacion.max_ninos ?? 0) && (
+                                            <div className="w-full p-2 bg-amber-50 border border-amber-200 rounded mb-3">
+                                                <p className="text-[10px] font-bold text-amber-700 leading-tight flex items-center gap-1">
+                                                    💡 Esta habitación admite {habitacion.max_ninos ?? 0} niño(s). Los {ninosEdades.length - (habitacion.max_ninos ?? 0)} restantes necesitarán otra habitación.
+                                                </p>
                                             </div>
                                         )}
 
@@ -595,20 +650,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                     {cantidadSeleccionada} {cantidadSeleccionada === 1 ? 'habitación' : 'habitaciones'} por
                                                 </div>
                                                 <div className="text-2xl font-bold text-gray-900 leading-tight">
-                                                    US${(option.precioBase +
-                                                        (Object.keys(selectedMeals[index] || {}).reduce((total, mealKey) => {
-                                                            const isSelected = selectedMeals[index]?.[mealKey as keyof typeof selectedMeals[number]];
-                                                            const isIncluded = mealKey === 'desayuno' ? habitacion.incluyeDesayuno :
-                                                                mealKey === 'almuerzo' ? habitacion.incluyeAlmuerzo :
-                                                                    habitacion.incluyeCena;
-
-                                                            const price = mealKey === 'desayuno' ? mealSettings.breakfast :
-                                                                mealKey === 'almuerzo' ? mealSettings.lunch :
-                                                                    mealSettings.dinner;
-
-                                                            return total + (isSelected && !isIncluded ? price * option.personas : 0);
-                                                        }, 0)) +
-                                                        (childPricingPolicy === 'fixed' ? ninosEdades.filter(age => age < childAgeThreshold).length * childFixedPrice : 0)) * cantidadSeleccionada * getNoches()}
+                                                    US${(calculateOptionTotal(option, index) * cantidadSeleccionada * getNoches()).toFixed(2)}
                                                 </div>
                                                 <div className="text-xs text-gray-500 mb-4">
                                                     Total por {getNoches()} {getNoches() === 1 ? 'noche' : 'noches'}
@@ -622,9 +664,6 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                                                 >
                                                     Agregar a mi reserva
                                                 </button>
-
-
-
 
                                             </div>
                                         ) : (
@@ -664,8 +703,6 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                         </div>
                     </div>
                 )}
-
-
 
                 <style jsx>{`
                     @keyframes fadeIn {

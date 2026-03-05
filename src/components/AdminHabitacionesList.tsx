@@ -16,6 +16,8 @@ type Habitacion = {
     activo: boolean;
     max_adultos: number;
     max_ninos: number;
+    ninos_gratis: number;
+    precio_nino_extra: number;
     camas: number;
     disponible: boolean;
     fecha_entrada: string | null;
@@ -90,6 +92,9 @@ export default function AdminHabitacionesList({
                                 <div className="flex flex-col gap-1.5">
                                     <span className="flex items-center gap-2 text-sm font-black text-black"><Users className="w-4 h-4 text-cardenal-gold" /> {habitacion.max_adultos + habitacion.max_ninos} PERSONAS</span>
                                     <span className="flex items-center gap-2 text-sm font-black text-black"><Bed className="w-4 h-4 text-cardenal-gold" /> {habitacion.camas} CAMAS</span>
+                                    <div className="mt-1 px-2 py-1 bg-blue-50 border border-blue-100 rounded text-[10px] font-black text-blue-800 uppercase leading-none">
+                                        {habitacion.ninos_gratis} Gratis • Ext: ${Number(habitacion.precio_nino_extra).toFixed(2)}
+                                    </div>
                                 </div>
                             </TableCell>
                             <TableCell className="p-5 text-right">

@@ -271,19 +271,32 @@ export default function HabitacionForm({ habitacion, onSuccess, onCancel }: Habi
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Max Adultos</label>
                             <Input type="number" {...register('max_adultos')} error={errors.max_adultos?.message} className="border-2 border-gray-400 font-bold" />
                         </div>
                         <div>
-                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Max Niños</label>
+                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Total Niños (Capacidad)</label>
                             <Input type="number" {...register('max_ninos')} error={errors.max_ninos?.message} className="border-2 border-gray-400 font-bold" />
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-sm">
                         <div>
-                            <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Camas</label>
-                            <Input type="number" {...register('camas')} error={errors.camas?.message} className="border-2 border-gray-400 font-bold" />
+                            <label className="block text-sm font-black text-blue-900 uppercase tracking-widest mb-2">Niños Gratis</label>
+                            <Input type="number" {...register('ninos_gratis')} error={errors.ninos_gratis?.message} className="border-2 border-blue-400 font-bold bg-white" />
                         </div>
+                        <div>
+                            <label className="block text-sm font-black text-blue-900 uppercase tracking-widest mb-2">Precio Niño Extra</label>
+                            <Input type="number" step="0.01" {...register('precio_nino_extra')} error={errors.precio_nino_extra?.message} className="border-2 border-blue-400 font-bold bg-white" />
+                        </div>
+                        <p className="col-span-2 text-[10px] text-blue-800 font-black italic uppercase">Esto controla el mensaje azul en la página de habitaciones.</p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-black text-black uppercase tracking-widest mb-2">Número de Camas</label>
+                        <Input type="number" {...register('camas')} error={errors.camas?.message} className="border-2 border-gray-400 font-bold" />
                     </div>
 
 

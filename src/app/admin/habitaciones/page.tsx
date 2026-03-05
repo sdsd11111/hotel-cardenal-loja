@@ -99,10 +99,24 @@ export default function AdminHabitacionesPage() {
     const handleToggleStatus = async (id: string, currentStatus: boolean) => {
         try {
             const habitacion = habitaciones.find(h => h.id === id);
+            const formData = new FormData();
+
+            // Append all existing fields
+            Object.entries(habitacion).forEach(([key, value]) => {
+                if (key === 'activo') {
+                    formData.append(key, (!currentStatus).toString());
+                } else if (value !== null && value !== undefined) {
+                    if (key === 'amenidades' && typeof value === 'object') {
+                        formData.append(key, JSON.stringify(value));
+                    } else {
+                        formData.append(key, value.toString());
+                    }
+                }
+            });
+
             const response = await fetch(`/api/habitaciones/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...habitacion, activo: !currentStatus }),
+                body: formData, // No content-type header, browser will set it with boundary
             });
             if (!response.ok) throw new Error('Error al cambiar estado');
             fetchHabitaciones();

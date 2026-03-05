@@ -11,8 +11,8 @@ const dbConfig = {
 async function describeTables() {
     const conn = await mysql.createConnection(dbConfig);
 
-    console.log('\n--- DESCRIBE room_type_configs ---');
-    const [cols] = await conn.execute('DESCRIBE room_type_configs');
+    console.log('\n--- DESCRIBE habitaciones ---');
+    const [cols] = await conn.execute('DESCRIBE habitaciones');
     console.log(JSON.stringify(cols, null, 2));
 
     await conn.end();

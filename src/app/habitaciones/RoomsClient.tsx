@@ -178,47 +178,41 @@ function HabitacionesContent() {
         const totalPersonas = adultosEfectivos + ninosEfectivos;
         if (totalPersonas <= 0) return 1;
 
-        // Si tenemos las habitaciones cargadas del API, calculamos el máximo posible
-        let maxAdultosHotel = 18;
-        if (habitaciones.length > 0) {
-            maxAdultosHotel = habitaciones.reduce((sum, hab) => sum + ((hab.capacidad?.maxAdultos) || (hab as any).max_adultos || 0), 0);
-        }
-
-        if (adultosEfectivos > maxAdultosHotel) return habitaciones.length > 0 ? habitaciones.length : 6;
-
+        // Inventario base referencial o usar el real si está cargado
         let minR = Infinity;
-        // Inventario base referencial (2M, 2D, 2T) o usar el real si está cargado
-        const cantMatrimonial = habitaciones.filter(h => h.nombre.toLowerCase().includes('matrimonial')).length || 2;
-        const cantDoble = habitaciones.filter(h => h.nombre.toLowerCase().includes('doble') || h.nombre.toLowerCase().includes('twin')).length || 2;
-        const cantTriple = habitaciones.filter(h => h.nombre.toLowerCase().includes('triple')).length || 2;
 
-        const capM_A = 2, capM_N = 1;
-        const capD_A = 3, capD_N = 2;
-        const capT_A = 4, capT_N = 2;
+        if (habitaciones.length > 0) {
+            // Greedy approach: try largest rooms first to minimize room count
+            const sortedHabitaciones = [...habitaciones].sort((a, b) =>
+                ((b.max_adultos ?? 0) + (b.max_ninos ?? 0)) - ((a.max_adultos ?? 0) + (a.max_ninos ?? 0))
+            );
 
-        for (let m = 0; m <= cantMatrimonial; m++) {
-            for (let d = 0; d <= cantDoble; d++) {
-                for (let t = 0; t <= cantTriple; t++) {
-                    const capA = m * capM_A + d * capD_A + t * capT_A;
-                    const capN = m * capM_N + d * capD_N + t * capT_N;
+            let remAds = adultosEfectivos;
+            let remNins = ninosEfectivos;
+            let roomsCount = 0;
 
-                    // Verificamos si caben los adultos
-                    if (capA >= adultosEfectivos) {
-                        // Verificamos si el resto (niños y/o adultos sobrantes) caben en la capacidad total restante
-                        const espaciosSobrantesAdultos = capA - adultosEfectivos;
-                        const capacidadRestanteParaNinos = espaciosSobrantesAdultos + capN;
+            while ((remAds > 0 || remNins > 0) && roomsCount < 20) {
+                const room = sortedHabitaciones[0];
+                if (!room) break;
 
-                        if (capacidadRestanteParaNinos >= ninosEfectivos) {
-                            const rooms = m + d + t;
-                            if (rooms < minR) {
-                                minR = rooms;
-                            }
-                        }
-                    }
+                const canTakeAds = Math.min(remAds, room.max_adultos ?? 4);
+                remAds -= canTakeAds;
+
+                const remainingInRoom = ((room.max_adultos ?? 4) - canTakeAds) + (room.max_ninos ?? 0);
+                const canTakeNins = Math.min(remNins, remainingInRoom);
+                remNins -= canTakeNins;
+
+                roomsCount++;
+                if (remAds <= 0 && remNins <= 0) {
+                    minR = roomsCount;
+                    break;
                 }
             }
+        } else {
+            minR = Math.ceil(totalPersonas / 2);
         }
-        return minR === Infinity ? (habitaciones.length || 6) : minR;
+
+        return minR === Infinity ? 1 : minR;
     };
 
     const handleAdultosChange = (val: number) => {
@@ -253,7 +247,7 @@ function HabitacionesContent() {
     };
 
     const getCombinacionSugerida = (adultos: number, ninos: number, Habitaciones: number): string => {
-        if (Habitaciones <= 1 && (adultos + ninos) <= 4) return "";
+        if (Habitaciones <= 1 && (adultos + ninos) <= 4 && ninos === 0) return "";
 
         const ninosCobradosComoAdultos = appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
         let adultosEfectivos = adultos + ninosCobradosComoAdultos;
@@ -264,45 +258,30 @@ function HabitacionesContent() {
             ninosEfectivos = 0;
         }
 
-        let maxAdultosHotel = 18;
         if (habitaciones.length > 0) {
-            maxAdultosHotel = habitaciones.reduce((sum, hab) => sum + ((hab.capacidad?.maxAdultos) || (hab as any).max_adultos || 0), 0);
-        }
-
-        if (adultosEfectivos > maxAdultosHotel) {
-            return `El grupo excede la capacidad máxima de camas para adultos del hotel (${maxAdultosHotel} personas). Por favor reserve múltiples habitaciones combinando reservas o contáctenos directamente.`;
+            // Simplified suggestion based on actual room capacities
+            return `Su selección de ${Habitaciones} habitación(es) debe cubrir el total de ${adultos} adultos y ${ninos} niños filtrados.`;
         }
 
         let bestCombo: { m: number, d: number, t: number } | null = null;
         let minWaste = Infinity;
 
-        const cantMatrimonial = habitaciones.filter(h => h.nombre.toLowerCase().includes('matrimonial')).length || 2;
-        const cantDoble = habitaciones.filter(h => h.nombre.toLowerCase().includes('doble') || h.nombre.toLowerCase().includes('twin')).length || 2;
-        const cantTriple = habitaciones.filter(h => h.nombre.toLowerCase().includes('triple')).length || 2;
-
-        // Reglas de negocio: Matrimonial no acepta niños, Doble max 2, Triple max 3
+        // Fallback hardcoded logic for suggestion text when rooms not in state
         const capM_A = 2, capM_N = 0;
         const capD_A = 3, capD_N = 2;
         const capT_A = 4, capT_N = 3;
 
-        for (let m = 0; m <= cantMatrimonial; m++) {
-            for (let d = 0; d <= cantDoble; d++) {
-                for (let t = 0; t <= cantTriple; t++) {
+        for (let m = 0; m <= 4; m++) {
+            for (let d = 0; d <= 4; d++) {
+                for (let t = 0; t <= 4; t++) {
                     if (m + d + t === Habitaciones) {
                         const capA = m * capM_A + d * capD_A + t * capT_A;
                         const capN = m * capM_N + d * capD_N + t * capT_N;
-
-                        if (capA >= adultosEfectivos) {
-                            const espaciosSobrantesAdultos = capA - adultosEfectivos;
-                            const capacidadRestanteParaNinos = espaciosSobrantesAdultos + capN;
-
-                            if (capacidadRestanteParaNinos >= ninosEfectivos) {
-                                // Waste is unutilized adult beds + unutilized child beds
-                                const waste = (capA - adultosEfectivos) + (capN - ninosEfectivos);
-                                if (waste < minWaste) {
-                                    minWaste = waste;
-                                    bestCombo = { m, d, t };
-                                }
+                        if (capA >= adultosEfectivos && (capA - adultosEfectivos + capN) >= ninosEfectivos) {
+                            const waste = (capA - adultosEfectivos) + (capA - adultosEfectivos + capN - ninosEfectivos);
+                            if (waste < minWaste) {
+                                minWaste = waste;
+                                bestCombo = { m, d, t };
                             }
                         }
                     }
@@ -623,6 +602,10 @@ function HabitacionesContent() {
                         maxNiños: room.max_ninos,
                         camas: room.camas
                     },
+                    max_adultos: room.max_adultos,
+                    max_ninos: room.max_ninos,
+                    ninos_gratis: room.ninos_gratis,
+                    precio_nino_extra: room.precio_nino_extra,
                     ninosGratis: room.ninos_gratis ?? 1,
                     precioNinoExtra: Number(room.precio_nino_extra ?? 0),
                     incluyeDesayuno: room.incluye_desayuno === 1,
@@ -781,27 +764,10 @@ function HabitacionesContent() {
             return true;
         }
 
-        const nombre = hab.nombre.toLowerCase();
-
-        // REGLA: Si es 1 sola persona, SOLO mostrar matrimoniales
-        if (total === 1) {
-            return nombre.includes('matrimonial') || nombre.includes('301');
-        }
-        // IMPORTANTE: Evaluar MATRIMONIAL primero, antes que DOBLE (porque "doble matrimonial" contiene ambas palabras)
-        else if (nombre.includes('matrimonial') || nombre.includes('301')) {
-            // MATRIMONIAL (301): Máximo 2 adultos (niños pequeños no cuentan para capacidad)
-            return adultos <= 2;
-        }
-        // Reglas específicas por tipo de habitación
-        else if (nombre.includes('triple') || nombre.includes('303')) {
-            // TRIPLE (303): Máximo 4 adultos (niños pequeños no cuentan para capacidad)
-            return adultos <= 4;
-        } else if (nombre.includes('2 camas') || nombre.includes('twin') || nombre.includes('302') || nombre.includes('doble')) {
-            // DOBLE (302): Máximo 3 adultos (niños pequeños no cuentan para capacidad)
-            return adultos <= 3;
-        } else {
-            return true;
-        }
+        // Only filter by adult capacity, NOT by child capacity.
+        // Children can always be added (extras will be charged per the room's pricing rules).
+        // The validation for over-capacity happens at cart-add / checkout time.
+        return adultos <= (hab.max_adultos ?? 4);
     }).sort((a, b) => {
         // Ordenar: Matrimonial (301) primero, luego Doble Twin (302), luego Triple (303)
         // Ordenar: Matrimonial (301) primero, luego Doble Twin (302), luego Triple (303)
@@ -830,6 +796,13 @@ function HabitacionesContent() {
     };
 
     const addToCart = (habitacion: Habitacion, mealsOverride?: { desayuno: boolean; almuerzo: boolean; cena: boolean }, personasOverride?: number) => {
+        // PREVENCIÓN: No permitir añadir más habitaciones de las filtradas
+        if (cart.length >= appliedFilters.habitaciones) {
+            setValidationMessage(`Máximo ${appliedFilters.habitaciones} habitación(es) según tu búsqueda. Ajusta el filtro si necesitas más.`);
+            setTimeout(() => setValidationMessage(''), 6000);
+            return;
+        }
+
         const meals = mealsOverride || pendingMeals[habitacion.id] || { desayuno: false, almuerzo: false, cena: false };
 
         const globalAdultos = appliedFilters.adultos;
@@ -849,50 +822,52 @@ function HabitacionesContent() {
             let remNins = Math.max(0, globalNinos - usedNinos);
 
             // Determinar cuántos espacios intentamos llenar en esta habitación
-            // Si viene con un override (del modal), usamos ese valor. Si es agregar directo, usamos los remanentes o max global.
-            const targetCapacity = personasOverride !== undefined ? personasOverride : (remAds + remNins > 0 ? (remAds + remNins) : globalPersonas);
-            let slotsAdultos = targetCapacity;
-
-            // Capacidad extra para niños
-            const tipo = getRoomType(habitacion.nombre);
-            let maxNinos = Number(habitacion.capacidad.maxNiños) || 0;
-            if (tipo === 'matrimonial') maxNinos = 0;
-            else if (tipo === 'doble') maxNinos = 2;
-            else if (tipo === 'triple') maxNinos = 3;
-
-            let slotsNinos = maxNinos;
+            // Si viene del modal, personasOverride ES option.personas (número de adultos)
             let itemAdultos = 0;
             let itemNinos = 0;
 
-            // 1. Minimum 1 adult per room, if available
-            if (remAds > 0 && slotsAdultos > 0) {
-                itemAdultos++;
-                remAds--;
-                slotsAdultos--;
+            if (personasOverride !== undefined) {
+                // Si el modal nos dice cuántos adultos son para esta opción específica, lo usamos.
+                itemAdultos = personasOverride;
+                // Disminuimos los adultos restantes (se asume que el usuario eligió bien su distribución)
+                remAds = Math.max(0, remAds - itemAdultos);
+            } else {
+                // Auto-distribución (e.g. Añadir rápido sin pasar por el modal de opciones precisas)
+                // 1. Siempre mínimo 1 adulto por habitación, incluso si ya no quedan (para evitar la validación de 0 adultos).
+                if (remAds > 0) {
+                    itemAdultos = 1;
+                    remAds--;
+                } else {
+                    itemAdultos = 1;
+                }
+
+                // 2. Llenar los espacios restantes con adultos, PERO reservando 1 adulto para cada habitación que falte
+                const roomsToBook = Math.max(1, appliedFilters.habitaciones);
+                const roomsLeftToBook = Math.max(0, roomsToBook - (prev.length + 1));
+                const maxAdultosParaEsta = Math.max(0, remAds - roomsLeftToBook);
+
+                const roomMaxAds = Number(habitacion.max_adultos) || 4;
+                const addAds = Math.min(maxAdultosParaEsta, Math.max(0, roomMaxAds - itemAdultos));
+
+                itemAdultos += addAds;
+                remAds -= addAds;
             }
 
-            // 2. Fill remaining adult slots with adults
-            const addAds = Math.min(remAds, Math.max(0, slotsAdultos));
-            itemAdultos += addAds;
-            remAds -= addAds;
-            slotsAdultos -= addAds;
-
-            // 3. Allow children to take any remaining adult slots + maxNiños slots
-            const remainingSlotsForKids = Math.max(0, slotsAdultos) + slotsNinos;
-
-            // 4. Fill children slots
-            const addNins = Math.min(remNins, remainingSlotsForKids);
+            // 3. Niños: Se asignan hasta agotar el target de capacidad de la habitación o los niños restantes
+            const maxNinos = Number(habitacion.max_ninos) || 0;
+            const addNins = Math.min(remNins, maxNinos);
             itemNinos += addNins;
             remNins -= addNins;
 
-            // 3. Obtener las edades correctas para los niños asignados a esta habitación
+            // 4. Obtener las edades correctas para los niños asignados a esta habitación
             const itemEdades = globalEdades.slice(usedEdades, usedEdades + itemNinos);
             while (itemEdades.length < itemNinos) itemEdades.push(childAgeThreshold - 1);
 
-            // 4. Determinar la opción de precio basada en la capacidad solicitada
-            const option = habitacion.priceOptions?.find(opt => opt.personas === targetCapacity)
+            // 5. Determinar la opción de precio basada en los adultos asignados
+            const option = habitacion.priceOptions?.find(opt => opt.personas === itemAdultos)
+                || habitacion.priceOptions?.find(opt => opt.personas >= itemAdultos)
                 || habitacion.priceOptions?.[0]
-                || { personas: Math.max(1, targetCapacity), precioBase: habitacion.precioNumerico, impuestos: 0 };
+                || { personas: Math.max(1, itemAdultos), precioBase: habitacion.precioNumerico, impuestos: 0 };
 
             const newItem: CartItem = {
                 habitacion,
@@ -938,10 +913,22 @@ function HabitacionesContent() {
             if (item.comidas.almuerzo && !item.habitacion.incluyeAlmuerzo) totalMealsPricePerNight += mealSettings.lunch * totalGuests;
             if (item.comidas.cena && !item.habitacion.incluyeCena) totalMealsPricePerNight += mealSettings.dinner * totalGuests;
 
-            // Calculate dynamic base price
-            const basePrice = getDynamicPrice(item.habitacion, item.adultos, item.ninosEdades, childAgeThreshold, childPricingPolicy, childFixedPrice);
+            // Use the correct base price from the selected option
+            const basePrice = item.opcionPrecio.precioBase;
 
-            return total + ((basePrice * item.cantidad + totalMealsPricePerNight) * noches);
+            // Room-specific child pricing logic
+            const numNinos = item.ninosEdades.length;
+            let childSupplementPerNight = 0;
+            if (numNinos > 0) {
+                const ninosGratis = item.habitacion.ninos_gratis ?? item.habitacion.ninosGratis ?? 0;
+                const precioExtra = item.habitacion.precio_nino_extra ?? item.habitacion.precioNinoExtra ?? 0;
+                const ninosACobrar = Math.max(0, numNinos - ninosGratis);
+                childSupplementPerNight = ninosACobrar * precioExtra;
+            }
+
+            const pricePerNightPerRoom = basePrice + totalMealsPricePerNight + childSupplementPerNight;
+
+            return total + (pricePerNightPerRoom * item.cantidad * noches);
         }, 0);
     };
 
@@ -952,10 +939,54 @@ function HabitacionesContent() {
             setTimeout(() => setValidationMessage(''), 5000);
             return;
         }
-        if (cart.length === 0) {
-            setValidationMessage('Selecciona al menos una habitación para continuar con tu reserva.');
-            setTimeout(() => setValidationMessage(''), 6000);
+
+        // VALIDACIÓN DE CARRITO COMPLETO SEGÚN FILTRO
+        if (cart.length < appliedFilters.habitaciones) {
+            const faltantes = appliedFilters.habitaciones - cart.length;
+            setValidationMessage(`Falta seleccionar ${faltantes} habitación${faltantes > 1 ? 'es' : ''} más para completar tu búsqueda de ${appliedFilters.habitaciones} habitaciones.`);
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+            setTimeout(() => setValidationMessage(''), 7000);
             return;
+        }
+
+        let adultosEfectivosFiltrados = appliedFilters.adultos + appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
+        let ninosEfectivosFiltrados = appliedFilters.ninosEdades.filter(age => age < childAgeThreshold).length;
+
+        if (childPricingPolicy === 'adult') {
+            adultosEfectivosFiltrados = appliedFilters.adultos + appliedFilters.ninos;
+            ninosEfectivosFiltrados = 0;
+        }
+
+        const adultosEnCarrito = cart.reduce((acc, curr) => acc + curr.adultos, 0);
+        const ninosEnCarrito = cart.reduce((acc, curr) => acc + curr.ninos, 0);
+
+        if (adultosEnCarrito < adultosEfectivosFiltrados) {
+            const faltantes = adultosEfectivosFiltrados - adultosEnCarrito;
+            setValidationMessage(`Aún faltan ${faltantes} adulto${faltantes > 1 ? 's' : ''} por asignar en las habitaciones para llegar a los ${adultosEfectivosFiltrados} filtrados.`);
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+            setTimeout(() => setValidationMessage(''), 7000);
+            return;
+        }
+
+        if (ninosEnCarrito < ninosEfectivosFiltrados) {
+            const faltantes = ninosEfectivosFiltrados - ninosEnCarrito;
+            setValidationMessage(`Aún faltan ${faltantes} niño${faltantes > 1 ? 's' : ''} por asignar para llegar a los ${ninosEfectivosFiltrados} filtrados.`);
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+            setTimeout(() => setValidationMessage(''), 7000);
+            return;
+        }
+
+        // VALIDACIÓN: Verificar que todos los items del carrito cumplan la capacidad individual
+        for (const item of cart) {
+            const hasTooManyChildren = item.ninos > (item.habitacion.max_ninos ?? 0);
+            const hasTooManyAdults = item.adultos > (item.habitacion.max_adultos ?? 4);
+
+            if (hasTooManyChildren || hasTooManyAdults) {
+                setValidationMessage(`La capacidad de la habitación "${item.habitacion.nombre}" es excedida (${item.habitacion.max_adultos ?? 4} adultos, ${item.habitacion.max_ninos ?? 0} niños). Por favor ajuste su selección.`);
+                window.scrollTo({ top: 300, behavior: 'smooth' });
+                setTimeout(() => setValidationMessage(''), 8000);
+                return;
+            }
         }
 
         // Collect all meals from all cart items
@@ -1240,20 +1271,25 @@ function HabitacionesContent() {
 
                     </div>
 
-                    {/* Suggestion shown inside sticky bar - below the filters */}
+                    {/* Suggestion bar - inside sticky so it stays visible on scroll */}
                     {appliedFilters.ninos > 0 && getCombinacionSugerida(appliedFilters.adultos, appliedFilters.ninos, appliedFilters.habitaciones) && (
-                        <div className="mt-3 flex items-center gap-2 bg-amber-50 border border-amber-300 rounded-lg px-4 py-2 animate-slideDown">
-                            <span className="text-amber-700 font-bold text-xs md:text-sm">
-                                💡 {getCombinacionSugerida(appliedFilters.adultos, appliedFilters.ninos, appliedFilters.habitaciones)}
-                            </span>
+                        <div className="container mx-auto px-4 pb-3">
+                            <div className="flex items-center gap-2 bg-amber-50 border border-amber-300 rounded-lg px-4 py-2 animate-slideDown">
+                                <span className="text-amber-700 font-bold text-xs md:text-sm">
+                                    💡 {getCombinacionSugerida(appliedFilters.adultos, appliedFilters.ninos, appliedFilters.habitaciones)}
+                                </span>
+                            </div>
                         </div>
                     )}
+
                 </div>
 
                 {/* Filter Results Info */}
                 <div className="container mx-auto px-4 py-8">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 shadow-sm border border-cardenal-gold/10">
-                        <div className="text-cardenal-green font-medium text-lg md:text-xl">
+                        <div className="text-cardenal-green font-medium text-lg md:text-xl w-full">
+
+
                             {(appliedFilters.adultos > 0 || appliedFilters.ninos > 0) ? (
                                 <>
                                     {(appliedFilters.adultos + appliedFilters.ninos > 4 || appliedFilters.habitaciones > 1) ? (
@@ -1262,7 +1298,6 @@ function HabitacionesContent() {
                                                 <span className="font-serif italic text-cardenal-gold mr-2 text-2xl">Recomendación Exclusiva:</span>
                                                 Para su grupo de <span className="font-bold text-gray-800">{appliedFilters.adultos} adultos y {appliedFilters.ninos} niños</span> en <span className="font-bold text-gray-800">{appliedFilters.habitaciones} habitaciones</span>, le sugerimos <span className="font-bold text-cardenal-green">seleccionar múltiples opciones</span> y agregarlas a su reserva.
                                             </span>
-                                            {/* Suggestion now shown inside the sticky bar instead */}
                                         </div>
                                     ) : (
                                         <>
@@ -1393,13 +1428,13 @@ function HabitacionesContent() {
                                                         </div>
 
                                                         {/* Children pricing info badge */}
-                                                        {habitacion.ninosGratis !== undefined && !habitacion.nombre.toLowerCase().includes('matrimonial') && (
+                                                        {habitacion.ninosGratis !== undefined && habitacion.ninosGratis !== null && (
                                                             <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 flex items-center gap-2">
                                                                 <Users className="w-3 h-3" />
                                                                 {habitacion.ninosGratis > 0 ? (
                                                                     <span>
                                                                         <strong>{habitacion.ninosGratis} niño{habitacion.ninosGratis > 1 ? 's' : ''} gratis</strong>
-                                                                        {habitacion.precioNinoExtra && habitacion.precioNinoExtra > 0 && (
+                                                                        {typeof habitacion.precioNinoExtra === 'number' && habitacion.precioNinoExtra > 0 && (
                                                                             <> • Niño extra: +${habitacion.precioNinoExtra.toFixed(2)}</>
                                                                         )}
                                                                     </span>
@@ -1497,6 +1532,13 @@ function HabitacionesContent() {
                                                                         setTimeout(() => setValidationMessage(''), 5000);
                                                                         return;
                                                                     }
+
+                                                                    if (cart.length >= appliedFilters.habitaciones) {
+                                                                        setValidationMessage(`Ya tienes las ${appliedFilters.habitaciones} habitaciones de tu búsqueda. Quita una para agregar otra.`);
+                                                                        setTimeout(() => setValidationMessage(''), 6000);
+                                                                        return;
+                                                                    }
+
                                                                     setAvailabilityRoom(habitacion);
                                                                 }}
                                                                 disabled={!habitacion.disponible}
@@ -1504,16 +1546,25 @@ function HabitacionesContent() {
                                                                     "flex-1 font-bold py-4 px-4 transition-all duration-300 flex items-center justify-center gap-2 tracking-[0.2em] text-xs shadow-md",
                                                                     habitacion.disponible
                                                                         ? (fechaEntrada && fechaSalida && (filtroAdultos + filtroNinos) > 0
-                                                                            ? "bg-cardenal-gold border-2 border-cardenal-gold text-white hover:bg-white hover:text-cardenal-gold"
+                                                                            ? (cart.length >= appliedFilters.habitaciones
+                                                                                ? "bg-gray-400 border-2 border-gray-400 text-white cursor-not-allowed"
+                                                                                : "bg-cardenal-gold border-2 border-cardenal-gold text-white hover:bg-white hover:text-cardenal-gold")
                                                                             : "bg-amber-100 border-2 border-amber-200 text-amber-700 hover:bg-amber-200")
                                                                         : "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed"
                                                                 )}
                                                             >
                                                                 {habitacion.disponible ? (
-                                                                    <>
-                                                                        <Plus className="w-4 h-4" />
-                                                                        AGREGAR
-                                                                    </>
+                                                                    cart.length >= appliedFilters.habitaciones ? (
+                                                                        <>
+                                                                            <ShoppingCart className="w-4 h-4" />
+                                                                            LÍMITE: {appliedFilters.habitaciones} HAB.
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Plus className="w-4 h-4" />
+                                                                            AGREGAR
+                                                                        </>
+                                                                    )
                                                                 ) : (
                                                                     <>
                                                                         <X className="w-4 h-4" />
@@ -1568,6 +1619,8 @@ function HabitacionesContent() {
                             // Remaining available rooms of this type
                             return Math.max(0, availableOfType.filter(h => !inCartTypeIds.includes(h.id)).length);
                         })()}
+                        currentCartSize={cart.length}
+                        maxRoomsFromFilter={appliedFilters.habitaciones}
                         initialOccupancy={
                             availabilityRoom.nombre.toLowerCase().includes('matrimonial')
                                 ? appliedFilters.adultos + appliedFilters.ninosEdades.length
@@ -1683,19 +1736,8 @@ function HabitacionesContent() {
                                         let capacidadAdultosTotal = 0;
                                         let capacidadNinosTotal = 0;
                                         cart.forEach(item => {
-                                            const type = getRoomType(item.habitacion.nombre);
                                             const maxA = Number(item.habitacion.capacidad.maxAdultos) || 0;
-                                            let maxN = Number(item.habitacion.capacidad.maxNiños) || 0;
-
-                                            // Aplicar reglas estáticas de negocio para límite de niños
-                                            // 2 niños por doble y 3 niños por triple
-                                            if (type === 'matrimonial') {
-                                                maxN = 0;
-                                            } else if (type === 'doble') {
-                                                maxN = 2;
-                                            } else if (type === 'triple') {
-                                                maxN = 3;
-                                            }
+                                            const maxN = Number(item.habitacion.capacidad.maxNiños) || 0;
 
                                             capacidadAdultosTotal += maxA * item.cantidad;
                                             capacidadNinosTotal += maxN * item.cantidad;

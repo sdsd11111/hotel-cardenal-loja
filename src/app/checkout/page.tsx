@@ -203,10 +203,11 @@ export default function CheckoutPage() {
             return mTotal + (isIncluded ? 0 : price * totalGuests * item.cantidad * itemNoches);
         }, 0);
 
-        // Calculate children supplements
-        const extraNinos = childPricingPolicy === 'fixed'
-            ? (item.ninosEdades.filter((age: number) => age < childAgeThreshold).length * childFixedPrice * item.cantidad * itemNoches)
-            : 0;
+        // Calculate children supplements (Room-specific logic)
+        const ninosGratis = item.habitacion.ninos_gratis ?? item.habitacion.ninosGratis ?? 0;
+        const precioExtra = item.habitacion.precio_nino_extra ?? item.habitacion.precioNinoExtra ?? 0;
+
+        const extraNinos = Math.max(0, item.ninosEdades.length - ninosGratis) * precioExtra * item.cantidad * itemNoches;
 
         return acc + precioBase + extraComidas + extraNinos;
     }, 0);
@@ -374,9 +375,10 @@ export default function CheckoutPage() {
 
                                         return mTotal + (isIncluded ? 0 : price * totalGuests * item.cantidad * noches);
                                     }, 0);
-                                    const itemExtraNinos = childPricingPolicy === 'fixed'
-                                        ? (item.ninosEdades.filter((age: number) => age < childAgeThreshold).length * childFixedPrice * item.cantidad * noches)
-                                        : 0;
+                                    const ninosGratis = Number(item.habitacion.ninos_gratis ?? item.habitacion.ninosGratis ?? 0);
+                                    const precioExtra = Number(item.habitacion.precio_nino_extra ?? item.habitacion.precioNinoExtra ?? 0);
+
+                                    const itemExtraNinos = Math.max(0, item.ninosEdades.length - ninosGratis) * precioExtra * item.cantidad * noches;
 
                                     return (
                                         <div key={idx} className="space-y-1 pb-2 border-b border-blue-100 last:border-0 last:pb-0">
@@ -395,10 +397,20 @@ export default function CheckoutPage() {
                                                 </div>
                                             )}
                                             {item.ninos > 0 && (
-                                                <div className="flex justify-between text-[10px] text-blue-600 pl-2">
-                                                    <span>Niños ({item.ninos} pers.)</span>
-                                                    <span>{itemExtraNinos > 0 ? `US$${itemExtraNinos.toFixed(2)}` : 'Gratis'}</span>
-                                                </div>
+                                                <>
+                                                    {ninosGratis > 0 && (
+                                                        <div className="flex justify-between text-[10px] text-green-600 font-bold pl-2">
+                                                            <span>Niños gratis ({Math.min(item.ninos, ninosGratis)} pers.)</span>
+                                                            <span>¡Gratis!</span>
+                                                        </div>
+                                                    )}
+                                                    {item.ninos - ninosGratis > 0 && (
+                                                        <div className="flex justify-between text-[10px] text-blue-600 pl-2">
+                                                            <span>Niños extra ({item.ninos - ninosGratis} pers. × US${precioExtra.toFixed(2)})</span>
+                                                            <span>US${itemExtraNinos.toFixed(2)}</span>
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     );
@@ -598,9 +610,30 @@ export default function CheckoutPage() {
                                                     <span>{item.adultos} adultos</span>
                                                 </div>
                                                 {item.ninos > 0 && (
-                                                    <div className="flex items-center gap-2">
-                                                        <Sparkles className="w-4 h-4 text-amber-500" />
-                                                        <span>{item.ninos} niños</span>
+                                                    <div className="flex items-start gap-2">
+                                                        <Sparkles className="w-4 h-4 text-amber-500 mt-0.5" />
+                                                        <span className="flex flex-col">
+                                                            {(() => {
+                                                                const ninosGratisRoom = Number(item.habitacion.ninos_gratis ?? item.habitacion.ninosGratis ?? 0);
+                                                                const gratisActuales = Math.min(item.ninos, ninosGratisRoom);
+                                                                const extrasActuales = item.ninos - ninosGratisRoom;
+
+                                                                return (
+                                                                    <>
+                                                                        {gratisActuales > 0 && (
+                                                                            <span className="text-sm">
+                                                                                {gratisActuales} niño{gratisActuales !== 1 ? 's' : ''} gratis
+                                                                            </span>
+                                                                        )}
+                                                                        {extrasActuales > 0 && (
+                                                                            <span className="text-sm">
+                                                                                {extrasActuales} niño{extrasActuales !== 1 ? 's' : ''} extra
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </span>
                                                     </div>
                                                 )}
                                                 <div className="flex items-center gap-2">

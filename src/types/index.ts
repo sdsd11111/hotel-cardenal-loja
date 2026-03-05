@@ -107,6 +107,12 @@ export interface Habitacion {
     maxNiños: number;
     camas: number;
   };
+  // DB Fields
+  max_adultos?: number;
+  max_ninos?: number;
+  ninos_gratis?: number;
+  precio_nino_extra?: number;
+
   ninosGratis?: number;
   precioNinoExtra?: number;
   incluyeDesayuno?: boolean;
