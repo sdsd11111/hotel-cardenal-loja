@@ -406,7 +406,7 @@ export default function CheckoutPage() {
                                                     )}
                                                     {item.ninos - ninosGratis > 0 && (
                                                         <div className="flex justify-between text-[10px] text-blue-600 pl-2">
-                                                            <span>Niños extra ({item.ninos - ninosGratis} pers. × US${precioExtra.toFixed(2)})</span>
+                                                            <span>Niños extra ({item.ninos - ninosGratis} pers. × US${precioExtra.toFixed(2)}/noche × {noches} noche{noches > 1 ? 's' : ''})</span>
                                                             <span>US${itemExtraNinos.toFixed(2)}</span>
                                                         </div>
                                                     )}

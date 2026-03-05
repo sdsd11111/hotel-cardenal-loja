@@ -1735,14 +1735,31 @@ function HabitacionesContent() {
 
                                         let capacidadAdultosTotal = 0;
                                         let capacidadNinosTotal = 0;
+                                        let asignadosAdultos = 0;
+                                        let asignadosNinos = 0;
+                                        let asignadasHabs = 0;
+
                                         cart.forEach(item => {
                                             const maxA = Number(item.habitacion.capacidad.maxAdultos) || 0;
                                             const maxN = Number(item.habitacion.capacidad.maxNiños) || 0;
 
                                             capacidadAdultosTotal += maxA * item.cantidad;
                                             capacidadNinosTotal += maxN * item.cantidad;
+
+                                            asignadosAdultos += item.adultos;
+                                            asignadosNinos += item.ninos;
+                                            asignadasHabs += item.cantidad;
                                         });
 
+                                        // 1. Validar que se ha completado el filtro (todos los huéspedes y habitaciones)
+                                        if (asignadasHabs < appliedFilters.habitaciones || asignadosAdultos < appliedFilters.adultos || asignadosNinos < appliedFilters.ninos) {
+                                            setValidationMessage(`Para finalizar la reserva, debe completar su selección: ${appliedFilters.habitaciones} habs, ${appliedFilters.adultos} adultos y ${appliedFilters.ninos} niños.`);
+                                            window.scrollTo({ top: 300, behavior: 'smooth' });
+                                            setTimeout(() => setValidationMessage(''), 6000);
+                                            return;
+                                        }
+
+                                        // 2. Validar capacidad
                                         if (capacidadAdultosTotal < adultosEfectivos) {
                                             const thresholdTexto = childAgeThreshold ? ` (incluye niños de ${childAgeThreshold}+ años)` : '';
                                             setValidationMessage(`Debe seleccionar habitaciones con capacidad suficiente para ${adultosEfectivos} adultos${thresholdTexto}.`);
@@ -1751,7 +1768,7 @@ function HabitacionesContent() {
                                             return;
                                         }
 
-                                        const espaciosLibresAdultos = capacidadAdultosTotal - adultosEfectivos;
+                                        const espaciosLibresAdultos = Math.max(0, capacidadAdultosTotal - adultosEfectivos);
                                         if ((espaciosLibresAdultos + capacidadNinosTotal) < ninosEfectivos) {
                                             setValidationMessage(`Debe seleccionar habitaciones adicionales con capacidad para alojar a los niños pequeños.`);
                                             window.scrollTo({ top: 300, behavior: 'smooth' });
