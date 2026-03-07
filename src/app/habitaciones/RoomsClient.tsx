@@ -13,7 +13,7 @@ import { headerData, Habitacion, PriceOption } from '@/types';
 import {
     Bed, Eye, Briefcase, Coffee, Users, Tv, Bath, Car, Wind,
     ConciergeBell, Sparkles, Droplets, Award, Sofa, Wifi,
-    Calendar, X, Minus, Plus, Info, Loader2, Clock, Check, ShoppingCart, ArrowRight
+    Calendar, X, Minus, Plus, Info, Loader2, Clock, Check, ShoppingCart, ArrowRight, AlertTriangle
 } from 'lucide-react';
 
 
@@ -853,11 +853,30 @@ function HabitacionesContent() {
                 remAds -= addAds;
             }
 
-            // 3. Niños: Se asignan hasta agotar el target de capacidad de la habitación o los niños restantes
-            const maxNinos = Number(habitacion.max_ninos) || 0;
-            const addNins = Math.min(remNins, maxNinos);
-            itemNinos += addNins;
-            remNins -= addNins;
+            // 3. Niños: Se asignan de forma inteligente para maximizar el beneficio de "Niño Gratis" (1 por habitación)
+            const globalRooms = appliedFilters.habitaciones;
+            const totalNinos = globalNinos;
+            const roomsAlreadyInCart = prev.length;
+            const isFirstRoom = roomsAlreadyInCart === 0;
+
+            // Calculamos cuántos niños "sobran" si ponemos 1 por habitación
+            const overflowNinos = Math.max(0, totalNinos - globalRooms);
+
+            const maxNinosHab = Number(habitacion.max_ninos) || 0;
+
+            if (remNins > 0) {
+                if (isFirstRoom) {
+                    // La primera habitación toma su niño asignado + todo el overflow (si cabe)
+                    itemNinos = Math.min(maxNinosHab, 1 + overflowNinos);
+                } else {
+                    // Las siguientes habitaciones toman solo 1 niño si aún quedan
+                    itemNinos = Math.min(maxNinosHab, 1);
+                }
+
+                // Si por alguna razón remNins es menor a lo calculado (ej. inconsistencia), capamos
+                itemNinos = Math.min(itemNinos, remNins);
+                remNins -= itemNinos;
+            }
 
             // 4. Obtener las edades correctas para los niños asignados a esta habitación
             const itemEdades = globalEdades.slice(usedEdades, usedEdades + itemNinos);
@@ -943,7 +962,7 @@ function HabitacionesContent() {
         // VALIDACIÓN DE CARRITO COMPLETO SEGÚN FILTRO
         if (cart.length < appliedFilters.habitaciones) {
             const faltantes = appliedFilters.habitaciones - cart.length;
-            setValidationMessage(`Falta seleccionar ${faltantes} habitación${faltantes > 1 ? 'es' : ''} más para completar tu búsqueda de ${appliedFilters.habitaciones} habitaciones.`);
+            setValidationMessage(`Error: te falta colocar ${faltantes} habitacion${faltantes > 1 ? 'es' : ''}.`);
             window.scrollTo({ top: 300, behavior: 'smooth' });
             setTimeout(() => setValidationMessage(''), 7000);
             return;
@@ -962,7 +981,7 @@ function HabitacionesContent() {
 
         if (adultosEnCarrito < adultosEfectivosFiltrados) {
             const faltantes = adultosEfectivosFiltrados - adultosEnCarrito;
-            setValidationMessage(`Aún faltan ${faltantes} adulto${faltantes > 1 ? 's' : ''} por asignar en las habitaciones para llegar a los ${adultosEfectivosFiltrados} filtrados.`);
+            setValidationMessage(`Error: te falta colocar ${faltantes} adulto${faltantes > 1 ? 's' : ''}.`);
             window.scrollTo({ top: 300, behavior: 'smooth' });
             setTimeout(() => setValidationMessage(''), 7000);
             return;
@@ -970,7 +989,7 @@ function HabitacionesContent() {
 
         if (ninosEnCarrito < ninosEfectivosFiltrados) {
             const faltantes = ninosEfectivosFiltrados - ninosEnCarrito;
-            setValidationMessage(`Aún faltan ${faltantes} niño${faltantes > 1 ? 's' : ''} por asignar para llegar a los ${ninosEfectivosFiltrados} filtrados.`);
+            setValidationMessage(`Error: te falta colocar ${faltantes} niño${faltantes > 1 ? 's' : ''}.`);
             window.scrollTo({ top: 300, behavior: 'smooth' });
             setTimeout(() => setValidationMessage(''), 7000);
             return;
@@ -1723,97 +1742,96 @@ function HabitacionesContent() {
                                         </p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => {
-                                        let adultosEfectivos = appliedFilters.adultos + appliedFilters.ninosEdades.filter(age => age >= childAgeThreshold).length;
-                                        let ninosEfectivos = appliedFilters.ninosEdades.filter(age => age < childAgeThreshold).length;
 
-                                        if (childPricingPolicy === 'adult') {
-                                            adultosEfectivos = appliedFilters.adultos + appliedFilters.ninos;
-                                            ninosEfectivos = 0;
+                                <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto">
+                                    {/* Real-time Validation Feedback */}
+                                    {(() => {
+                                        const totalAds = cart.reduce((acc, curr) => acc + curr.adultos, 0);
+                                        const totalNins = cart.reduce((acc, curr) => acc + curr.ninos, 0);
+                                        const totalHabs = cart.length;
+
+                                        const adsDiff = totalAds - appliedFilters.adultos;
+                                        const ninsDiff = totalNins - appliedFilters.ninos;
+                                        const habsDiff = totalHabs - appliedFilters.habitaciones;
+
+                                        const isExact = adsDiff === 0 && ninsDiff === 0 && habsDiff === 0;
+
+                                        if (isExact) {
+                                            return (
+                                                <div className="flex items-center gap-1 text-[10px] font-bold text-cardenal-gold animate-bounce">
+                                                    <Check className="w-3 h-3" /> ¡SELECCIÓN COMPLETA!
+                                                </div>
+                                            );
                                         }
 
-                                        let capacidadAdultosTotal = 0;
-                                        let capacidadNinosTotal = 0;
-                                        let asignadosAdultos = 0;
-                                        let asignadosNinos = 0;
-                                        let asignadasHabs = 0;
+                                        const messages = [];
+                                        if (habsDiff < 0) messages.push(`Te falta colocar ${Math.abs(habsDiff)} hab.`);
+                                        if (habsDiff > 0) messages.push(`Te sobra colocar ${habsDiff} hab.`);
+                                        if (adsDiff < 0) messages.push(`Te falta colocar ${Math.abs(adsDiff)} adulto${Math.abs(adsDiff) > 1 ? 's' : ''}.`);
+                                        if (adsDiff > 0) messages.push(`Te sobra colocar ${adsDiff} adulto${adsDiff > 1 ? 's' : ''}.`);
+                                        if (ninsDiff < 0) messages.push(`Te falta colocar ${Math.abs(ninsDiff)} niño${Math.abs(ninsDiff) > 1 ? 's' : ''}.`);
+                                        if (ninsDiff > 0) messages.push(`Te sobra colocar ${ninsDiff} niño${ninsDiff > 1 ? 's' : ''}.`);
 
-                                        cart.forEach(item => {
-                                            const maxA = Number(item.habitacion.capacidad.maxAdultos) || 0;
-                                            const maxN = Number(item.habitacion.capacidad.maxNiños) || 0;
+                                        return (
+                                            <div className="flex flex-col items-center md:items-end gap-1">
+                                                {messages.map((msg, idx) => (
+                                                    <div key={idx} className="flex items-center gap-1 text-[10px] font-bold text-amber-300">
+                                                        <AlertTriangle className="w-3 h-3" /> {msg}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
 
-                                            capacidadAdultosTotal += maxA * item.cantidad;
-                                            capacidadNinosTotal += maxN * item.cantidad;
+                                    <button
+                                        onClick={() => {
+                                            const totalAds = cart.reduce((acc, curr) => acc + curr.adultos, 0);
+                                            const totalNins = cart.reduce((acc, curr) => acc + curr.ninos, 0);
+                                            const totalHabs = cart.length;
 
-                                            asignadosAdultos += item.adultos;
-                                            asignadosNinos += item.ninos;
-                                            asignadasHabs += item.cantidad;
-                                        });
+                                            const adsDiff = totalAds - appliedFilters.adultos;
+                                            const ninsDiff = totalNins - appliedFilters.ninos;
+                                            const habsDiff = totalHabs - appliedFilters.habitaciones;
 
-                                        // 1. Validar que se ha completado el filtro (todos los huéspedes y habitaciones)
-                                        if (asignadasHabs < appliedFilters.habitaciones || asignadosAdultos < appliedFilters.adultos || asignadosNinos < appliedFilters.ninos) {
-                                            setValidationMessage(`Para finalizar la reserva, debe completar su selección: ${appliedFilters.habitaciones} habs, ${appliedFilters.adultos} adultos y ${appliedFilters.ninos} niños.`);
-                                            window.scrollTo({ top: 300, behavior: 'smooth' });
-                                            setTimeout(() => setValidationMessage(''), 6000);
-                                            return;
-                                        }
+                                            if (habsDiff !== 0 || adsDiff !== 0 || ninsDiff !== 0) {
+                                                const action = (diff: number) => diff < 0 ? 'falta' : 'sobra';
+                                                let errorMsg = 'Error: ';
+                                                if (habsDiff !== 0) errorMsg += `te ${action(habsDiff)} colocar ${Math.abs(habsDiff)} habitacion${Math.abs(habsDiff) > 1 ? 'es' : ''}.`;
+                                                else if (adsDiff !== 0) errorMsg += `te ${action(adsDiff)} colocar ${Math.abs(adsDiff)} adulto${Math.abs(adsDiff) > 1 ? 's' : ''}.`;
+                                                else if (ninsDiff !== 0) errorMsg += `te ${action(ninsDiff)} colocar ${Math.abs(ninsDiff)} niño${Math.abs(ninsDiff) > 1 ? 's' : ''}.`;
 
-                                        // 2. Validar capacidad
-                                        if (capacidadAdultosTotal < adultosEfectivos) {
-                                            const thresholdTexto = childAgeThreshold ? ` (incluye niños de ${childAgeThreshold}+ años)` : '';
-                                            setValidationMessage(`Debe seleccionar habitaciones con capacidad suficiente para ${adultosEfectivos} adultos${thresholdTexto}.`);
-                                            window.scrollTo({ top: 300, behavior: 'smooth' });
-                                            setTimeout(() => setValidationMessage(''), 6000);
-                                            return;
-                                        }
+                                                setValidationMessage(errorMsg);
+                                                window.scrollTo({ top: 300, behavior: 'smooth' });
+                                                setTimeout(() => setValidationMessage(''), 7000);
+                                                return;
+                                            }
 
-                                        const espaciosLibresAdultos = Math.max(0, capacidadAdultosTotal - adultosEfectivos);
-                                        if ((espaciosLibresAdultos + capacidadNinosTotal) < ninosEfectivos) {
-                                            setValidationMessage(`Debe seleccionar habitaciones adicionales con capacidad para alojar a los niños pequeños.`);
-                                            window.scrollTo({ top: 300, behavior: 'smooth' });
-                                            setTimeout(() => setValidationMessage(''), 6000);
-                                            return;
-                                        }
+                                            localStorage.setItem('pendingCheckoutCart', JSON.stringify(cart));
+                                            localStorage.removeItem('savedReservaId');
+                                            localStorage.removeItem('clientTxId');
 
-                                        localStorage.setItem('pendingCheckoutCart', JSON.stringify(cart));
-
-                                        // Clear stale session IDs for new checkout
-                                        localStorage.removeItem('savedReservaId');
-                                        localStorage.removeItem('clientTxId');
-
-                                        // Compatibility fallback: save the first item as the "single" item
-                                        const firstItem = cart[0];
-                                        const noches = (() => {
-                                            if (!fechaEntrada || !fechaSalida) return 1;
-                                            const start = new Date(fechaEntrada);
-                                            const end = new Date(fechaSalida);
-                                            return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-                                        })();
-
-                                        localStorage.setItem('pendingCheckout', JSON.stringify({
-                                            habitacion: firstItem.habitacion,
-                                            option: firstItem.opcionPrecio,
-                                            cantidad: cart.length,
-                                            fechaEntrada,
-                                            fechaSalida,
-                                            comidas: firstItem.comidas,
-                                            adultos: firstItem.adultos,
-                                            ninos: firstItem.ninos,
-                                            ninosEdades: firstItem.ninosEdades,
-                                            childPricingPolicy,
-                                            childFixedPrice,
-                                            childAgeThreshold,
-                                            isMultiRoom: cart.length > 1
-                                        }));
-
-                                        window.location.href = '/checkout';
-                                    }}
-                                    className="w-full md:w-auto bg-cardenal-gold hover:bg-white hover:text-cardenal-green text-cardenal-green-dark font-black py-3 px-8 rounded-xl transition-all duration-300 shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 group"
-                                >
-                                    Finalizar Reserva
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                </button>
+                                            const firstItem = cart[0];
+                                            window.location.href = '/checkout';
+                                        }}
+                                        disabled={(() => {
+                                            const totalAds = cart.reduce((acc, curr) => acc + curr.adultos, 0);
+                                            const totalNins = cart.reduce((acc, curr) => acc + curr.ninos, 0);
+                                            const totalHabs = cart.length;
+                                            return totalAds !== appliedFilters.adultos || totalNins !== appliedFilters.ninos || totalHabs !== appliedFilters.habitaciones;
+                                        })()}
+                                        className={cn(
+                                            "w-full md:w-auto font-black py-3 px-8 rounded-xl transition-all duration-300 shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 group",
+                                            (cart.length === appliedFilters.habitaciones &&
+                                                cart.reduce((a, c) => a + c.adultos, 0) === appliedFilters.adultos &&
+                                                cart.reduce((a, c) => a + c.ninos, 0) === appliedFilters.ninos)
+                                                ? "bg-cardenal-gold hover:bg-white hover:text-cardenal-green text-cardenal-green-dark"
+                                                : "bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
+                                        )}
+                                    >
+                                        Finalizar Reserva
+                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

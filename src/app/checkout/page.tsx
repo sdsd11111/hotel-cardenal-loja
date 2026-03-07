@@ -714,23 +714,46 @@ export default function CheckoutPage() {
                                                             reserva_para: formData.reservaPara,
                                                             pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
                                                             peticiones: formData.peticiones,
-                                                            // Pass multiple rooms as serialized JSON (include dates & customer info for reservation creation)
-                                                            rooms: JSON.stringify(itemsToProcess.map(it => ({
-                                                                habitacion_id: it.habitacion.id,
-                                                                habitacion_nombre: it.habitacion.nombre,
-                                                                fecha_entrada: fechaEntrada,
-                                                                fecha_salida: fechaSalida,
-                                                                nombre_cliente: `${formData.nombre} ${formData.apellido}`,
-                                                                email_cliente: formData.email,
-                                                                whatsapp: `${formData.codigoPais}${formData.telefono}`,
-                                                                adultos: it.adultos,
-                                                                ninos: it.ninos,
-                                                                precio: (it.opcionPrecio.precioBase * it.cantidad * noches) * 1.15,
-                                                                pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
-                                                                estado: 'OK',
-                                                                peticiones: formData.peticiones,
-                                                                reserva_para: formData.reservaPara
-                                                            })))
+                                                            rooms: JSON.stringify(itemsToProcess.map(it => {
+                                                                const itNoches = noches;
+                                                                const itBase = it.opcionPrecio.precioBase * it.cantidad * itNoches;
+
+                                                                const itExtraMeals = Object.entries(it.comidas || {}).reduce((mTotal: number, [meal, selected]) => {
+                                                                    if (!selected) return mTotal;
+                                                                    const isIncluded = meal === 'desayuno' ? it.habitacion.incluyeDesayuno :
+                                                                        meal === 'almuerzo' ? it.habitacion.incluyeAlmuerzo :
+                                                                            it.habitacion.incluyeCena;
+                                                                    const price = meal === 'desayuno' ? mealSettings.breakfast :
+                                                                        meal === 'almuerzo' ? mealSettings.lunch :
+                                                                            mealSettings.dinner;
+                                                                    const totalGuests = (it.adultos || 0) + (it.ninosEdades?.length || 0);
+                                                                    return mTotal + (isIncluded ? 0 : price * totalGuests * it.cantidad * itNoches);
+                                                                }, 0);
+
+                                                                const itNGratis = Number(it.habitacion.ninos_gratis ?? it.habitacion.ninosGratis ?? 0);
+                                                                const itPExtra = Number(it.habitacion.precio_nino_extra ?? it.habitacion.precioNinoExtra ?? 0);
+                                                                const itExtraNinos = Math.max(0, it.ninosEdades.length - itNGratis) * itPExtra * it.cantidad * itNoches;
+
+                                                                const itemTotalSinIVA = itBase + itExtraMeals + itExtraNinos;
+                                                                const itemTotalConIVA = itemTotalSinIVA * 1.15;
+
+                                                                return {
+                                                                    habitacion_id: it.habitacion.id,
+                                                                    habitacion_nombre: it.habitacion.nombre,
+                                                                    fecha_entrada: fechaEntrada,
+                                                                    fecha_salida: fechaSalida,
+                                                                    nombre_cliente: `${formData.nombre} ${formData.apellido}`,
+                                                                    email_cliente: formData.email,
+                                                                    whatsapp: `${formData.codigoPais}${formData.telefono}`,
+                                                                    adultos: it.adultos,
+                                                                    ninos: it.ninos,
+                                                                    precio: itemTotalConIVA,
+                                                                    pais: formData.pais === 'Otro' ? formData.paisOtro : formData.pais,
+                                                                    estado: 'OK',
+                                                                    peticiones: formData.peticiones,
+                                                                    reserva_para: formData.reservaPara
+                                                                };
+                                                            }))
                                                         });
                                                         router.push(`/checkout/pagos?${params.toString()}`);
                                                     }}
