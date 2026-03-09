@@ -785,6 +785,29 @@ function HabitacionesContent() {
         setFiltroAdultos(0);
         setFiltroNinos(0);
         setNinosEdades([]);
+        setFiltroHabitaciones(1);
+        setCart([]);
+
+        // Reset applied filters state
+        const resetApplied = {
+            entrada: fechaEntrada,
+            salida: fechaSalida,
+            habitaciones: 1,
+            adultos: 0,
+            ninos: 0,
+            ninosEdades: []
+        };
+        setAppliedFilters(resetApplied);
+
+        // Update URL to remove filter params but keep dates
+        const params = new URLSearchParams();
+        if (fechaEntrada) params.set('entrada', fechaEntrada);
+        if (fechaSalida) params.set('salida', fechaSalida);
+
+        router.push(`/habitaciones?${params.toString()}`, { scroll: false });
+
+        // Trigger a fresh fetch with empty filters
+        fetchHabitaciones(fechaEntrada, fechaSalida);
     };
 
     const getRoomType = (nombre: string) => {
