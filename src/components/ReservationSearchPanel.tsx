@@ -27,6 +27,7 @@ interface ReservationSearchPanelProps {
     showCart?: boolean;
     sticky?: boolean;
     className?: string;
+    maxHabitaciones?: number;
 }
 
 export default function ReservationSearchPanel({
@@ -45,7 +46,8 @@ export default function ReservationSearchPanel({
     onCartClick,
     showCart = true,
     sticky = true,
-    className = ''
+    className = '',
+    maxHabitaciones = 6
 }: ReservationSearchPanelProps) {
     const today = new Date().toISOString().split('T')[0];
 
@@ -87,7 +89,7 @@ export default function ReservationSearchPanel({
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2">
                             <Filter className="w-4 h-4 inline mr-1" />
-                            Habitaciones
+                            Habitaciones {maxHabitaciones < 6 && <span className="text-xs text-amber-600">({maxHabitaciones} disp.)</span>}
                         </label>
                         <div className="flex items-center gap-2">
                             <button
@@ -99,9 +101,10 @@ export default function ReservationSearchPanel({
                             </button>
                             <span className="w-12 text-center font-bold">{habitaciones}</span>
                             <button
-                                onClick={() => onHabitacionesChange(Math.min(6, habitaciones + 1))}
-                                className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                                onClick={() => onHabitacionesChange(Math.min(maxHabitaciones, habitaciones + 1))}
+                                className={`p-2 rounded-lg transition-colors ${habitaciones >= maxHabitaciones ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 hover:bg-gray-300'}`}
                                 type="button"
+                                disabled={habitaciones >= maxHabitaciones}
                             >
                                 <Plus className="w-4 h-4" />
                             </button>

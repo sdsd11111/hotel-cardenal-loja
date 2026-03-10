@@ -15,6 +15,7 @@ interface CompactReservationSearchProps {
     onAdultosChange: (cantidad: number) => void;
     onNinosChange: (cantidad: number) => void;
     onReservarClick: () => void;
+    maxHabitaciones?: number;
 }
 
 export default function CompactReservationSearch({
@@ -28,7 +29,8 @@ export default function CompactReservationSearch({
     ninos,
     onAdultosChange,
     onNinosChange,
-    onReservarClick
+    onReservarClick,
+    maxHabitaciones = 6
 }: CompactReservationSearchProps) {
     const today = new Date().toISOString().split('T')[0];
 
@@ -74,9 +76,10 @@ export default function CompactReservationSearch({
                 <span className="text-xs font-black text-cardenal-green font-serif">#</span>
                 <span className="text-xs font-black min-w-[12px] text-center font-sans text-cardenal-green">{habitaciones}</span>
                 <button
-                    onClick={() => onHabitacionesChange(Math.min(6, habitaciones + 1))}
-                    className="p-0.5 bg-cardenal-sand hover:bg-cardenal-gold hover:text-white rounded transition-colors"
+                    onClick={() => onHabitacionesChange(Math.min(maxHabitaciones, habitaciones + 1))}
+                    className={`p-0.5 rounded transition-colors ${habitaciones >= maxHabitaciones ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-cardenal-sand hover:bg-cardenal-gold hover:text-white'}`}
                     type="button"
+                    disabled={habitaciones >= maxHabitaciones}
                 >
                     <Plus className="w-2.5 h-2.5" />
                 </button>

@@ -440,6 +440,39 @@ export default function RecepcionPage() {
         }
     };
 
+    // Calcular porcentaje de ocupación mensual por habitación
+    const getOccupancyPercent = (roomId: number): number => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+        const monthStart = new Date(year, month, 1);
+        const monthEnd = new Date(year, month + 1, 0);
+
+        // Contar días únicos ocupados en este mes
+        const occupiedDays = new Set<string>();
+        reservas.forEach(r => {
+            if (Number(r.habitacion_id) !== roomId) return;
+            if (r.estado === 'CANCELADA') return;
+
+            const checkIn = new Date(String(r.fecha_entrada).split('T')[0] + 'T12:00:00');
+            const checkOut = new Date(String(r.fecha_salida).split('T')[0] + 'T12:00:00');
+
+            // Iterar cada día de la reserva que caiga dentro del mes actual
+            const start = checkIn < monthStart ? monthStart : checkIn;
+            const end = checkOut > monthEnd ? new Date(monthEnd.getTime() + 86400000) : checkOut;
+
+            const cursor = new Date(start);
+            while (cursor < end) {
+                if (cursor.getMonth() === month && cursor.getFullYear() === year) {
+                    occupiedDays.add(cursor.toISOString().split('T')[0]);
+                }
+                cursor.setDate(cursor.getDate() + 1);
+            }
+        });
+
+        return Math.round((occupiedDays.size / totalDays) * 100);
+    };
+
     return (
         <div className="h-screen overflow-hidden bg-[#fafafa] flex flex-col font-sans">
             {/* Header */}
@@ -468,47 +501,68 @@ export default function RecepcionPage() {
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar: Rooms */}
-                <aside className="w-80 bg-white border-r-2 border-gray-300 overflow-y-auto p-6 flex flex-col gap-4">
-                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-black border-b-2 border-gray-200 pb-2 mb-2">Seleccionar Habitación</h3>
-                    {rooms.length === 0 && (
-                        <div className="flex items-center justify-center p-8 text-gray-400">
-                            <Loader2 className="w-6 h-6 animate-spin mr-2" /> Cargando...
-                        </div>
-                    )}
-                    {rooms.map((room) => (
-                        <button
-                            key={room.id}
-                            onClick={() => setSelectedRoom(room)}
-                            className={cn(
-                                "flex flex-col p-5 rounded-2xl border-4 transition-all duration-300 text-left relative overflow-hidden group shadow-sm",
-                                selectedRoom?.id === room.id
-                                    ? "border-cardenal-gold bg-cardenal-gold/10 shadow-lg"
-                                    : "border-gray-200 bg-white hover:border-gray-400 hover:shadow-md"
-                            )}
-                        >
-                            {selectedRoom?.id === room.id && (
-                                <div className="absolute top-3 right-3">
-                                    <CheckCircle2 className="w-6 h-6 text-cardenal-gold" />
-                                </div>
-                            )}
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className={cn("p-3 rounded-xl border-2 border-black/10", room.color)}>
-                                    <Bed className="w-7 h-7 text-gray-900" />
-                                </div>
-                                <div>
-                                    <span className="text-xs font-black text-black uppercase bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{room.type}</span>
-                                    <h4 className="text-xl font-black text-gray-900 tracking-tight mt-1">{room.name}</h4>
-                                </div>
+                <aside className="w-96 bg-white border-r-2 border-gray-300 flex flex-col h-full overflow-hidden">
+                    <div className="p-4 flex-none">
+                        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-black border-b-2 border-gray-200 pb-2">Seleccionar Habitación</h3>
+                    </div>
+                    <div className="flex-1 grid grid-rows-6 overflow-hidden">
+                        {rooms.length === 0 && (
+                            <div className="row-span-6 flex items-center justify-center p-8 text-gray-400">
+                                <Loader2 className="w-6 h-6 animate-spin mr-2" /> Cargando...
                             </div>
-                            <div className="flex items-center justify-between mt-3">
-                                <div className="flex items-center gap-2 text-sm font-black text-black bg-gray-100 px-3 py-1 rounded-lg border border-gray-300">
-                                    <Users className="w-4 h-4" />
-                                    <span>Cap: {room.capacity}</span>
+                        )}
+                        {rooms.map((room) => (
+                            <button
+                                key={room.id}
+                                onClick={() => setSelectedRoom(room)}
+                                className={cn(
+                                    "flex flex-col justify-center px-6 py-2 border-b transition-all duration-300 text-left relative group",
+                                    selectedRoom?.id === room.id
+                                        ? "bg-cardenal-gold/10 border-l-[12px] border-cardenal-gold"
+                                        : "bg-white border-l-[12px] border-transparent hover:bg-gray-50"
+                                )}
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn("p-1.5 rounded-lg border border-black/5", room.color)}>
+                                            <Bed className="w-5 h-5 text-gray-900" />
+                                        </div>
+                                        <h4 className="text-base font-black text-gray-900 tracking-tight leading-none">{room.name}</h4>
+                                    </div>
+                                    {selectedRoom?.id === room.id && (
+                                        <CheckCircle2 className="w-5 h-5 text-cardenal-gold flex-none" />
+                                    )}
                                 </div>
-                                <span className="text-lg font-black text-cardenal-gold tracking-tighter"># {room.num}</span>
-                            </div>
-                        </button>
-                    ))}
+                                {/* Ocupación mensual */}
+                                {(() => {
+                                    const pct = getOccupancyPercent(room.id);
+                                    // Colores más vibrantes para que se vean bien
+                                    const barColor = pct >= 80 ? 'bg-red-500' : pct >= 50 ? 'bg-orange-500' : pct >= 20 ? 'bg-green-500' : 'bg-gray-300';
+                                    // Texto siempre oscuro o color fuerte
+                                    const textColor = pct >= 80 ? 'text-red-700' : pct >= 50 ? 'text-orange-700' : pct >= 20 ? 'text-green-700' : 'text-gray-700';
+                                    return (
+                                        <div className="mt-1 mb-0.5 px-0.5">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">Ocupación Mes</span>
+                                                <span className={cn("text-xs font-black bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200", textColor)}>
+                                                    {pct}%
+                                                </span>
+                                            </div>
+                                            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden border border-gray-200 shadow-inner">
+                                                <div
+                                                    className={cn("h-full rounded-full transition-all duration-700 ease-out", barColor)}
+                                                    style={{ width: `${Math.max(pct, 2)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                                <div className="flex items-center justify-between mt-0.5">
+                                    <span className="text-xs font-black text-cardenal-gold/80 uppercase tracking-tighter">Habitación # {room.num}</span>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
                 </aside>
 
                 {/* Main Content: Calendar */}

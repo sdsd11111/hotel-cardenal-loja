@@ -146,6 +146,7 @@ function HabitacionesContent() {
     const [filtroAdultos, setFiltroAdultos] = useState(0);
     const [filtroNinos, setFiltroNinos] = useState(0);
     const [ninosEdades, setNinosEdades] = useState<number[]>([]);
+    const [maxHabitacionesDisponibles, setMaxHabitacionesDisponibles] = useState(6);
 
     const [childAgeThreshold, setChildAgeThreshold] = useState(8);
     const [childPricingPolicy, setChildPricingPolicy] = useState('free');
@@ -243,7 +244,7 @@ function HabitacionesContent() {
 
     const handleHabitacionesChange = (val: number) => {
         const minRooms = getMinRoomsNeeded(filtroAdultos, filtroNinos);
-        setFiltroHabitaciones(Math.max(minRooms, val));
+        setFiltroHabitaciones(Math.max(minRooms, Math.min(val, maxHabitacionesDisponibles)));
     };
 
     const getCombinacionSugerida = (adultos: number, ninos: number, Habitaciones: number): string => {
@@ -619,6 +620,16 @@ function HabitacionesContent() {
             });
 
             setHabitaciones(mappedData);
+
+            // Calcular máximo de habitaciones disponibles dinámicamente
+            const disponiblesCount = mappedData.filter(h => h.disponible).length;
+            const nuevoMax = disponiblesCount > 0 ? disponiblesCount : 6;
+            setMaxHabitacionesDisponibles(nuevoMax);
+
+            // Auto-clamp: si el filtro actual excede el nuevo máximo, ajustarlo
+            if (filtroHabitaciones > nuevoMax) {
+                setFiltroHabitaciones(nuevoMax);
+            }
 
             // Initialize pendingMeals for each room - Preserve existing state if present to avoid UI reset
             setPendingMeals(prev => {
@@ -1210,12 +1221,18 @@ function HabitacionesContent() {
                                     </button>
                                     <span className="w-5 md:w-10 text-center font-bold text-gray-800 text-[10px] md:text-base">{filtroHabitaciones}</span>
                                     <button
-                                        onClick={() => handleHabitacionesChange(Math.min(6, filtroHabitaciones + 1))}
+                                        onClick={() => handleHabitacionesChange(Math.min(maxHabitacionesDisponibles, filtroHabitaciones + 1))}
+                                        disabled={filtroHabitaciones >= maxHabitacionesDisponibles}
                                         className="p-1 md:p-2 bg-gray-100 md:bg-gray-200 hover:bg-amber-500 hover:text-white rounded transition-all"
                                         type="button"
                                     >
                                         <Plus className="w-2.5 h-2.5 md:w-4 md:h-4" />
                                     </button>
+                                    {(fechaEntrada && fechaSalida && maxHabitacionesDisponibles < 6) && (
+                                        <span className="text-[8px] md:text-xs text-amber-600 font-bold ml-1 whitespace-nowrap">
+                                            ({maxHabitacionesDisponibles} disp.)
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
