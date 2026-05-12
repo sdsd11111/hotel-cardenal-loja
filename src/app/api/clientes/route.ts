@@ -137,18 +137,19 @@ export async function POST(request: Request) {
 
         const clienteId = result.insertId;
 
-        // Send confirmation email to client
-        try {
-            const comidas = [
-                data.desayuno ? 'Desayuno' : '',
-                data.almuerzo ? 'Almuerzo' : '',
-                data.cena ? 'Cena' : ''
-            ].filter(Boolean).join(', ') || 'No seleccionadas';
+        // Send confirmation email to client if available
+        if (data.email) {
+            try {
+                const comidas = [
+                    data.desayuno ? 'Desayuno' : '',
+                    data.almuerzo ? 'Almuerzo' : '',
+                    data.cena ? 'Cena' : ''
+                ].filter(Boolean).join(', ') || 'No seleccionadas';
 
-            await transporter.sendMail({
-                from: process.env.EMAIL_FROM,
-                to: data.email,
-                subject: '✅ Confirmación de Solicitud - Hotel El Cardenal Loja',
+                await transporter.sendMail({
+                    from: process.env.EMAIL_FROM,
+                    to: data.email,
+                    subject: '✅ Confirmación de Solicitud - Hotel El Cardenal Loja',
                 html: `
                     <!DOCTYPE html>
                     <html>
@@ -218,8 +219,8 @@ export async function POST(request: Request) {
             });
         } catch (emailError) {
             console.error('Error sending confirmation email:', emailError);
-            // Don't fail the request if email fails
         }
+    }
 
         // Also send notification to hotel
         try {
@@ -230,7 +231,7 @@ export async function POST(request: Request) {
                 html: `
                     <h2>Nueva solicitud recibida</h2>
                     <p><strong>Cliente:</strong> ${data.nombre} ${data.apellidos || ''}</p>
-                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Email:</strong> ${data.email || 'No proporcionado'}</p>
                     <p><strong>Teléfono:</strong> ${data.telefono || 'No proporcionado'}</p>
                     <p><strong>Motivo:</strong> ${data.motivo || 'Consulta General'}</p>
                     <p><strong>Fecha:</strong> ${fechaEntrada || 'N/A'}</p>
