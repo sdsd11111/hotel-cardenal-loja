@@ -14,7 +14,11 @@ export async function GET() {
 
     console.log(`Se encontraron ${Array.isArray(platos) ? platos.length : 0} platos activos`);
 
-    return NextResponse.json(platos);
+    return NextResponse.json(platos, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Error inesperado consultando MySQL:', error);
     return NextResponse.json(

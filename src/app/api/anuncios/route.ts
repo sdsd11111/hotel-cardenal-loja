@@ -20,7 +20,11 @@ export async function GET(request: Request) {
 
         const anuncios = await query(sql);
         console.log('DEBUG: anuncios returned:', JSON.stringify(anuncios).substring(0, 200));
-        return NextResponse.json(anuncios);
+        return NextResponse.json(anuncios, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+            },
+        });
     } catch (error: any) {
         console.error('Error fetching anuncios:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

@@ -35,11 +35,15 @@ export async function GET(request: Request) {
 
         const results = await query(sql, params);
 
+        const cacheHeaders = {
+            'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200',
+        };
+
         if (slug && Array.isArray(results) && results.length > 0) {
-            return NextResponse.json({ success: true, data: results[0] });
+            return NextResponse.json({ success: true, data: results[0] }, { headers: cacheHeaders });
         }
 
-        return NextResponse.json({ success: true, data: results });
+        return NextResponse.json({ success: true, data: results }, { headers: cacheHeaders });
     } catch (error) {
         console.error('Error en GET /api/blog (MySQL):', error);
         return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
