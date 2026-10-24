@@ -165,12 +165,25 @@ export default function RecepcionPage() {
         fetchReservas();
     }, [fetchReservas, refreshCount]);
 
-    // Auto-refresh cada 30 segundos para ver reservas online nuevas
+    // Auto-refresh inteligente para ver reservas online nuevas (solo cuando la pestaña está en uso)
     useEffect(() => {
         const interval = setInterval(() => {
-            setRefreshCount(prev => prev + 1);
-        }, 30000); // 30 segundos
-        return () => clearInterval(interval);
+            if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+                setRefreshCount(prev => prev + 1);
+            }
+        }, 60000); // 60 segundos si está mirando la pantalla
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                setRefreshCount(prev => prev + 1);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, []);
 
     // Generar días del mes para el calendario

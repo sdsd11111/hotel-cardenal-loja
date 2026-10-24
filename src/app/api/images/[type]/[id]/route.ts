@@ -35,7 +35,7 @@ export async function GET(
         return new NextResponse(image, {
             headers: {
                 'Content-Type': mime,
-                'Cache-Control': 'no-store, max-age=0',
+                'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400',
             },
         });
     } catch (error) {

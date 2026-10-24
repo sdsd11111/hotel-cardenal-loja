@@ -365,15 +365,27 @@ function HabitacionesContent() {
         };
         fetchData();
 
-        // Auto-refresh every 10 seconds to keep availability up to date
+        // Auto-refresh inteligente: solo cada 90s y únicamente si la pestaña está activa y visible
         const refreshInterval = setInterval(() => {
-            // Background refresh WITHOUT showing the loading spinner
-            // We use the Ref to get the LATEST applied filters even inside this closure
-            const filters = appliedFiltersRef.current;
-            fetchHabitaciones(filters.entrada, filters.salida, 0, undefined, true);
-        }, 10000);
+            if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+                const filters = appliedFiltersRef.current;
+                fetchHabitaciones(filters.entrada, filters.salida, 0, undefined, true);
+            }
+        }, 90000);
 
-        return () => clearInterval(refreshInterval);
+        // Además, si el usuario vuelve a la pestaña tras haberla dejado en segundo plano, refrescar en ese momento
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                const filters = appliedFiltersRef.current;
+                fetchHabitaciones(filters.entrada, filters.salida, 0, undefined, true);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(refreshInterval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, []);
 
     const handleAplicarFiltros = () => {
