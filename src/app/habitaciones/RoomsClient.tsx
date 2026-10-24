@@ -487,10 +487,7 @@ function HabitacionesContent() {
             if (ent) params.append('entrada', ent);
             if (sal) params.append('salida', sal);
 
-            // Bypass cache with timestamp
-            params.append('_t', Date.now().toString());
-
-            const response = await fetch(`/api/habitaciones?${params.toString()}`, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+            const response = await fetch(`/api/habitaciones?${params.toString()}`, { cache: 'no-store' });
 
 
             if (!response.ok) {

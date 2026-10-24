@@ -62,7 +62,7 @@ export const RoomDetailsModal: React.FC<RoomDetailsModalProps> = ({ habitacion, 
                 {/* Image Section */}
                 <div className="w-full md:w-1/2 relative h-64 md:h-auto min-h-[400px]">
                     <Image
-                        src={habitacion.imagen ? (habitacion.imagen.startsWith('/api') ? `${habitacion.imagen}${habitacion.imagen.includes('?') ? '&' : '?'}v=${Date.now()}` : habitacion.imagen) : '/placeholder.jpg'}
+                        src={habitacion.imagen || '/placeholder.jpg'}
                         alt={habitacion.nombre}
                         fill
                         className="object-cover"

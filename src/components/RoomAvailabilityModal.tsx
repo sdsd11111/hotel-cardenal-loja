@@ -449,7 +449,7 @@ export const RoomAvailabilityModal: React.FC<RoomAvailabilityModalProps> = ({
                         {/* Room Image */}
                         <div className="mt-4 relative aspect-video rounded overflow-hidden">
                             <Image
-                                src={habitacion.imagen ? (habitacion.imagen.startsWith('/api') ? `${habitacion.imagen}${habitacion.imagen.includes('?') ? '&' : '?'}v=${Date.now()}` : habitacion.imagen) : '/placeholder.jpg'}
+                                src={habitacion.imagen || '/placeholder.jpg'}
                                 alt={habitacion.nombre}
                                 fill
                                 className="object-cover"
