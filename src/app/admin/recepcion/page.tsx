@@ -140,7 +140,6 @@ export default function RecepcionPage() {
     }, []);
 
     const fetchReservas = useCallback(async () => {
-        if (!selectedRoom) return;
         setLoading(true);
         try {
             const year = currentDate.getFullYear();
@@ -158,9 +157,9 @@ export default function RecepcionPage() {
         } finally {
             setLoading(false);
         }
-    }, [currentDate, selectedRoom]);
+    }, [currentDate]);
 
-    // Efecto para refresh manual o automático
+    // Efecto para refresh manual o automático (solo cambia si cambia el mes o refreshCount)
     useEffect(() => {
         fetchReservas();
     }, [fetchReservas, refreshCount]);

@@ -5,7 +5,11 @@ import { query } from '@/lib/mysql';
 export async function GET() {
     try {
         const settings = await query('SELECT * FROM hotel_settings ORDER BY category, display_name');
-        return NextResponse.json(settings);
+        return NextResponse.json(settings, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+            },
+        });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

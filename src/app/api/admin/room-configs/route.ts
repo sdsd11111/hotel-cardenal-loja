@@ -14,7 +14,11 @@ export async function GET() {
             seasonal_prices: seasonalPrices.filter(sp => sp.room_config_id === config.id)
         }));
 
-        return NextResponse.json(configsWithSeasons);
+        return NextResponse.json(configsWithSeasons, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+            },
+        });
     } catch (error: any) {
         console.error('API Error fetching room configs:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
